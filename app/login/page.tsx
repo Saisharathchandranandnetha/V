@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/submit-button'
 
 export default async function LoginPage(props: { searchParams: Promise<{ message: string, error: string }> }) {
     const searchParams = await props.searchParams
@@ -34,8 +35,8 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
                         )}
 
                         <div className="flex flex-col gap-2 pt-2">
-                            <Button formAction={login} className="w-full">Sign In</Button>
-                            <Button formAction={signup} variant="outline" className="w-full">Sign Up</Button>
+                            <SubmitButton formAction={login} className="w-full">Sign In</SubmitButton>
+                            <SubmitButton formAction={signup} variant="outline" className="w-full">Sign Up</SubmitButton>
                         </div>
                     </form>
                 </CardContent>

@@ -21,6 +21,7 @@ import {
     Folder
 } from 'lucide-react'
 import { signout } from '@/app/login/actions'
+import { SubmitButton } from '@/components/submit-button'
 
 const sidebarNavItems = [
     {
@@ -124,10 +125,10 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
             <div className="p-4 border-t">
                 <form action={signout}>
-                    <Button variant="outline" className="w-full justify-start" type="submit">
+                    <SubmitButton variant="outline" className="w-full justify-start" formAction={signout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         Sign Out
-                    </Button>
+                    </SubmitButton>
                 </form>
             </div>
         </div>
