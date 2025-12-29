@@ -4,7 +4,10 @@ import { NextResponse } from 'next/server'
 export async function GET() {
     const supabase = await createClient()
 
-    const results = {
+    const results: {
+        users: { exists: boolean; error: string | null }
+        collections: { exists: boolean; error: string | null }
+    } = {
         users: { exists: false, error: null },
         collections: { exists: false, error: null }
     }

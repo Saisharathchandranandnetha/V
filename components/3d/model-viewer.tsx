@@ -13,10 +13,11 @@ interface ModelViewerProps {
 }
 
 export function ModelViewer({ src, poster }: ModelViewerProps) {
+    const ModelViewerTag = 'model-viewer' as any
+
     return (
         <div className="relative w-full h-[400px] bg-zinc-100 dark:bg-zinc-900 rounded-xl overflow-hidden border group">
-            {/* @ts-ignore */}
-            <model-viewer
+            <ModelViewerTag
                 src={src}
                 poster={poster}
                 auto-rotate
@@ -27,7 +28,7 @@ export function ModelViewer({ src, poster }: ModelViewerProps) {
                 style={{ width: '100%', height: '100%' }}
             >
                 <div slot="progress-bar"></div>
-            </model-viewer>
+            </ModelViewerTag>
 
             <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button size="icon" variant="secondary">
