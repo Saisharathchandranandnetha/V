@@ -23,7 +23,7 @@ import {
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
 
-const sidebarNavItems = [
+export const sidebarNavItems = [
     {
         title: 'Dashboard',
         href: '/dashboard',

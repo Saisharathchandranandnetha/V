@@ -200,6 +200,18 @@ export default async function DashboardPage() {
                             </Link>
                         </Button>
                         <Button variant="outline" className="h-24 flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal" asChild>
+                            <Link href="/dashboard/notes">
+                                <StickyNote className="h-6 w-6 mb-1" />
+                                <span className="text-sm font-medium">Notes</span>
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="h-24 flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal" asChild>
+                            <Link href="/dashboard/categories">
+                                <Layers className="h-6 w-6 mb-1" />
+                                <span className="text-sm font-medium">Categories</span>
+                            </Link>
+                        </Button>
+                        <Button variant="outline" className="h-24 flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal" asChild>
                             <Link href="/dashboard/analytics">
                                 <BarChart3 className="h-6 w-6 mb-1" />
                                 <span className="text-sm font-medium">Analytics</span>
