@@ -7,11 +7,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import Link from 'next/link'
 import { ChevronLeft, Plus } from 'lucide-react'
 import { createResource, createCollectionAndReturn } from '@/app/dashboard/actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/client'
 
 export default function ResourceForm({ initialCollections }: { initialCollections: any[] }) {
     const [collections, setCollections] = useState(initialCollections || [])
@@ -19,6 +21,8 @@ export default function ResourceForm({ initialCollections }: { initialCollection
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [newCategoryName, setNewCategoryName] = useState('')
     const [loading, setLoading] = useState(false)
+    const [resourceType, setResourceType] = useState('url')
+    const [uploadType, setUploadType] = useState('url')
 
     const handleCreateCategory = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -58,12 +62,55 @@ export default function ResourceForm({ initialCollections }: { initialCollection
                     <CardDescription>Add a link, file, or 3D model to your library.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <form action={createResource} className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="url">URL</Label>
-                            <Input id="url" name="url" placeholder="https://..." required />
-                        </div>
+                    <form onSubmit={async (e) => {
+                        e.preventDefault()
+                        setLoading(true)
 
+                        try {
+                            const formData = new FormData(e.currentTarget)
+                            const type = formData.get('type') as string
+
+                            // Handle File Upload if selected
+                            if (type === 'pdf' && uploadType === 'file') {
+                                const fileInput = (e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement)
+                                const file = fileInput?.files?.[0]
+
+                                if (!file) {
+                                    alert('Please select a file to upload')
+                                    setLoading(false)
+                                    return
+                                }
+
+                                const supabase = createClient()
+                                const fileExt = file.name.split('.').pop()
+                                const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
+                                const filePath = `pdfs/${fileName}`
+
+                                const { error: uploadError } = await supabase.storage
+                                    .from('resources')
+                                    .upload(filePath, file)
+
+                                if (uploadError) throw uploadError
+
+                                const { data: { publicUrl } } = supabase.storage
+                                    .from('resources')
+                                    .getPublicUrl(filePath)
+
+                                formData.set('url', publicUrl)
+                            }
+
+                            await createResource(formData)
+                        } catch (error: any) {
+                            // Ignore redirect errors
+                            if (error?.message === 'NEXT_REDIRECT' || error?.digest?.startsWith('NEXT_REDIRECT')) {
+                                throw error
+                            }
+                            console.error('Error creating resource:', error)
+                            alert('Failed to create resource. Please try again.')
+                        } finally {
+                            setLoading(false)
+                        }
+                    }} className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="title">Title</Label>
                             <Input id="title" name="title" placeholder="Resource Title" required />
@@ -72,7 +119,7 @@ export default function ResourceForm({ initialCollections }: { initialCollection
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="type">Type</Label>
-                                <Select name="type" defaultValue="url">
+                                <Select name="type" defaultValue="url" onValueChange={(val) => setResourceType(val)}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select type" />
                                     </SelectTrigger>
@@ -146,6 +193,41 @@ export default function ResourceForm({ initialCollections }: { initialCollection
                             </div>
                         </div>
 
+                        {resourceType === 'pdf' ? (
+                            <div className="space-y-4 border p-4 rounded-md bg-muted/20">
+                                <Label>Source</Label>
+                                <RadioGroup defaultValue="url" onValueChange={setUploadType} className="flex gap-4">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="url" id="source-url" />
+                                        <Label htmlFor="source-url">External URL</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="file" id="source-file" />
+                                        <Label htmlFor="source-file">File Upload</Label>
+                                    </div>
+                                </RadioGroup>
+
+                                {uploadType === 'url' ? (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="url">PDF URL</Label>
+                                        <Input id="url" name="url" placeholder="https://example.com/doc.pdf" required />
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="file">Upload PDF</Label>
+                                        <Input id="file" type="file" accept=".pdf" required />
+                                        {/* Hidden input to satisfy required 'url' field if needed by backend validation, handled by JS */}
+                                        <input type="hidden" name="url" value={uploadType === 'file' ? 'placeholder' : ''} />
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label htmlFor="url">URL</Label>
+                                <Input id="url" name="url" placeholder="https://..." required />
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <Label htmlFor="tags">Tags</Label>
                             <Input id="tags" name="tags" placeholder="react, design, ai (comma separated)" />
@@ -160,7 +242,9 @@ export default function ResourceForm({ initialCollections }: { initialCollection
                             <Button variant="outline" asChild>
                                 <Link href="/dashboard/resources">Cancel</Link>
                             </Button>
-                            <Button type="submit">Save Resource</Button>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'Saving...' : 'Save Resource'}
+                            </Button>
                         </div>
                     </form>
                 </CardContent>
