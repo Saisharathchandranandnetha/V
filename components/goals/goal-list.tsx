@@ -82,9 +82,12 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                                                 )}
                                             </p>
 
-                                            <Dialog>
+                                            <Dialog open={editingId === goal.id} onOpenChange={(open) => !open && setEditingId(null)}>
                                                 <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="w-full" onClick={() => setEditValue(goal.current_value)}>
+                                                    <Button variant="outline" size="sm" className="w-full" onClick={() => {
+                                                        setEditingId(goal.id)
+                                                        setEditValue(goal.current_value)
+                                                    }}>
                                                         Update Progress
                                                     </Button>
                                                 </DialogTrigger>

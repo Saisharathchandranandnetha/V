@@ -37,7 +37,10 @@ export async function createGoal(formData: FormData) {
 export async function updateGoalProgress(id: string, current: number) {
     const supabase = await createClient()
 
-    const { error } = await supabase.from('goals').update({ current_value: current }).eq('id', id)
+    const { error } = await supabase.from('goals').update({
+        current_value: current,
+        updated_at: new Date().toISOString()
+    }).eq('id', id)
 
     if (error) {
         console.error('Error updating goal:', error)
@@ -71,6 +74,7 @@ export async function updateGoal(id: string, formData: FormData) {
             target_value: target,
             unit,
             deadline: deadline ? deadline : null,
+            updated_at: new Date().toISOString()
         })
         .eq('id', id)
 
