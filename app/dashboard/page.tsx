@@ -251,7 +251,12 @@ export default async function DashboardPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="flex flex-col items-center justify-center h-40 text-center space-y-4">
-                            <p className="text-lg font-medium">Today is {format(new Date(), 'MMMM d, yyyy')}</p>
+                            <p className="text-lg font-medium">Today is {new Intl.DateTimeFormat('en-US', {
+                                timeZone: 'Asia/Kolkata',
+                                month: 'long',
+                                day: 'numeric',
+                                year: 'numeric'
+                            }).format(new Date())}</p>
                             <p className="text-muted-foreground">
                                 "The secret of getting ahead is getting started."
                             </p>
