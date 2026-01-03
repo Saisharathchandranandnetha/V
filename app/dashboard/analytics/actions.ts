@@ -9,8 +9,19 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
     if (!user) return null
 
     // Determine Date Range
-    let start = new Date()
-    let end = new Date()
+    // Determine Date Range (Force IST)
+    const now = new Date()
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    })
+    const todayStr = formatter.format(now) // YYYY-MM-DD in IST
+    const [y, m, d] = todayStr.split('-').map(Number)
+
+    let start = new Date(y, m - 1, d)
+    let end = new Date(y, m - 1, d)
 
     // Reset to start of day for comparison safety
     start.setHours(0, 0, 0, 0)
