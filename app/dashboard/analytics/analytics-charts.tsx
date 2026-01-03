@@ -31,12 +31,19 @@ export default function AnalyticsCharts({ data }: { data: any }) {
     const router = useRouter()
     const searchParams = useSearchParams()
     const currentPeriod = searchParams.get('period') || '7d'
-    const currentDate = searchParams.get('date') || new Date().toISOString().split('T')[0]
+    const now = new Date()
+    const localToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    const currentDate = searchParams.get('date') || localToday
 
     const handlePeriodChange = (val: string) => {
         const params = new URLSearchParams(searchParams.toString())
         params.set('period', val)
-        if (val !== 'custom') params.delete('date')
+        if (val !== 'custom') {
+            params.delete('date')
+        } else {
+            // Default to current selection or today when switching to custom
+            params.set('date', currentDate)
+        }
         router.push(`?${params.toString()}`)
     }
 

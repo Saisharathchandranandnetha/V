@@ -16,9 +16,14 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
     start.setHours(0, 0, 0, 0)
     end.setHours(23, 59, 59, 999)
 
+    const parseLocalDate = (dateStr: string) => {
+        const [y, m, d] = dateStr.split('-').map(Number)
+        return new Date(y, m - 1, d)
+    }
+
     if (startDate && endDate) {
-        start = new Date(startDate)
-        end = new Date(endDate)
+        start = parseLocalDate(startDate)
+        end = parseLocalDate(endDate)
         // Ensure end captures the full day
         end.setHours(23, 59, 59, 999)
     } else {
@@ -33,8 +38,12 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
         }
     }
 
-    const startStr = start.toISOString().split('T')[0]
-    const endStr = end.toISOString().split('T')[0]
+    const toLocalISOString = (d: Date) => {
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    }
+
+    const startStr = toLocalISOString(start)
+    const endStr = toLocalISOString(end)
 
     // 1. Habit Stats
     const { data: habits } = await supabase.from('habits').select('id').eq('user_id', user.id)
@@ -85,7 +94,7 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
         const dateArray = []
         let current = new Date(start)
         while (current <= end) {
-            dateArray.push(current.toISOString().split('T')[0])
+            dateArray.push(toLocalISOString(current))
             current.setDate(current.getDate() + 1)
         }
 
@@ -105,8 +114,8 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
         .from('tasks')
         .select('status')
         .eq('user_id', user.id)
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
+        .gte('due_date', start.toISOString())
+        .lte('due_date', end.toISOString())
 
     const taskData = [
         { name: 'Todo', value: tasks?.filter(t => t.status === 'Todo').length || 0, fill: '#8884d8' },
@@ -114,14 +123,14 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
         { name: 'Done', value: tasks?.filter(t => t.status === 'Done').length || 0, fill: '#00C49F' },
     ].filter(d => d.value > 0)
 
-    // 3. Goal Stats (Created in range)
+    // 3. Goal Stats (Updated in range)
     const { data: goals } = await supabase
         .from('goals')
-        .select('title, current_value, target_value')
+        .select('title, current_value, target_value, updated_at')
         .eq('user_id', user.id)
         .limit(5)
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString())
+        .gte('updated_at', start.toISOString())
+        .lte('updated_at', end.toISOString())
 
     const goalData = goals?.map(g => ({
         name: g.title,
