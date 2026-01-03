@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { updateSettings, updateProfile, deleteAccount } from './actions'
+import { updateSettings, updateProfile, deleteAccount, updatePassword } from './actions'
 import { signout } from '@/app/login/actions'
 // import { useToast } from '@/components/ui/use-toast'
 import { Loader2 } from 'lucide-react'
@@ -121,6 +121,54 @@ export default function SettingsForm({ user }: { user: any }) {
                             <Button variant="outline" type="submit">Log Out</Button>
                         </form>
                     </div>
+                </CardContent>
+            </Card>
+
+            {/* SECTION: Security */}
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="space-y-1">
+                        <CardTitle>Security</CardTitle>
+                        <CardDescription>Update your password.</CardDescription>
+                    </div>
+                    <SavedBadge section="security" />
+                </CardHeader>
+                <CardContent>
+                    <form
+                        action={async (formData) => {
+                            setLoading(true)
+                            try {
+                                await updatePassword(formData)
+                                setSavedSection('security')
+                                setTimeout(() => setSavedSection(null), 2000)
+                                // Optional: Reset form fields manually or via key change if needed, 
+                                // but for now a success badge is enough feedback.
+                            } catch (error: any) {
+                                console.error('Failed to update password:', error)
+                                alert(`Failed to update password: ${error.message}`)
+                            } finally {
+                                setLoading(false)
+                            }
+                        }}
+                        className="space-y-4"
+                    >
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="password">New Password</Label>
+                                <Input id="password" name="password" type="password" required minLength={6} placeholder="••••••••" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                                <Input id="confirmPassword" name="confirmPassword" type="password" required minLength={6} placeholder="••••••••" />
+                            </div>
+                        </div>
+                        <div className="flex justify-end">
+                            <Button type="submit" disabled={loading}>
+                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Change Password
+                            </Button>
+                        </div>
+                    </form>
                 </CardContent>
             </Card>
 

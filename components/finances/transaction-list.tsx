@@ -5,6 +5,8 @@ import { ArrowDownLeft, ArrowUpRight, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { deleteTransaction } from '@/app/dashboard/finances/actions'
+import { EditTransactionDialog } from '@/components/finances/edit-transaction-dialog'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { cn, formatCurrency } from '@/lib/utils'
 
 interface Transaction {
@@ -49,11 +51,17 @@ export function TransactionList({ transactions }: { transactions: Transaction[] 
                                 <div className={cn("font-medium", t.type === 'Income' ? "text-green-600" : "text-gray-900")}>
                                     {t.type === 'Income' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
                                 </div>
-                                <form action={deleteTransaction.bind(null, t.id)}>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </form>
+                                <EditTransactionDialog transaction={t} />
+                                <ConfirmDeleteDialog
+                                    trigger={
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    }
+                                    onConfirm={() => deleteTransaction(t.id)}
+                                    title="Delete Transaction"
+                                    description="Are you sure you want to delete this transaction? This action cannot be undone."
+                                />
                             </div>
                         </div>
                     ))}

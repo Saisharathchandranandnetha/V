@@ -29,6 +29,7 @@ const CATEGORIES = {
 export function AddTransactionDialog() {
     const [open, setOpen] = useState(false)
     const [type, setType] = useState<'Income' | 'Expense'>('Expense')
+    const [category, setCategory] = useState<string>('')
 
     async function onSubmit(formData: FormData) {
         await addTransaction(formData)
@@ -74,7 +75,7 @@ export function AddTransactionDialog() {
 
                     <div className="grid gap-2">
                         <Label htmlFor="category">Category</Label>
-                        <Select name="category" required>
+                        <Select name="category" required onValueChange={setCategory}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
@@ -85,6 +86,17 @@ export function AddTransactionDialog() {
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {category === 'Other' && (
+                        <div className="grid gap-2">
+                            <Label htmlFor="custom_category">Custom Name (Optional)</Label>
+                            <Input
+                                name="custom_category"
+                                placeholder="e.g. Side Hustle, Gift"
+                                className="bg-muted/50"
+                            />
+                        </div>
+                    )}
 
                     <div className="grid gap-2">
                         <Label htmlFor="description">Description</Label>

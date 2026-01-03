@@ -5,6 +5,8 @@ import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { deleteHabit, toggleHabit } from '@/app/dashboard/habits/actions'
+import { EditHabitDialog } from '@/components/habits/edit-habit-dialog'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { cn } from '@/lib/utils'
 
 interface Habit {
@@ -54,11 +56,19 @@ export function HabitList({ habits }: { habits: Habit[] }) {
                             <CardTitle className="text-sm font-medium">
                                 {habit.name}
                             </CardTitle>
-                            <form action={deleteHabit.bind(null, habit.id)}>
-                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </form>
+                            <div className="flex items-center gap-1">
+                                <EditHabitDialog habit={habit} />
+                                <ConfirmDeleteDialog
+                                    trigger={
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    }
+                                    onConfirm={() => deleteHabit(habit.id)}
+                                    title="Delete Habit"
+                                    description="Are you sure you want to delete this habit? All progress will be lost."
+                                />
+                            </div>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center justify-between">

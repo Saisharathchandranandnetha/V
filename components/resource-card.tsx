@@ -11,7 +11,7 @@ import { useTransition } from 'react'
 
 export type ResourceType = 'url' | 'pdf' | 'youtube' | 'gltf' | 'lottie' | 'image' | 'spline'
 
-interface ResourceProps {
+export interface ResourceProps {
     id: string
     title: string
     type: ResourceType
@@ -104,7 +104,7 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                         )}
                     </CardTitle>
                     <CardDescription className="text-xs">
-                        {new Date(resource.date).toLocaleDateString()}
+                        {new Date(resource.date).toLocaleDateString('en-US')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 pt-2 flex-1">

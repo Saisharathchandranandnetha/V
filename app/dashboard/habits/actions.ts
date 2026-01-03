@@ -44,7 +44,7 @@ export async function deleteHabit(id: string) {
 
 export async function toggleHabit(habitId: string, date: string, completed: boolean) {
   const supabase = await createClient()
-  
+
   // Check if log exists
   const { data: existingLog } = await supabase
     .from('habit_logs')
@@ -72,6 +72,27 @@ export async function toggleHabit(habitId: string, date: string, completed: bool
       })
 
     if (error) throw new Error('Failed to create habit log')
+  }
+
+  revalidatePath('/dashboard/habits')
+}
+
+export async function updateHabit(id: string, formData: FormData) {
+  const supabase = await createClient()
+
+  const name = formData.get('name') as string
+  const frequency = (formData.get('frequency') as string) || 'Daily'
+
+  const { error } = await supabase.from('habits')
+    .update({
+      name,
+      frequency
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating habit:', error)
+    throw new Error('Failed to update habit')
   }
 
   revalidatePath('/dashboard/habits')

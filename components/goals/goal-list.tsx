@@ -9,6 +9,8 @@ import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { deleteGoal, updateGoalProgress } from '@/app/dashboard/goals/actions'
+import { EditGoalDialog } from '@/components/goals/edit-goal-dialog'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { cn } from '@/lib/utils'
 
 interface Goal {
@@ -54,11 +56,19 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                                             <CardTitle className="text-sm font-medium">
                                                 {goal.title}
                                             </CardTitle>
-                                            <form action={deleteGoal.bind(null, goal.id)}>
-                                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </form>
+                                            <div className="flex items-center gap-1">
+                                                <EditGoalDialog goal={goal} />
+                                                <ConfirmDeleteDialog
+                                                    trigger={
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    }
+                                                    onConfirm={() => deleteGoal(goal.id)}
+                                                    title="Delete Goal"
+                                                    description="Are you sure you want to delete this goal? This action cannot be undone."
+                                                />
+                                            </div>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="text-2xl font-bold mb-2">

@@ -5,9 +5,7 @@ import {
     TabsList,
     TabsTrigger,
 } from '@/components/ui/tabs'
-import { CreateTaskDialog } from '@/components/tasks/create-task-dialog'
-import { TaskList } from '@/components/tasks/task-list'
-import { TaskBoard } from '@/components/tasks/task-board'
+import { TasksWrapper } from '@/components/tasks/tasks-wrapper'
 import { LayoutList, Kanban } from 'lucide-react'
 
 export default async function TasksPage() {
@@ -28,26 +26,11 @@ export default async function TasksPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">Tasks</h2>
-                    <p className="text-muted-foreground">Manage your tasks and projects.</p>
+                    <p className="text-muted-foreground">Manage your daily tasks.</p>
                 </div>
-                <CreateTaskDialog />
             </div>
 
-            <Tabs defaultValue="list" className="w-full">
-                <div className="flex items-center justify-between mb-4">
-                    <TabsList>
-                        <TabsTrigger value="list" className="flex items-center gap-2"><LayoutList className="h-4 w-4" /> List</TabsTrigger>
-                        <TabsTrigger value="board" className="flex items-center gap-2"><Kanban className="h-4 w-4" /> Board</TabsTrigger>
-                    </TabsList>
-                </div>
-
-                <TabsContent value="list" className="mt-0">
-                    <TaskList tasks={tasks || []} />
-                </TabsContent>
-                <TabsContent value="board" className="mt-0">
-                    <TaskBoard tasks={tasks || []} />
-                </TabsContent>
-            </Tabs>
+            <TasksWrapper tasks={tasks || []} />
         </div>
     )
 }

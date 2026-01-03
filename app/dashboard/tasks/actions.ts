@@ -51,3 +51,28 @@ export async function deleteTask(id: string) {
 
     revalidatePath('/dashboard/tasks')
 }
+
+export async function updateTask(id: string, formData: FormData) {
+    const supabase = await createClient()
+
+    const title = formData.get('title') as string
+    const priority = (formData.get('priority') as string) || 'Medium'
+    const dueDateRaw = formData.get('due_date') as string
+    const description = formData.get('description') as string
+
+    const { error } = await supabase.from('tasks')
+        .update({
+            title,
+            priority,
+            due_date: dueDateRaw ? new Date(dueDateRaw).toISOString() : null,
+            description,
+        })
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error updating task:', error)
+        throw new Error('Failed to update task')
+    }
+
+    revalidatePath('/dashboard/tasks')
+}

@@ -12,6 +12,8 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { deleteTask, updateTaskStatus } from '@/app/dashboard/tasks/actions'
+import { EditTaskDialog } from '@/components/tasks/edit-task-dialog'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { cn } from '@/lib/utils'
 
 interface Task {
@@ -20,6 +22,7 @@ interface Task {
     priority: string
     status: string
     due_date: string | null
+    description?: string | null
 }
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
@@ -71,11 +74,19 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                             </div>
                         </div>
                     </div>
-                    <form action={deleteTask.bind(null, task.id)}>
-                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </form>
+                    <div className="flex items-center gap-1">
+                        <EditTaskDialog task={task} />
+                        <ConfirmDeleteDialog
+                            trigger={
+                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            }
+                            onConfirm={() => deleteTask(task.id)}
+                            title="Delete Task"
+                            description="Are you sure you want to delete this task? This action cannot be undone."
+                        />
+                    </div>
                 </div>
             ))}
         </div>

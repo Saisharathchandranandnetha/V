@@ -194,3 +194,83 @@ export async function deleteAccount() {
 
     return redirect('/login')
 }
+
+export async function updatePassword(formData: FormData) {
+    const supabase = await createClient()
+    const password = formData.get('password') as string
+    const confirmPassword = formData.get('confirmPassword') as string
+
+    if (password !== confirmPassword) {
+        throw new Error('Passwords do not match')
+    }
+
+    if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters')
+    }
+
+    const { error } = await supabase.auth.updateUser({
+        password: password
+    })
+
+    if (error) {
+        throw new Error(error.message)
+    }
+
+    return { success: true }
+}
+
+// --- Categories Actions ---
+
+export async function createCategory(formData: FormData) {
+    const supabase = await createClient()
+    const name = formData.get('name') as string
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    const { error } = await supabase.from('categories').insert({
+        name,
+        type: 'resource',
+        user_id: user.id
+    })
+
+    if (error) {
+        console.error('Error creating category:', error)
+        throw new Error('Failed to create category')
+    }
+
+    revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/categories')
+}
+
+export async function deleteCategory(id: string) {
+    const supabase = await createClient()
+
+    const { error } = await supabase.from('categories').delete().eq('id', id)
+
+    if (error) {
+        console.error('Error deleting category:', error)
+        throw new Error('Failed to delete category')
+    }
+
+    revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/categories')
+}
+
+export async function updateCategory(id: string, formData: FormData) {
+    const supabase = await createClient()
+    const name = formData.get('name') as string
+
+    const { error } = await supabase
+        .from('categories')
+        .update({ name })
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error updating category:', error)
+        throw new Error('Failed to update category')
+    }
+
+    revalidatePath('/dashboard/settings')
+    revalidatePath('/dashboard/categories')
+}

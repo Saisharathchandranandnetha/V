@@ -9,6 +9,7 @@ import { deleteResource, deleteLearningPath } from '@/app/dashboard/actions'
 import { getUserSettings } from './actions'
 import SettingsForm from './settings-form'
 import CollectionsManager from './collections-manager'
+import CategoriesManager from './categories-manager'
 
 export default async function SettingsPage() {
     const supabase = await createClient()
@@ -28,6 +29,11 @@ export default async function SettingsPage() {
 
     const { data: collections } = await supabase
         .from('collections')
+        .select('*')
+        .order('name', { ascending: true })
+
+    const { data: categories } = await supabase
+        .from('categories')
         .select('*')
         .order('name', { ascending: true })
 
@@ -57,7 +63,7 @@ export default async function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="categories">
-                    <CollectionsManager collections={collections} />
+                    <CategoriesManager categories={categories} />
                 </TabsContent>
 
                 <TabsContent value="resources" className="space-y-4">

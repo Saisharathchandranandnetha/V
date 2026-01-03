@@ -54,3 +54,30 @@ export async function deleteGoal(id: string) {
 
     revalidatePath('/dashboard/goals')
 }
+
+export async function updateGoal(id: string, formData: FormData) {
+    const supabase = await createClient()
+
+    const title = formData.get('title') as string
+    const type = formData.get('type') as string
+    const target = Number(formData.get('target_value'))
+    const unit = formData.get('unit') as string
+    const deadline = formData.get('deadline') as string
+
+    const { error } = await supabase.from('goals')
+        .update({
+            title,
+            type,
+            target_value: target,
+            unit,
+            deadline: deadline ? deadline : null,
+        })
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error updating goal:', error)
+        throw new Error('Failed to update goal')
+    }
+
+    revalidatePath('/dashboard/goals')
+}

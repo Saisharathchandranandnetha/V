@@ -26,6 +26,7 @@ export async function createResource(formData: FormData) {
     console.log('[Debug] Attempting to insert resource with data:', { title, url, type, user_id: user.id })
 
     const collectionId = formData.get('collection_id') as string
+    const categoryId = formData.get('category_id') as string
 
     const { error } = await supabase.from('resources').insert({
         title,
@@ -34,7 +35,8 @@ export async function createResource(formData: FormData) {
         summary,
         tags,
         user_id: user.id,
-        collection_id: (collectionId && collectionId !== 'none') ? collectionId : null
+        collection_id: (collectionId && collectionId !== 'none') ? collectionId : null,
+        category_id: (categoryId && categoryId !== 'none') ? categoryId : null
     })
 
     if (error) {
@@ -109,6 +111,7 @@ export async function updateResource(id: string, formData: FormData) {
     const tags = tagsRaw.split(',').map(t => t.trim()).filter(Boolean)
 
     const collectionId = formData.get('collection_id') as string
+    const categoryId = formData.get('category_id') as string
 
     const { error } = await supabase.from('resources').update({
         title,
@@ -117,6 +120,7 @@ export async function updateResource(id: string, formData: FormData) {
         summary,
         tags,
         collection_id: (collectionId && collectionId !== 'none') ? collectionId : null,
+        category_id: (categoryId && categoryId !== 'none') ? categoryId : null,
     }).eq('id', id)
 
     if (error) {
@@ -210,4 +214,29 @@ export async function moveItemToCollection(itemId: string, itemType: string, col
     revalidatePath('/dashboard/goals')
     revalidatePath('/dashboard/notes')
     revalidatePath('/dashboard/paths')
+    revalidatePath('/dashboard/paths')
+}
+
+export async function createCategoryAndReturn(name: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    const { data, error } = await supabase
+        .from('categories')
+        .insert({
+            name,
+            type: 'resource',
+            user_id: user.id
+        })
+        .select()
+        .single()
+
+    if (error) {
+        console.error('Error creating category:', error)
+        throw new Error(`Failed to create category: ${error.message}`)
+    }
+
+    return data
 }

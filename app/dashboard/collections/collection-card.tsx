@@ -73,9 +73,9 @@ export function CollectionCard({ collection }: CollectionCardProps) {
                 <Link href={`/dashboard/collections/${collection.id}`}>
                     <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
                         <CardHeader>
-                            <div className="flex items-center gap-2 pr-8">
-                                <Folder className="h-5 w-5 text-blue-500 shrink-0" />
-                                <CardTitle className="text-lg truncate">{collection.name}</CardTitle>
+                            <div className="flex items-start gap-2 pr-8 w-full min-w-0">
+                                <Folder className="h-5 w-5 text-blue-500 shrink-0 mt-1" />
+                                <CardTitle className="text-lg break-all whitespace-normal leading-tight min-w-0 flex-1">{collection.name}</CardTitle>
                             </div>
                             <CardDescription>
                                 {collection.resources[0]?.count || 0} items
