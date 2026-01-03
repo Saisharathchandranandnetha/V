@@ -48,6 +48,7 @@ export default async function DashboardPage() {
     const { count: pathsCount } = await supabase.from('learning_paths').select('*', { count: 'exact', head: true })
     const { count: notesCount } = await supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
     const { count: collectionsCount } = await supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+    const { count: categoriesCount } = await supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
 
     return (
         <div className="space-y-6">
@@ -108,7 +109,7 @@ export default async function DashboardPage() {
             </div>
 
             {/* Content Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
@@ -121,12 +122,22 @@ export default async function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Collections & Categories</CardTitle>
-                        <Layers className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Collections</CardTitle>
+                        <BookOpen className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{collectionsCount || 0}</div>
                         <p className="text-xs text-muted-foreground">organized folders</p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Categories</CardTitle>
+                        <Layers className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{categoriesCount || 0}</div>
+                        <p className="text-xs text-muted-foreground">resource types</p>
                     </CardContent>
                 </Card>
                 <Card>
