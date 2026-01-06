@@ -97,3 +97,111 @@ export async function updateHabit(id: string, formData: FormData) {
 
   revalidatePath('/dashboard/habits')
 }
+
+export async function getHabitStats(
+  viewType: 'date' | 'month' | 'year' | 'all',
+  params: { date?: Date; month?: number; year?: number }
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return []
+
+  const { data: habits } = await supabase.from('habits').select('id, created_at').eq('user_id', user.id)
+  const totalHabits = habits?.length || 0
+  if (totalHabits === 0) return []
+
+  let start = new Date()
+  let end = new Date()
+
+  // Helper to format date as YYYY-MM-DD
+  const toISODate = (d: Date) => {
+    const offset = d.getTimezoneOffset()
+    const local = new Date(d.getTime() - (offset * 60 * 1000))
+    return local.toISOString().split('T')[0]
+  }
+
+  if (viewType === 'date' && params.date) {
+    start = new Date(params.date)
+    start.setHours(0, 0, 0, 0)
+    end = new Date(params.date)
+    end.setHours(23, 59, 59, 999)
+  } else if (viewType === 'month' && params.month !== undefined && params.year) {
+    start = new Date(params.year, params.month, 1)
+    end = new Date(params.year, params.month + 1, 0)
+    end.setHours(23, 59, 59, 999)
+  } else if (viewType === 'year' && params.year) {
+    start = new Date(params.year, 0, 1)
+    end = new Date(params.year, 11, 31)
+    end.setHours(23, 59, 59, 999)
+  } else if (viewType === 'all') {
+    // Find earliest habit creation
+    const earliest = habits?.reduce((min, h) => (h.created_at < min ? h.created_at : min), new Date().toISOString())
+    start = new Date(earliest || new Date())
+    end = new Date() // Now
+  }
+
+  // Fetch logs in range
+  const { data: logs } = await supabase
+    .from('habit_logs')
+    .select('date, status')
+    .gte('date', toISODate(start))
+    .lte('date', toISODate(end))
+    .eq('status', true)
+    .in('habit_id', habits?.map(h => h.id) || [])
+
+
+  // Aggregate
+  if (viewType === 'year') {
+    // Monthly aggregation
+    const monthlyStats = Array.from({ length: 12 }, (_, i) => {
+      const monthStart = new Date(params.year!, i, 1)
+      const monthEnd = new Date(params.year!, i + 1, 0)
+      const daysInMonth = monthEnd.getDate()
+
+      // Count logs in this month
+      const count = logs?.filter(l => {
+        const d = new Date(l.date)
+        return d.getMonth() === i && d.getFullYear() === params.year
+      }).length || 0
+
+      // Total opportunities = habits * days in month
+      // (Simplified: assumes all habits active entire month)
+      const totalOps = totalHabits * daysInMonth
+      const percentage = totalOps > 0 ? (count / totalOps) * 100 : 0
+
+      return {
+        name: monthStart.toLocaleDateString('en-US', { month: 'short' }),
+        date: monthStart.toISOString(),
+        value: Math.round(percentage)
+      }
+    })
+    return monthlyStats
+
+  } else {
+    // Daily aggregation (Date, Month, All)
+    const stats = []
+    let current = new Date(start)
+    // Avoid infinite loop if dates are messed up
+    if (current > end) return []
+
+    while (current <= end) {
+      const dateStr = toLocalISOString(current)
+      const count = logs?.filter(l => l.date === dateStr).length || 0
+      const percentage = totalHabits > 0 ? (count / totalHabits) * 100 : 0
+
+      stats.push({
+        name: current.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
+        date: dateStr,
+        value: Math.round(percentage) // Use 'value' for Recharts consistency
+      })
+      current.setDate(current.getDate() + 1)
+    }
+    return stats
+  }
+}
+
+// Helper to ensure local ISO string YYYY-MM-DD
+function toLocalISOString(d: Date) {
+  const pad = (n: number) => n < 10 ? '0' + n : n
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+}

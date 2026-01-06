@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CreateHabitDialog } from '@/components/habits/create-habit-dialog'
 import { HabitList } from '@/components/habits/habit-list'
+import { HabitsAnalyticsGraph } from '@/components/habits/habits-analytics-graph'
 
 export default async function HabitsPage() {
     const supabase = await createClient()
@@ -32,6 +33,8 @@ export default async function HabitsPage() {
                 </div>
                 <CreateHabitDialog />
             </div>
+
+            <HabitsAnalyticsGraph />
 
             <HabitList habits={habits || []} />
         </div>
