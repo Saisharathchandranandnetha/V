@@ -31,10 +31,20 @@ export async function createTask(formData: FormData) {
     revalidatePath('/dashboard/tasks')
 }
 
-export async function updateTaskStatus(id: string, status: string) {
+export async function updateTaskStatus(id: string, status: string, completedAt?: string, reason?: string) {
     const supabase = await createClient()
 
-    const { error } = await supabase.from('tasks').update({ status }).eq('id', id)
+    const updateData: any = { status }
+    if (status === 'Done' && completedAt) {
+        updateData.completed_at = completedAt
+        updateData.completion_reason = reason
+    } else if (status !== 'Done') {
+        // Reset if moving back from Done
+        updateData.completed_at = null
+        updateData.completion_reason = null
+    }
+
+    const { error } = await supabase.from('tasks').update(updateData).eq('id', id)
 
     if (error) {
         console.error('Error updating task status:', error)

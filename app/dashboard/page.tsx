@@ -22,20 +22,52 @@ export default async function DashboardPage() {
     })
     const today = formatter.format(now)
 
-    // Fetch Habits Status
-    const { data: habits } = await supabase.from('habits').select('id')
-    const { count: habitsCompleted } = await supabase.from('habit_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('date', today)
-        .eq('status', true)
-        .in('habit_id', (await supabase.from('habits').select('id').eq('user_id', user.id)).data?.map(h => h.id) || [])
 
-    // Fetch Tasks Status
-    const { count: tasksPending } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id).neq('status', 'Done')
-    const { count: tasksDone } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'Done')
 
-    // Fetch Goals Status
-    const { data: goalsVector } = await supabase.from('goals').select('current_value, target_value').eq('user_id', user.id)
+    const { data: userHabits } = await supabase.from('habits').select('id').eq('user_id', user.id)
+    const habitIds = userHabits?.map(h => h.id) || []
+
+    const [
+        { count: dailyHabitsCompleted },
+        { count: tasksPendingCount },
+        { count: tasksDoneCount },
+        { data: goalsData },
+        { data: transactionsData },
+        { count: resourcesCountData },
+        { count: pathsCountData },
+        { count: notesCountData },
+        { count: collectionsCountData },
+        { count: categoriesCountData }
+    ] = await Promise.all([
+        supabase.from('habit_logs')
+            .select('*', { count: 'exact', head: true })
+            .eq('date', today)
+            .eq('status', true)
+            .in('habit_id', habitIds),
+        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id).neq('status', 'Done'),
+        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'Done'),
+        supabase.from('goals').select('current_value, target_value').eq('user_id', user.id),
+        supabase.from('transactions').select('amount, type').eq('user_id', user.id),
+        supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('learning_paths').select('*', { count: 'exact', head: true }),
+        supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+    ])
+
+    // Remap variables to match original names
+    const habits = userHabits
+    const habitsCompleted = dailyHabitsCompleted
+    const tasksPending = tasksPendingCount
+    const tasksDone = tasksDoneCount
+    const goalsVector = goalsData
+    const transactions = transactionsData
+    const resourcesCount = resourcesCountData
+    const pathsCount = pathsCountData
+    const notesCount = notesCountData
+    const collectionsCount = collectionsCountData
+    const categoriesCount = categoriesCountData
+
     const activeGoals = goalsVector?.length || 0
     // Simple average progress
     let avgProgress = 0
@@ -44,18 +76,9 @@ export default async function DashboardPage() {
         avgProgress = totalProgress / goalsVector.length
     }
 
-    // Fetch Finances
-    const { data: transactions } = await supabase.from('transactions').select('amount, type').eq('user_id', user.id)
     const income = transactions?.filter(t => t.type === 'Income').reduce((acc, t) => acc + t.amount, 0) || 0
     const expense = transactions?.filter(t => t.type === 'Expense').reduce((acc, t) => acc + t.amount, 0) || 0
     const balance = income - expense
-
-    // Fetch Content Counts
-    const { count: resourcesCount } = await supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-    const { count: pathsCount } = await supabase.from('learning_paths').select('*', { count: 'exact', head: true })
-    const { count: notesCount } = await supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-    const { count: collectionsCount } = await supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-    const { count: categoriesCount } = await supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
 
     return (
         <div className="space-y-6">

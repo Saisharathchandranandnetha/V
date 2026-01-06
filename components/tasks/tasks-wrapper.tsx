@@ -18,6 +18,8 @@ interface Task {
     due_date: string | null
     description?: string | null
     created_at: string
+    completed_at?: string | null
+    completion_reason?: string | null
 }
 
 export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {

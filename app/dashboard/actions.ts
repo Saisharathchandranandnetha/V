@@ -240,3 +240,19 @@ export async function createCategoryAndReturn(name: string) {
 
     return data
 }
+
+export async function toggleLearningPathCompletion(id: string, isCompleted: boolean) {
+    const supabase = await createClient()
+
+    const { error } = await supabase
+        .from('learning_paths')
+        .update({ is_completed: isCompleted })
+        .eq('id', id)
+
+    if (error) {
+        console.error('Error toggling learning path completion:', error)
+        throw new Error('Failed to update learning path completion status')
+    }
+
+    revalidatePath('/dashboard/paths')
+}

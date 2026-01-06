@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { isBefore, startOfDay, format } from 'date-fns'
 import { MoreHorizontal, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { EditTaskDialog } from '@/components/tasks/edit-task-dialog'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
+import { CompleteTaskDialog } from '@/components/tasks/complete-task-dialog'
 import { deleteTask, updateTaskStatus } from '@/app/dashboard/tasks/actions'
 import { cn } from '@/lib/utils'
 
@@ -26,6 +27,8 @@ interface Task {
     priority: string
     status: string
     due_date: string | null
+    completed_at?: string | null
+    completion_reason?: string | null
 }
 
 // Columns
@@ -38,11 +41,21 @@ const COLUMNS = [
 export function TaskBoard({ tasks }: { tasks: Task[] }) {
     const [editingTask, setEditingTask] = useState<Task | null>(null)
     const [deletingTask, setDeletingTask] = useState<Task | null>(null)
+    const [completingTask, setCompletingTask] = useState<Task | null>(null)
+
     const priorityColor = {
         Low: 'bg-blue-100 text-blue-800 hover:bg-blue-100',
         Medium: 'bg-gray-100 text-gray-800 hover:bg-gray-100',
         High: 'bg-orange-100 text-orange-800 hover:bg-orange-100',
         Urgent: 'bg-red-100 text-red-800 hover:bg-red-100',
+    }
+
+    const handleStatusChange = (task: Task, newStatus: string) => {
+        if (newStatus === 'Done' && task.due_date && isBefore(new Date(task.due_date), startOfDay(new Date()))) {
+            setCompletingTask(task)
+        } else {
+            updateTaskStatus(task.id, newStatus)
+        }
     }
 
     return (
@@ -64,6 +77,17 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                     }}
                     title="Delete Task"
                     description="Are you sure you want to delete this task? This action cannot be undone."
+                />
+            )}
+            {completingTask && (
+                <CompleteTaskDialog
+                    open={!!completingTask}
+                    onOpenChange={(open) => !open && setCompletingTask(null)}
+                    taskTitle={completingTask.title}
+                    onConfirm={(date, reason) => {
+                        updateTaskStatus(completingTask.id, 'Done', date.toISOString(), reason)
+                        setCompletingTask(null)
+                    }}
                 />
             )}
             <div className="flex h-full gap-4 overflow-x-auto pb-4">
@@ -96,13 +120,13 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => updateTaskStatus(task.id, 'Todo')}>
+                                                    <DropdownMenuItem onClick={() => handleStatusChange(task, 'Todo')}>
                                                         Move to To Do
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => updateTaskStatus(task.id, 'In Progress')}>
+                                                    <DropdownMenuItem onClick={() => handleStatusChange(task, 'In Progress')}>
                                                         Move to In Progress
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => updateTaskStatus(task.id, 'Done')}>
+                                                    <DropdownMenuItem onClick={() => handleStatusChange(task, 'Done')}>
                                                         Move to Done
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
@@ -123,6 +147,12 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                                             {task.description && <p className="text-xs text-muted-foreground line-clamp-2 mb-2">{task.description}</p>}
                                             {task.due_date && (
                                                 <p className="text-xs text-muted-foreground mt-2">Due: {format(new Date(task.due_date), 'MMM d')}</p>
+                                            )}
+                                            {task.status === 'Done' && task.completed_at && task.completion_reason && (
+                                                <div className="mt-2 text-xs bg-muted/50 p-2 rounded border">
+                                                    <p className="font-semibold text-green-600 dark:text-green-400">Completed on {format(new Date(task.completed_at), 'MMM d')}</p>
+                                                    <p className="text-muted-foreground italic mt-1">"{task.completion_reason}"</p>
+                                                </div>
                                             )}
                                         </CardContent>
                                     </Card>
