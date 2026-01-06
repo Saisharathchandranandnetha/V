@@ -54,7 +54,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
         if (newStatus === 'Done' && task.due_date && isBefore(new Date(task.due_date), startOfDay(new Date()))) {
             setCompletingTask(task)
         } else {
-            updateTaskStatus(task.id, newStatus)
+            updateTaskStatus(task.id, newStatus, newStatus === 'Done' ? new Date().toISOString() : undefined)
         }
     }
 

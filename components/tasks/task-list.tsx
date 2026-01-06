@@ -42,7 +42,10 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
         if (newStatus === 'Done' && task.due_date && isBefore(new Date(task.due_date), startOfDay(new Date()))) {
             setCompletingTask(task)
         } else {
-            updateTaskStatus(task.id, newStatus)
+            // For simple completion (on time) or other status changes
+            // If marking as Done, we must set completed_at to now.
+            // If changing to Todo/In Progress, the action handles clearing it.
+            updateTaskStatus(task.id, newStatus, newStatus === 'Done' ? new Date().toISOString() : undefined)
         }
     }
 

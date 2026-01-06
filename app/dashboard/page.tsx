@@ -24,6 +24,24 @@ export default async function DashboardPage() {
 
 
 
+    // Calculate start and end of day in UTC for comparison
+    // Since we want "Today" based on user's locale (Asia/Kolkata), we should construct the range accordingly.
+    // However, DB stores in UTC. 
+    // Simplified approach: Match the date string if stored as date, or range if timestamp.
+    // tasks.due_date is timestamptz. 
+    // Let's create a range for "Today in Kolkata" converted to UTC.
+
+    // Actually, simpler: Use the local date string 'YYYY-MM-DD' and let Supabase/Postgres handle comparison if we cast?
+    // BETTER: Construct ISO strings for the range.
+
+    const startOfDay = new Date(now.toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' }))
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(startOfDay)
+    endOfDay.setHours(23, 59, 59, 999)
+
+    const startOfDayISO = startOfDay.toISOString()
+    const endOfDayISO = endOfDay.toISOString()
+
     const { data: userHabits } = await supabase.from('habits').select('id').eq('user_id', user.id)
     const habitIds = userHabits?.map(h => h.id) || []
 
@@ -44,8 +62,20 @@ export default async function DashboardPage() {
             .eq('date', today)
             .eq('status', true)
             .in('habit_id', habitIds),
-        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id).neq('status', 'Done'),
-        supabase.from('tasks').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'Done'),
+        // Pending tasks: Scheduled for today OR earlier (overdue) AND not done
+        supabase.from('tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .neq('status', 'Done')
+            .lte('due_date', endOfDayISO),
+        // Done tasks: Scheduled for today (due_date inside range) AND status is Done
+        // This ensures the count reflects "Today's Schedule" regardless of when it was effectively clicked.
+        supabase.from('tasks')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('status', 'Done')
+            .gte('due_date', startOfDayISO)
+            .lte('due_date', endOfDayISO),
         supabase.from('goals').select('current_value, target_value').eq('user_id', user.id),
         supabase.from('transactions').select('amount, type').eq('user_id', user.id),
         supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
@@ -102,7 +132,7 @@ export default async function DashboardPage() {
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Tasks</CardTitle>
+                        <CardTitle className="text-sm font-medium">Tasks</CardTitle>
                         <CheckSquare className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
