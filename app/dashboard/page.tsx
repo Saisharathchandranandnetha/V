@@ -74,8 +74,8 @@ export default async function DashboardPage() {
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
             .eq('status', 'Done')
-            .gte('due_date', startOfDayISO)
-            .lte('due_date', endOfDayISO),
+            .gte('completed_at', startOfDayISO)
+            .lte('completed_at', endOfDayISO),
         supabase.from('goals').select('current_value, target_value').eq('user_id', user.id),
         supabase.from('transactions').select('amount, type').eq('user_id', user.id),
         supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
