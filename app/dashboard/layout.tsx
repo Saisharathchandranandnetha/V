@@ -21,9 +21,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Sidebar className="hidden md:block w-64 shrink-0" />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col h-screen overflow-hidden bg-background">
+            <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent">
                 {/* Mobile Header */}
-                <div className="md:hidden border-b p-4 flex items-center justify-between bg-background sticky top-0 z-10">
+                <div className="md:hidden border-b p-4 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
                     <span className="font-semibold">LifeOS</span>
                     <MobileNav />
                 </div>

@@ -92,7 +92,7 @@ export function Sidebar({ className }: SidebarProps) {
     const pathname = usePathname()
 
     return (
-        <div className={cn('flex flex-col h-screen border-r', className)}>
+        <div className={cn('flex flex-col h-screen border-r bg-sidebar/50 backdrop-blur-md', className)}>
             <div className="flex-1 overflow-y-auto py-4">
                 <div className="px-3 py-2">
                     <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-primary flex items-center gap-2">
