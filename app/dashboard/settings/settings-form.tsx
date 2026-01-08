@@ -9,11 +9,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { updateSettings, updateProfile, deleteAccount, updatePassword } from './actions'
+import { updateSettings, updateProfile, deleteAccount, updatePassword, updateAvatar } from './actions'
 import { signout } from '@/app/login/actions'
 // import { useToast } from '@/components/ui/use-toast'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Upload } from 'lucide-react'
 import { useTheme } from "next-themes"
+import { createClient } from '@/lib/supabase/client'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 // If useToast doesn't exist, we'll gracefully degrade to console log or a simple robust implementation
 // For now I'll implement a simple local toast if the verify fails, but assuming user has shadcn/ui toast.
@@ -68,6 +70,44 @@ export default function SettingsForm({ user }: { user: any }) {
         savedSection === section ? <span className="text-xs text-green-500 font-medium animate-in fade-in">Saved!</span> : null
     )
 
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setLoading(true)
+        try {
+            const supabase = createClient()
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`
+            const filePath = `${fileName}`
+
+            // Upload to Supabase Storage
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath)
+
+            // Update User Profile
+            await updateAvatar(publicUrl)
+
+            // Optimistic update
+            user.avatar = publicUrl
+            setSavedSection('profile')
+            setTimeout(() => setSavedSection(null), 2000)
+        } catch (error: any) {
+            console.error('Avatar upload failed:', error)
+            alert('Avatar upload failed. Make sure the "avatars" bucket exists and policies are set.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="space-y-8">
             {/* SECTION 1: Account & Profile */}
@@ -82,10 +122,31 @@ export default function SettingsForm({ user }: { user: any }) {
                 <CardContent>
                     <form action={handleProfileUpdate} className="space-y-4">
                         <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                {user.avatar ? <img src={user.avatar} alt="Avatar" className="h-full w-full object-cover" /> : <div className="text-2xl font-bold text-muted-foreground">{user.name?.[0]}</div>}
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
+                                <AvatarFallback className="text-lg bg-primary/10 font-bold">
+                                    {(user.name?.[0] || user.email?.[0] || '?').toUpperCase()}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="avatar-upload" className="cursor-pointer">
+                                    <div className="flex items-center gap-2 h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium shadow-sm transition-colors">
+                                        <Upload className="h-4 w-4" />
+                                        Upload New Picture
+                                    </div>
+                                    <Input
+                                        id="avatar-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleAvatarUpload}
+                                        disabled={loading}
+                                    />
+                                </Label>
+                                <p className="text-[0.8rem] text-muted-foreground">
+                                    JPG, GIF or PNG. 1MB max.
+                                </p>
                             </div>
-                            <Button variant="outline" type="button">Change Avatar</Button>
                         </div>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div className="space-y-2">
