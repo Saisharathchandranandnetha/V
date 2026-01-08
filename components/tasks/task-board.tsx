@@ -90,7 +90,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                     }}
                 />
             )}
-            <div className="flex h-full gap-4 overflow-x-auto pb-4">
+            <div className="flex flex-col md:flex-row h-full gap-4 overflow-x-auto pb-4">
                 {COLUMNS.map((col) => {
                     const colTasks = tasks.filter((t) => t.status === col.id)
                     return (

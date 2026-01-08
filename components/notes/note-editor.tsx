@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
+import { ArrowLeft } from 'lucide-react'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import remarkGfm from 'remark-gfm'
@@ -59,12 +60,17 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
     return (
         <div className="flex flex-col h-full gap-4 p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
             <div className="flex items-center justify-between gap-4">
-                <Input
-                    placeholder="Note Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="font-bold text-lg"
-                />
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={onClose}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <Input
+                        placeholder="Note Title"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="font-bold text-lg flex-1"
+                    />
+                </div>
                 <div className="flex items-center gap-2">
                     <Button
                         variant="outline"
