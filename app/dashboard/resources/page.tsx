@@ -35,12 +35,14 @@ export default async function ResourcesPage() {
             </div>
 
             <Tabs defaultValue="all" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="links">Links</TabsTrigger>
-                    <TabsTrigger value="documents">Documents</TabsTrigger>
-                    <TabsTrigger value="3d">3D Models</TabsTrigger>
-                </TabsList>
+                <div className="w-full overflow-x-auto pb-2">
+                    <TabsList>
+                        <TabsTrigger value="all">All</TabsTrigger>
+                        <TabsTrigger value="links">Links</TabsTrigger>
+                        <TabsTrigger value="documents">Documents</TabsTrigger>
+                        <TabsTrigger value="3d">3D Models</TabsTrigger>
+                    </TabsList>
+                </div>
                 <TabsContent value="all" className="space-y-4">
                     {typedResources.length === 0 ? (
                         <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg text-muted-foreground">

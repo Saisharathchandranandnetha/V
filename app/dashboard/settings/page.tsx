@@ -45,12 +45,14 @@ export default async function SettingsPage() {
             </div>
 
             <Tabs defaultValue="general" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="general">General Settings</TabsTrigger>
-                    <TabsTrigger value="categories">Categories</TabsTrigger>
-                    <TabsTrigger value="resources">My Resources</TabsTrigger>
-                    <TabsTrigger value="paths">My Learning Paths</TabsTrigger>
-                </TabsList>
+                <div className="w-full overflow-x-auto pb-2">
+                    <TabsList>
+                        <TabsTrigger value="general">General Settings</TabsTrigger>
+                        <TabsTrigger value="categories">Categories</TabsTrigger>
+                        <TabsTrigger value="resources">My Resources</TabsTrigger>
+                        <TabsTrigger value="paths">My Learning Paths</TabsTrigger>
+                    </TabsList>
+                </div>
 
                 <TabsContent value="general">
                     {user ? (
@@ -80,7 +82,7 @@ export default async function SettingsPage() {
                             ) : (
                                 <div className="space-y-4">
                                     {resources?.map((resource) => (
-                                        <div key={resource.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                        <div key={resource.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
                                             <div className="space-y-1">
                                                 <h3 className="font-medium flex items-center gap-2">
                                                     {resource.title}
@@ -90,7 +92,7 @@ export default async function SettingsPage() {
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">{resource.type}</p>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 self-end md:self-auto">
                                                 <Link href={`/dashboard/resources/${resource.id}/edit`}>
                                                     <Button variant="outline" size="sm">
                                                         <Edit className="h-4 w-4 mr-2" />
@@ -126,12 +128,12 @@ export default async function SettingsPage() {
                             ) : (
                                 <div className="space-y-4">
                                     {paths?.map((path) => (
-                                        <div key={path.id} className="flex items-center justify-between p-4 border rounded-lg">
+                                        <div key={path.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
                                             <div className="space-y-1">
                                                 <h3 className="font-medium">{path.title}</h3>
                                                 <p className="text-sm text-muted-foreground truncate max-w-[300px]">{path.description}</p>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 self-end md:self-auto">
                                                 <Link href={`/dashboard/paths/${path.id}/edit`}>
                                                     <Button variant="outline" size="sm">
                                                         <Edit className="h-4 w-4 mr-2" />

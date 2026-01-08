@@ -14,7 +14,7 @@ export default async function CollectionsPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Collections</h1>
                     <p className="text-muted-foreground">Browse your resources by collection.</p>

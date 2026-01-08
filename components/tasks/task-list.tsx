@@ -72,8 +72,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     key={task.id}
                     className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm"
                 >
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
+                    <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-4">
+                        <div className="flex items-start md:items-center space-x-0 md:space-x-4 flex-col md:flex-row gap-2 md:gap-0 w-full md:w-auto">
                             <Select
                                 defaultValue={task.status}
                                 onValueChange={(val) => handleStatusChange(task, val)}
@@ -102,7 +102,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 self-end md:self-auto">
                             <EditTaskDialog task={task} />
                             <ConfirmDeleteDialog
                                 trigger={
@@ -117,7 +117,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                         </div>
                     </div>
                     {task.status === 'Done' && task.completed_at && task.completion_reason && (
-                        <div className="text-xs bg-slate-50 p-2 rounded border ml-[156px]">
+                        <div className="text-xs bg-slate-50 p-2 rounded border mt-2 ml-0 md:ml-[156px]">
                             <p className="font-semibold text-green-600">Completed on {format(new Date(task.completed_at), 'MMM d')} <span className="text-muted-foreground font-normal italic">- "{task.completion_reason}"</span></p>
                         </div>
                     )}

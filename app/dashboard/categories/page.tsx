@@ -16,15 +16,17 @@ export default async function CategoriesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
                     <p className="text-muted-foreground">Browse your resources by category.</p>
                 </div>
-                <Link href="/dashboard/settings?tab=categories">
-                    <Button variant="outline" className="mr-2">Manage Categories</Button>
-                </Link>
-                <CreateCategoryDialog />
+                <div className="flex items-center gap-2">
+                    <Link href="/dashboard/settings?tab=categories">
+                        <Button variant="outline">Manage Categories</Button>
+                    </Link>
+                    <CreateCategoryDialog />
+                </div>
             </div>
 
             <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">

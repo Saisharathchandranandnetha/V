@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Plus, MoreVertical, Trash2, FolderInput } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { NoteCard } from './note-card'
 import { NoteEditor } from './note-editor'
@@ -75,7 +76,10 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     return (
         <div className="flex h-[calc(100vh-8rem)] gap-6">
             {/* Notes List Sidebar */}
-            <div className="w-1/3 flex flex-col gap-4 border-r pr-6">
+            <div className={cn(
+                "w-full md:w-1/3 flex flex-col gap-4 border-r pr-6",
+                (selectedNote || isCreating) ? "hidden md:flex" : "flex"
+            )}>
                 <div className="flex items-center justify-between">
                     <h2 className="text-2xl font-bold">My Notes</h2>
                     <Button onClick={handleCreateNew} size="sm">
@@ -132,7 +136,10 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
             </div>
 
             {/* Editor Area */}
-            <div className="flex-1">
+            <div className={cn(
+                "flex-1",
+                (!selectedNote && !isCreating) ? "hidden md:block" : "block w-full"
+            )}>
                 {selectedNote || isCreating ? (
                     <NoteEditor
                         note={selectedNote || undefined}
