@@ -6,13 +6,29 @@ import { headers } from 'next/headers'
 
 import { createClient } from '@/lib/supabase/server'
 
+import { signupSchema, loginSchema } from '@/lib/auth-schemas'
+import { checkRateLimit } from '@/lib/rate-limit'
+
 export async function login(formData: FormData) {
+    const rateLimit = await checkRateLimit()
+    if (!rateLimit.success) {
+        return redirect('/login?error=Too many requests. Please try again later.')
+    }
+
     const supabase = await createClient()
 
-    // Type-casting here for convenience
-    // In a real app, you might want to validate the formData
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+    const rawData = {
+        email: formData.get('email'),
+        password: formData.get('password'),
+    }
+
+    const validation = loginSchema.safeParse(rawData)
+
+    if (!validation.success) {
+        return redirect(`/login?error=${encodeURIComponent(validation.error.issues[0].message)}`)
+    }
+
+    const { email, password } = validation.data
 
     const { error } = await supabase.auth.signInWithPassword({
         email,
@@ -29,23 +45,43 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
+    const rateLimit = await checkRateLimit()
+    if (!rateLimit.success) {
+        return redirect('/signup?error=Too many requests. Please try again later.')
+    }
+
     const supabase = await createClient()
     const origin = (await headers()).get('origin')
 
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+    const rawData = {
+        full_name: formData.get('full_name'),
+        email: formData.get('email'),
+        password: formData.get('password'),
+        confirm_password: formData.get('confirm_password'),
+    }
+
+    const validation = signupSchema.safeParse(rawData)
+
+    if (!validation.success) {
+        return redirect(`/signup?error=${encodeURIComponent(validation.error.issues[0].message)}`)
+    }
+
+    const { email, password, full_name } = validation.data
 
     const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
             emailRedirectTo: `${origin}/auth/callback`,
+            data: {
+                full_name: full_name,
+            },
         },
     })
 
     if (error) {
         console.error('Signup error:', error)
-        return redirect(`/login?error=${encodeURIComponent(error.message)}`)
+        return redirect(`/signup?error=${encodeURIComponent(error.message)}`) // Changed redirect to signup page for errors
     }
 
     return redirect('/login?message=Check email to continue sign in process')

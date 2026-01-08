@@ -3,6 +3,8 @@ import { Sidebar } from '@/components/sidebar'
 import { MobileNav } from '@/components/mobile-nav'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getUserSettings } from '@/app/dashboard/settings/actions'
+import { ThemeSync } from '@/components/theme-sync'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -15,6 +17,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         redirect('/login')
     }
 
+    const userSettings = await getUserSettings()
+
     return (
         <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
@@ -22,6 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent">
+                <ThemeSync userTheme={userSettings?.settings?.theme} />
                 {/* Mobile Header */}
                 <div className="md:hidden border-b p-4 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
                     <span className="font-semibold">LifeOS</span>

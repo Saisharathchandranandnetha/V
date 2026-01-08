@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { format } from 'date-fns'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -53,7 +54,7 @@ export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
                     <DialogTitle>Add New Task</DialogTitle>
                 </DialogHeader>
                 <form action={onSubmit} className="grid gap-4 py-4">
-                    <input type="hidden" name="due_date" value={effectiveDate.toISOString()} />
+                    <input type="hidden" name="due_date" value={format(effectiveDate, 'yyyy-MM-dd')} />
 
                     <div className="grid gap-2">
                         <Label htmlFor="title">Title</Label>
@@ -84,6 +85,6 @@ export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
                     </div>
                 </form>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }

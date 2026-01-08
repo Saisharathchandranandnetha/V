@@ -6,6 +6,7 @@ import { PlusCircle, CalendarCheck, CheckSquare, Target, DollarSign, ArrowUpRigh
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/utils'
 import { format } from 'date-fns'
+import { DateTimeDisplay } from '@/components/date-time-display'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -117,6 +118,7 @@ export default async function DashboardPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
                     <p className="text-muted-foreground">Overview of your productivity & finances.</p>
                 </div>
+                <DateTimeDisplay />
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -298,24 +300,6 @@ export default async function DashboardPage() {
                 </Card>
 
                 {/* Placeholder for future detailed activity or calendar */}
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle>Welcome Back</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex flex-col items-center justify-center h-40 text-center space-y-4">
-                            <p className="text-lg font-medium">Today is {new Intl.DateTimeFormat('en-US', {
-                                timeZone: 'Asia/Kolkata',
-                                month: 'long',
-                                day: 'numeric',
-                                year: 'numeric'
-                            }).format(new Date())}</p>
-                            <p className="text-muted-foreground">
-                                "The secret of getting ahead is getting started."
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
         </div>
     )
