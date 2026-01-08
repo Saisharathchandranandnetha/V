@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Edit, Trash2, ExternalLink } from 'lucide-react'
+import { Edit, Trash2, ExternalLink, ShieldCheck } from 'lucide-react'
 import { deleteResource, deleteLearningPath } from '@/app/dashboard/actions'
 import { getUserSettings } from './actions'
 import SettingsForm from './settings-form'
 import CollectionsManager from './collections-manager'
 import CategoriesManager from './categories-manager'
+import DeviceList from '@/components/settings/device-list'
 
 export default async function SettingsPage() {
     const supabase = await createClient()
@@ -40,8 +41,27 @@ export default async function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-                <p className="text-muted-foreground">Manage your account, preferences, and content.</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+                        <p className="text-muted-foreground">Manage your account, preferences, and content.</p>
+                    </div>
+                    {/* Admin Access Button */}
+                    {await (async () => {
+                        const { data: { user: authUser } } = await supabase.auth.getUser()
+                        if (authUser?.email === process.env.ADMIN_EMAIL) {
+                            return (
+                                <Link href="/dashboard/admin">
+                                    <Button variant="outline" className="gap-2 border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">
+                                        <ShieldCheck className="h-4 w-4" />
+                                        Admin Dashboard
+                                    </Button>
+                                </Link>
+                            )
+                        }
+                        return null
+                    })()}
+                </div>
             </div>
 
             <Tabs defaultValue="general" className="space-y-4">
@@ -51,6 +71,7 @@ export default async function SettingsPage() {
                         <TabsTrigger value="categories">Categories</TabsTrigger>
                         <TabsTrigger value="resources">My Resources</TabsTrigger>
                         <TabsTrigger value="paths">My Learning Paths</TabsTrigger>
+                        <TabsTrigger value="devices">Devices</TabsTrigger>
                     </TabsList>
                 </div>
 
@@ -154,7 +175,11 @@ export default async function SettingsPage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
+
+                <TabsContent value="devices">
+                    <DeviceList />
+                </TabsContent>
             </Tabs>
-        </div>
+        </div >
     )
 }

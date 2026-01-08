@@ -44,6 +44,22 @@ export async function getUserSettings() {
     return userSettings
 }
 
+export async function updateAvatar(url: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Not authenticated')
+
+    const { error } = await supabase
+        .from('users')
+        .update({ avatar: url })
+        .eq('id', user.id)
+
+    if (error) throw new Error(`Failed to update avatar: ${error.message}`)
+
+    revalidatePath('/dashboard/settings')
+}
+
 export async function updateSettings(settings: Record<string, any>) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
