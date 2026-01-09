@@ -73,6 +73,24 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
         router.refresh()
     }
 
+    const handleNoteSaved = (updatedNote: Partial<Note>) => {
+        // Update local state immediately for responsiveness
+        if (selectedNote) {
+            setNotes(prev => prev.map(n =>
+                n.id === selectedNote.id
+                    ? { ...n, ...updatedNote }
+                    : n
+            ))
+            // Also update the selected note so the editor reflects current state
+            setSelectedNote(prev => prev ? { ...prev, ...updatedNote } : null)
+        } else {
+            // New note - router refresh will handle adding it to the list usually, 
+            // but we can try to anticipate it if we had the ID.
+            // For now, refresh is called in NoteEditor.
+            router.refresh()
+        }
+    }
+
     return (
         <div className="flex h-[calc(100vh-8rem)] gap-6">
             {/* Notes List Sidebar */}
@@ -144,6 +162,7 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                     <NoteEditor
                         note={selectedNote || undefined}
                         onClose={handleCloseEditor}
+                        onSave={handleNoteSaved}
                         key={selectedNote?.id || 'new'}
                     />
                 ) : (

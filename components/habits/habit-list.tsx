@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { format } from 'date-fns'
 import { Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +14,7 @@ interface Habit {
     id: string
     name: string
     frequency: string
+    created_at: string
     habit_logs: {
         date: string
         status: boolean
@@ -87,9 +89,14 @@ export function HabitList({ habits }: { habits: Habit[] }) {
                                     <Check className={cn("h-6 w-6", isCompleted ? "text-white" : "text-muted-foreground")} />
                                 </Button>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {habit.frequency}
-                            </p>
+                            <div className="flex justify-between items-center mt-1">
+                                <p className="text-xs text-muted-foreground">
+                                    {habit.frequency}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    Started: {format(new Date(habit.created_at), 'MMM d, yyyy')}
+                                </p>
+                            </div>
                         </CardContent>
                     </Card>
                 )

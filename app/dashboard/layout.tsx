@@ -22,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return (
         <div className="flex h-screen overflow-hidden">
             {/* Desktop Sidebar */}
-            <Sidebar className="hidden md:block w-64 shrink-0" />
+            <Sidebar isAdmin={user.email === process.env.ADMIN_EMAIL} className="hidden md:block w-64 shrink-0" />
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent">

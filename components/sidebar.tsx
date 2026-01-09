@@ -18,7 +18,8 @@ import {
     Target,
     DollarSign,
     StickyNote,
-    Folder
+    Folder,
+    Shield
 } from 'lucide-react'
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
@@ -86,9 +87,11 @@ export const sidebarNavItems = [
     },
 ]
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> { }
+interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
+    isAdmin?: boolean
+}
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, isAdmin }: SidebarProps) {
     const pathname = usePathname()
 
     return (
@@ -120,6 +123,18 @@ export function Sidebar({ className }: SidebarProps) {
                                 </Link>
                             </Button>
                         ))}
+                        {isAdmin && (
+                            <Button
+                                variant={pathname === '/dashboard/admin' ? 'secondary' : 'ghost'}
+                                className="w-full justify-start"
+                                asChild
+                            >
+                                <Link href="/dashboard/admin">
+                                    <Shield className="mr-2 h-4 w-4" />
+                                    Admin
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
