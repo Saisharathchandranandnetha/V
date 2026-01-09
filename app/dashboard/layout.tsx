@@ -30,7 +30,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 {/* Mobile Header */}
                 <div className="md:hidden border-b p-4 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
                     <span className="font-semibold">LifeOS</span>
-                    <MobileNav />
+                    <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
                 </div>
 
                 <main className="flex-1 overflow-y-auto p-6 md:p-8">

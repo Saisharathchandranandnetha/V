@@ -11,12 +11,12 @@ import {
     SheetContent,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Menu, LogOut } from 'lucide-react'
+import { Menu, LogOut, Shield } from 'lucide-react'
 import { sidebarNavItems } from '@/components/sidebar'
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
 
-export function MobileNav() {
+export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
 
@@ -59,6 +59,19 @@ export function MobileNav() {
                                     </Button>
                                 ))}
                             </div>
+                            {isAdmin && (
+                                <Button
+                                    variant={pathname === '/dashboard/admin' ? 'secondary' : 'ghost'}
+                                    className="w-full justify-start"
+                                    asChild
+                                    onClick={() => setOpen(false)}
+                                >
+                                    <Link href="/dashboard/admin">
+                                        <Shield className="mr-2 h-4 w-4" />
+                                        Admin
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                     </div>
                     <div className="p-4 border-t">
