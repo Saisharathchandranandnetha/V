@@ -7,7 +7,7 @@ import { LearningPathCard } from '@/components/learning-path-card'
 
 export default async function LearningPathsPage() {
     const supabase = await createClient()
-    const { data: paths } = await supabase.from('learning_paths').select('*').order('created_at', { ascending: false })
+    const { data: paths } = await supabase.from('learning_paths').select('*').neq('is_completed', true).order('created_at', { ascending: false })
 
     return (
         <div className="space-y-6">

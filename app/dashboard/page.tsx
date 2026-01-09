@@ -80,7 +80,7 @@ export default async function DashboardPage() {
         supabase.from('goals').select('current_value, target_value').eq('user_id', user.id),
         supabase.from('transactions').select('amount, type').eq('user_id', user.id),
         supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('learning_paths').select('*', { count: 'exact', head: true }),
+        supabase.from('learning_paths').select('*', { count: 'exact', head: true }).neq('is_completed', true),
         supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)

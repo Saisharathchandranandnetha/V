@@ -49,6 +49,7 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {typeGoals.map((goal) => {
                                 const percentage = Math.min((goal.current_value / goal.target_value) * 100, 100)
+                                const isCompleted = percentage >= 100
 
                                 return (
                                     <Card key={goal.id}>
@@ -57,7 +58,12 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                                                 {goal.title}
                                             </CardTitle>
                                             <div className="flex items-center gap-1">
-                                                <EditGoalDialog goal={goal} />
+                                                {!isCompleted && <EditGoalDialog goal={goal} />}
+                                                {isCompleted && (
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground cursor-not-allowed opacity-50" disabled>
+                                                        <Edit2 className="h-4 w-4" />
+                                                    </Button>
+                                                )}
                                                 <ConfirmDeleteDialog
                                                     trigger={
                                                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
@@ -82,35 +88,41 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                                                 )}
                                             </p>
 
-                                            <Dialog open={editingId === goal.id} onOpenChange={(open) => !open && setEditingId(null)}>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="w-full" onClick={() => {
-                                                        setEditingId(goal.id)
-                                                        setEditValue(goal.current_value)
-                                                    }}>
-                                                        Update Progress
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>Update Progress: {goal.title}</DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="py-4">
-                                                        <div className="flex items-center gap-2">
-                                                            <Input
-                                                                type="number"
-                                                                value={editValue}
-                                                                onChange={(e) => setEditValue(Number(e.target.value))}
-                                                                step="0.1"
-                                                            />
-                                                            <span className="text-sm text-muted-foreground">{goal.unit}</span>
+                                            {!isCompleted ? (
+                                                <Dialog open={editingId === goal.id} onOpenChange={(open) => !open && setEditingId(null)}>
+                                                    <DialogTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="w-full" onClick={() => {
+                                                            setEditingId(goal.id)
+                                                            setEditValue(goal.current_value)
+                                                        }}>
+                                                            Update Progress
+                                                        </Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>Update Progress: {goal.title}</DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="py-4">
+                                                            <div className="flex items-center gap-2">
+                                                                <Input
+                                                                    type="number"
+                                                                    value={editValue}
+                                                                    onChange={(e) => setEditValue(Number(e.target.value))}
+                                                                    step="0.1"
+                                                                />
+                                                                <span className="text-sm text-muted-foreground">{goal.unit}</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <DialogFooter>
-                                                        <Button onClick={() => handleUpdate(goal.id)}>Save</Button>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
+                                                        <DialogFooter>
+                                                            <Button onClick={() => handleUpdate(goal.id)}>Save</Button>
+                                                        </DialogFooter>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            ) : (
+                                                <Button variant="secondary" size="sm" className="w-full text-green-600 bg-green-50 hover:bg-green-100 border-green-200" disabled>
+                                                    Completed
+                                                </Button>
+                                            )}
                                         </CardContent>
                                     </Card>
                                 )
