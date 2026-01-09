@@ -156,17 +156,41 @@ export async function getHabitStats(
     const monthlyStats = Array.from({ length: 12 }, (_, i) => {
       const monthStart = new Date(params.year!, i, 1)
       const monthEnd = new Date(params.year!, i + 1, 0)
-      const daysInMonth = monthEnd.getDate()
-
+      
       // Count logs in this month
       const count = logs?.filter(l => {
         const d = new Date(l.date)
         return d.getMonth() === i && d.getFullYear() === params.year
       }).length || 0
 
-      // Total opportunities = habits * days in month
-      // (Simplified: assumes all habits active entire month)
-      const totalOps = totalHabits * daysInMonth
+      // Calculate total opportunities based on when each habit was created
+      let totalOps = 0
+      habits?.forEach(habit => {
+        const createdAt = new Date(habit.created_at)
+        // Reset time to start of day for fair comparison
+        createdAt.setHours(0, 0, 0, 0)
+
+        // Find overlap between habit existence and this month
+        // max(monthStart, createdAt)
+        const effectiveStart = createdAt > monthStart ? createdAt : monthStart
+        
+        // We only count up to the end of the month
+        // (Note: If you want to not count future days within the current month, 
+        // you'd also need min(monthEnd, today). But sticking to "active in month" logic for now
+        // to match previous behavior of showing full month potential, 
+        // OR we can clamp to "now" if that's preferred. 
+        // The user request was about "previous consistency should not be changed". 
+        // Making strict "active days" is safer.)
+        const effectiveEnd = monthEnd
+
+        if (effectiveStart <= effectiveEnd) {
+           // Difference in days
+           const diffTime = Math.abs(effectiveEnd.getTime() - effectiveStart.getTime());
+           const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+           totalOps += diffDays
+        }
+      })
+
       const percentage = totalOps > 0 ? (count / totalOps) * 100 : 0
 
       return {
@@ -186,13 +210,27 @@ export async function getHabitStats(
 
     while (current <= end) {
       const dateStr = toLocalISOString(current)
+      
+      // Count active habits for this specific day
+      // A habit is active if created_at <= current day (end of day comparison or start?)
+      // Typically created_at is a timestamp. If I create it at 5PM, does it count for that day?
+      // Usually yes, you want to do it that day.
+      // Comparison: habit.created_at (timestamp) <= current (which is set to 00:00 iterate? No, wait.)
+      // 'current' in loop starts at 'start'. 
+      // Let's ensure strict date string comparison to avoid time zone issues.
+      
+      const activeHabitsCount = habits?.filter(h => {
+          const createdAtStr = new Date(h.created_at).toISOString().split('T')[0]
+          return createdAtStr <= dateStr
+      }).length || 0
+
       const count = logs?.filter(l => l.date === dateStr).length || 0
-      const percentage = totalHabits > 0 ? (count / totalHabits) * 100 : 0
+      const percentage = activeHabitsCount > 0 ? (count / activeHabitsCount) * 100 : 0
 
       stats.push({
         name: current.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
         date: dateStr,
-        value: Math.round(percentage) // Use 'value' for Recharts consistency
+        value: Math.round(percentage) 
       })
       current.setDate(current.getDate() + 1)
     }

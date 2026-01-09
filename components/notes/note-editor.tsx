@@ -20,9 +20,10 @@ interface NoteEditorProps {
         content: string
     }
     onClose?: () => void
+    onSave?: (note: { id: string, title: string, content: string }) => void
 }
 
-export function NoteEditor({ note, onClose }: NoteEditorProps) {
+export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
     const [title, setTitle] = useState(note?.title || '')
     const [content, setContent] = useState(note?.content || '')
     const [isPreview, setIsPreview] = useState(false)
@@ -50,17 +51,30 @@ export function NoteEditor({ note, onClose }: NoteEditorProps) {
             return
         }
 
-        if (onClose) {
-            onClose()
-        } else {
+        if (onSave) {
+            // Optimistic update / Notify parent
+            onSave({
+                id: note?.id || (result as any).id, // We might need the ID from create result if it returns it. 
+                // Actually actions.createNote doesn't return ID currently.
+                // For now, if it's a new note, we might rely on refresh. 
+                // But let's pass what we have.
+                title,
+                content
+            })
             router.refresh()
+        } else {
+            if (onClose) {
+                onClose()
+            } else {
+                router.refresh()
+            }
         }
     }
 
     return (
         <div className="flex flex-col h-full gap-4 p-4 border rounded-lg bg-card text-card-foreground shadow-sm">
             <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2 w-full md:w-auto">
+                <div className="flex items-center gap-2 w-full md:flex-1">
                     <Button variant="ghost" size="icon" className="md:hidden shrink-0" onClick={onClose}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
