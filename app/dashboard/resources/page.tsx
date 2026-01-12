@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { ResourceCard, ResourceType } from '@/components/resource-card'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { createClient } from '@/lib/supabase/server'
 
 export default async function ResourcesPage() {
@@ -49,35 +50,43 @@ export default async function ResourcesPage() {
                             No resources found. Add one to get started!
                         </div>
                     ) : (
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {typedResources.map(r => (
-                                <ResourceCard key={r.id} resource={r as any} />
+                                <StaggerItem key={r.id} className="h-full">
+                                    <ResourceCard resource={r as any} />
+                                </StaggerItem>
                             ))}
-                        </div>
+                        </StaggerContainer>
                     )}
                 </TabsContent>
                 <TabsContent value="links" className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {linkResources.map(r => (
-                            <ResourceCard key={r.id} resource={r as any} />
+                            <StaggerItem key={r.id} className="h-full">
+                                <ResourceCard resource={r as any} />
+                            </StaggerItem>
                         ))}
-                    </div>
+                    </StaggerContainer>
                     {linkResources.length === 0 && <div className="text-center text-muted-foreground p-8">No links found.</div>}
                 </TabsContent>
                 <TabsContent value="documents" className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {docResources.map(r => (
-                            <ResourceCard key={r.id} resource={r as any} />
+                            <StaggerItem key={r.id} className="h-full">
+                                <ResourceCard resource={r as any} />
+                            </StaggerItem>
                         ))}
-                    </div>
+                    </StaggerContainer>
                     {docResources.length === 0 && <div className="text-center text-muted-foreground p-8">No documents found.</div>}
                 </TabsContent>
                 <TabsContent value="3d" className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {modelResources.map(r => (
-                            <ResourceCard key={r.id} resource={r as any} />
+                            <StaggerItem key={r.id} className="h-full">
+                                <ResourceCard resource={r as any} />
+                            </StaggerItem>
                         ))}
-                    </div>
+                    </StaggerContainer>
                     {modelResources.length === 0 && <div className="text-center text-muted-foreground p-8">No 3D models found.</div>}
                 </TabsContent>
             </Tabs>

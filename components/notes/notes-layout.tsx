@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { NoteCard } from './note-card'
 import { NoteEditor } from './note-editor'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { deleteNote } from '@/app/dashboard/notes/actions'
 import { useRouter } from 'next/navigation'
 import {
@@ -106,14 +107,14 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                     </Button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+                <StaggerContainer className="flex-1 overflow-y-auto space-y-3 pr-2">
                     {notes.map((note) => (
-                        <div key={note.id} className="relative group">
+                        <StaggerItem key={note.id} className="relative group w-full">
                             <NoteCard
                                 note={note}
                                 onClick={() => handleSelectNote(note)}
                             />
-                            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-2 right-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" size="icon" className="h-8 w-8 bg-background/50 backdrop-blur-sm hover:bg-background">
@@ -143,14 +144,14 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                        </div>
+                        </StaggerItem>
                     ))}
                     {notes.length === 0 && (
                         <div className="text-center text-muted-foreground py-10">
                             No notes yet. Create one to get started!
                         </div>
                     )}
-                </div>
+                </StaggerContainer>
             </div>
 
             {/* Editor Area */}

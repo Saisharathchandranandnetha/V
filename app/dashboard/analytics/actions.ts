@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { fetchHabitStats } from '../habits/actions'
 
 export async function getAnalyticsData(period: string = '7d', startDate?: string, endDate?: string) {
     const supabase = await createClient()
@@ -56,69 +57,23 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
     const startStr = toLocalISOString(start)
     const endStr = toLocalISOString(end)
 
-    // 1. Habit Stats
-    const { data: habits } = await supabase.from('habits').select('id').eq('user_id', user.id)
-    const totalHabits = habits?.length || 0
 
-    const { data: logs } = await supabase
-        .from('habit_logs')
-        .select('date, status')
-        .gte('date', startStr)
-        .lte('date', endStr)
-        .eq('status', true)
-        .in('habit_id', habits?.map(h => h.id) || [])
+    // 1. Habit Stats using shared logic
+    // Determine aggregation type based on period
+    const aggregation = period === 'year' ? 'month' : 'day'
+    const rawHabitData = await fetchHabitStats(user.id, start, end, aggregation)
 
-    let habitData = []
+    // Map to structure compatible with charts (if needed, or just return rawHabitData)
+    // AnalyticsCharts currently expects: 
+    // - BarChart with dataKey="percentage" (and "date" param for axis)
+    // New fetchHabitStats returns: { name, date, value } where value is percentage.
 
-    // Aggregation Logic
-    if (period === 'year') {
-        // Aggregate by Month
-        const months = Array.from({ length: 12 }, (_, i) => {
-            const d = new Date(new Date().getFullYear(), i, 1)
-            return {
-                label: d.toLocaleDateString('en-US', { month: 'short' }),
-                monthIndex: i
-            }
-        })
+    const habitData = rawHabitData.map((d: any) => ({
+        date: d.name, // Display label (Jan 01 or Jan)
+        fullDate: d.date, // ISO Date
+        percentage: d.value
+    }))
 
-        habitData = months.map(m => {
-            // Find logs in this month
-            // Note: This matches regardless of year if we only check month, strictly we should check year too 
-            // but for "This Year" view using current year is implied.
-            // Better: Filter logs where logDate.month == m.monthIndex
-            const countInMonth = logs?.filter(l => new Date(l.date).getMonth() === m.monthIndex).length || 0
-
-            // Approximate total opportunities: Days in Month * Total Habits
-            // This is rough but sufficient for trend viewing
-            const daysInMonth = new Date(new Date().getFullYear(), m.monthIndex + 1, 0).getDate()
-            const totalOps = daysInMonth * totalHabits
-
-            const percentage = totalOps > 0 ? (countInMonth / totalOps) * 100 : 0
-            return {
-                date: m.label,
-                percentage: Math.round(percentage)
-            }
-        })
-    } else {
-        // Aggregate by Day (7d, Month, Custom)
-        // Generate array of dates between start and end
-        const dateArray = []
-        let current = new Date(start)
-        while (current <= end) {
-            dateArray.push(toLocalISOString(current))
-            current.setDate(current.getDate() + 1)
-        }
-
-        habitData = dateArray.map(dateStr => {
-            const completedCount = logs?.filter(l => l.date === dateStr).length || 0
-            const percentage = totalHabits > 0 ? (completedCount / totalHabits) * 100 : 0
-            return {
-                date: new Date(dateStr).toLocaleDateString('en-US', { day: '2-digit', month: 'short' }), // e.g. "Jan 01"
-                fullDate: dateStr,
-                percentage: Math.round(percentage)
-            }
-        })
-    }
 
     // 2. Task Stats (Created in range)
     const { data: tasks } = await supabase

@@ -98,6 +98,7 @@ export async function updateHabit(id: string, formData: FormData) {
   revalidatePath('/dashboard/habits')
 }
 
+
 export async function getHabitStats(
   viewType: 'date' | 'month' | 'year' | 'all',
   params: { date?: Date; month?: number; year?: number }
@@ -106,19 +107,8 @@ export async function getHabitStats(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return []
 
-  const { data: habits } = await supabase.from('habits').select('id, created_at').eq('user_id', user.id)
-  const totalHabits = habits?.length || 0
-  if (totalHabits === 0) return []
-
   let start = new Date()
   let end = new Date()
-
-  // Helper to format date as YYYY-MM-DD
-  const toISODate = (d: Date) => {
-    const offset = d.getTimezoneOffset()
-    const local = new Date(d.getTime() - (offset * 60 * 1000))
-    return local.toISOString().split('T')[0]
-  }
 
   if (viewType === 'date' && params.date) {
     start = new Date(params.date)
@@ -134,57 +124,82 @@ export async function getHabitStats(
     end = new Date(params.year, 11, 31)
     end.setHours(23, 59, 59, 999)
   } else if (viewType === 'all') {
-    // Find earliest habit creation
-    const earliest = habits?.reduce((min, h) => (h.created_at < min ? h.created_at : min), new Date().toISOString())
-    start = new Date(earliest || new Date())
+    const { data: habits } = await supabase.from('habits').select('created_at').eq('user_id', user.id).order('created_at', { ascending: true }).limit(1)
+    const earliest = habits?.[0]?.created_at || new Date().toISOString()
+    start = new Date(earliest)
     end = new Date() // Now
   }
 
-  // Fetch logs in range
+  // Use the shared logic
+  return await fetchHabitStats(user.id, start, end, viewType === 'year' ? 'month' : 'day')
+}
+
+// Shared function for consistency calculation
+export async function fetchHabitStats(
+  userId: string,
+  start: Date,
+  end: Date,
+  aggregation: 'day' | 'month'
+) {
+  const supabase = await createClient()
+
+  // 1. Fetch Habits
+  const { data: habits } = await supabase.from('habits').select('id, created_at').eq('user_id', userId)
+  const totalHabits = habits?.length || 0
+  if (totalHabits === 0) return []
+
+  // 2. Fetch Logs
+  const toISODate = (d: Date) => {
+    const offset = d.getTimezoneOffset()
+    const local = new Date(d.getTime() - (offset * 60 * 1000))
+    return local.toISOString().split('T')[0]
+  }
+
   const { data: logs } = await supabase
     .from('habit_logs')
-    .select('date, status')
+    .select('date, status, habit_id')
     .gte('date', toISODate(start))
     .lte('date', toISODate(end))
     .eq('status', true)
     .in('habit_id', habits?.map(h => h.id) || [])
 
-
-  // Aggregate
-  if (viewType === 'year') {
+  // 3. Aggregate
+  if (aggregation === 'month') {
     // Monthly aggregation
-    const monthlyStats = Array.from({ length: 12 }, (_, i) => {
-      const monthStart = new Date(params.year!, i, 1)
-      const monthEnd = new Date(params.year!, i + 1, 0)
-      
+    // Generate months between start and end
+    const months = []
+    let currentCtx = new Date(start)
+    currentCtx.setDate(1) // align to month start
+
+    while (currentCtx <= end) {
+       months.push(new Date(currentCtx))
+       currentCtx.setMonth(currentCtx.getMonth() + 1)
+    }
+
+    return months.map(monthStart => {
+      const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0)
+      monthEnd.setHours(23, 59, 59, 999)
+
       // Count logs in this month
+      // Check if log date falls in this month
       const count = logs?.filter(l => {
         const d = new Date(l.date)
-        return d.getMonth() === i && d.getFullYear() === params.year
+        return d.getMonth() === monthStart.getMonth() && d.getFullYear() === monthStart.getFullYear()
       }).length || 0
 
-      // Calculate total opportunities based on when each habit was created
+      // Calculate total opportunities
       let totalOps = 0
       habits?.forEach(habit => {
         const createdAt = new Date(habit.created_at)
-        // Reset time to start of day for fair comparison
         createdAt.setHours(0, 0, 0, 0)
 
-        // Find overlap between habit existence and this month
-        // max(monthStart, createdAt)
         const effectiveStart = createdAt > monthStart ? createdAt : monthStart
-        
-        // We only count up to the end of the month
-        // (Note: If you want to not count future days within the current month, 
-        // you'd also need min(monthEnd, today). But sticking to "active in month" logic for now
-        // to match previous behavior of showing full month potential, 
-        // OR we can clamp to "now" if that's preferred. 
-        // The user request was about "previous consistency should not be changed". 
-        // Making strict "active days" is safer.)
+        // Clamp effectiveEnd to actual end of range if needed, but for "month" bucket usually full month
+        // However, if the query range ends mid-month, we should probably respect that?
+        // For now, consistent with viewing "Last Year", we show full months.
         const effectiveEnd = monthEnd
 
         if (effectiveStart <= effectiveEnd) {
-           // Difference in days
            const diffTime = Math.abs(effectiveEnd.getTime() - effectiveStart.getTime());
            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
            totalOps += diffDays
@@ -199,25 +214,22 @@ export async function getHabitStats(
         value: Math.round(percentage)
       }
     })
-    return monthlyStats
 
   } else {
-    // Daily aggregation (Date, Month, All)
+    // Daily aggregation
     const stats = []
     let current = new Date(start)
-    // Avoid infinite loop if dates are messed up
-    if (current > end) return []
+    // Avoid infinite loop
+    if (current > end && start.toDateString() !== end.toDateString()) return [] 
+    
+    // Safety check
+    const maxIterations = 365 * 5 // 5 years max
+    let i = 0
 
     while (current <= end) {
+      if (i++ > maxIterations) break;
+
       const dateStr = toLocalISOString(current)
-      
-      // Count active habits for this specific day
-      // A habit is active if created_at <= current day (end of day comparison or start?)
-      // Typically created_at is a timestamp. If I create it at 5PM, does it count for that day?
-      // Usually yes, you want to do it that day.
-      // Comparison: habit.created_at (timestamp) <= current (which is set to 00:00 iterate? No, wait.)
-      // 'current' in loop starts at 'start'. 
-      // Let's ensure strict date string comparison to avoid time zone issues.
       
       const activeHabitsCount = habits?.filter(h => {
           const createdAtStr = new Date(h.created_at).toISOString().split('T')[0]
@@ -237,6 +249,7 @@ export async function getHabitStats(
     return stats
   }
 }
+
 
 // Helper to ensure local ISO string YYYY-MM-DD
 function toLocalISOString(d: Date) {

@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { LearningPathCard } from '@/components/learning-path-card'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 
 export default async function LearningPathsPage() {
     const supabase = await createClient()
@@ -29,11 +30,13 @@ export default async function LearningPathsPage() {
                     No learning paths found. Create one to get started!
                 </div>
             ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {paths.map(path => (
-                        <LearningPathCard key={path.id} path={path} />
+                        <StaggerItem key={path.id} className="h-full">
+                            <LearningPathCard path={path} />
+                        </StaggerItem>
                     ))}
-                </div>
+                </StaggerContainer>
             )}
         </div>
     )

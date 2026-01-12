@@ -4,6 +4,8 @@ import CategoriesManager from '../settings/categories-manager'
 
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Folder } from 'lucide-react'
+import { HoverEffect } from '@/components/ui/hover-effect'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { Button } from '@/components/ui/button'
 import { CreateCategoryDialog } from './create-category-dialog'
 
@@ -29,29 +31,33 @@ export default async function CategoriesPage() {
                 </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <StaggerContainer className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {categories?.map((category: any) => (
-                    <Link key={category.id} href={`/dashboard/categories/${category.id}`}>
-                        <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <Folder className="h-5 w-5 text-blue-500" />
-                                    {category.name}
-                                </CardTitle>
-                                <CardDescription>
-                                    {category.resources?.[0]?.count || 0} resources
-                                </CardDescription>
-                            </CardHeader>
-                        </Card>
-                    </Link>
+                    <StaggerItem key={category.id} className="h-full">
+                        <HoverEffect variant="lift">
+                            <Link href={`/dashboard/categories/${category.id}`}>
+                                <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2">
+                                            <Folder className="h-5 w-5 text-blue-500" />
+                                            {category.name}
+                                        </CardTitle>
+                                        <CardDescription>
+                                            {category.resources?.[0]?.count || 0} resources
+                                        </CardDescription>
+                                    </CardHeader>
+                                </Card>
+                            </Link>
+                        </HoverEffect>
+                    </StaggerItem>
                 ))}
 
                 {categories?.length === 0 && (
-                    <div className="col-span-full p-8 border rounded-lg border-dashed text-center text-muted-foreground">
-                        No categories found. Create one via "Manage Categories" or when adding a resource.
+                    <div className="col-span-full text-center text-muted-foreground py-10">
+                        No categories found. Create one to organize your resources.
                     </div>
                 )}
-            </div>
+            </StaggerContainer>
         </div>
     )
 }

@@ -4,6 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Folder } from 'lucide-react'
 import { CreateCollectionDialog } from './create-collection-dialog'
 import { CollectionCard } from './collection-card'
+import { HoverEffect } from '@/components/ui/hover-effect'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 
 export default async function CollectionsPage() {
     const supabase = await createClient()
@@ -22,17 +24,21 @@ export default async function CollectionsPage() {
                 <CreateCollectionDialog />
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+            <StaggerContainer className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                 {collections?.map((collection: any) => (
-                    <CollectionCard key={collection.id} collection={collection} />
+                    <StaggerItem key={collection.id} className="h-full">
+                        <HoverEffect variant="lift">
+                            <CollectionCard collection={collection} />
+                        </HoverEffect>
+                    </StaggerItem>
                 ))}
 
                 {collections?.length === 0 && (
-                    <div className="col-span-full p-8 border rounded-lg border-dashed text-center text-muted-foreground">
-                        No collections found. Create one in Categories.
+                    <div className="col-span-full text-center text-muted-foreground py-10">
+                        No collections found. Create one to group your resources.
                     </div>
                 )}
-            </div>
+            </StaggerContainer>
         </div>
     )
 }

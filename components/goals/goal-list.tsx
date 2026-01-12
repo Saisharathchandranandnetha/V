@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { deleteGoal, updateGoalProgress } from '@/app/dashboard/goals/actions'
 import { EditGoalDialog } from '@/components/goals/edit-goal-dialog'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { cn } from '@/lib/utils'
+import { HoverEffect } from '@/components/ui/hover-effect'
 
 interface Goal {
     id: string
@@ -46,88 +48,92 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                 return (
                     <div key={type} className="space-y-4">
                         <h3 className="text-xl font-semibold tracking-tight">{type}</h3>
-                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                             {typeGoals.map((goal) => {
                                 const percentage = Math.min((goal.current_value / goal.target_value) * 100, 100)
                                 const isCompleted = percentage >= 100
 
                                 return (
-                                    <Card key={goal.id}>
-                                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                            <CardTitle className="text-sm font-medium">
-                                                {goal.title}
-                                            </CardTitle>
-                                            <div className="flex items-center gap-1">
-                                                {!isCompleted && <EditGoalDialog goal={goal} />}
-                                                {isCompleted && (
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground cursor-not-allowed opacity-50" disabled>
-                                                        <Edit2 className="h-4 w-4" />
-                                                    </Button>
-                                                )}
-                                                <ConfirmDeleteDialog
-                                                    trigger={
-                                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
-                                                    }
-                                                    onConfirm={() => deleteGoal(goal.id)}
-                                                    title="Delete Goal"
-                                                    description="Are you sure you want to delete this goal? This action cannot be undone."
-                                                />
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <div className="text-2xl font-bold mb-2">
-                                                {goal.current_value} / {goal.target_value} <span className="text-sm font-normal text-muted-foreground">{goal.unit}</span>
-                                            </div>
-                                            <Progress value={percentage} className="h-2 mb-2" />
-                                            <p className="text-xs text-muted-foreground mb-4">
-                                                {percentage.toFixed(0)}% Complete
-                                                {goal.deadline && (
-                                                    <span className="ml-2">• Due {format(new Date(goal.deadline), 'MMM d, yyyy')}</span>
-                                                )}
-                                            </p>
+                                    <StaggerItem key={goal.id} className="h-full">
+                                        <HoverEffect variant="lift">
+                                            <Card>
+                                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                                    <CardTitle className="text-sm font-medium">
+                                                        {goal.title}
+                                                    </CardTitle>
+                                                    <div className="flex items-center gap-1">
+                                                        {!isCompleted && <EditGoalDialog goal={goal} />}
+                                                        {isCompleted && (
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground cursor-not-allowed opacity-50" disabled>
+                                                                <Edit2 className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                        <ConfirmDeleteDialog
+                                                            trigger={
+                                                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            }
+                                                            onConfirm={() => deleteGoal(goal.id)}
+                                                            title="Delete Goal"
+                                                            description="Are you sure you want to delete this goal? This action cannot be undone."
+                                                        />
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <div className="text-2xl font-bold mb-2">
+                                                        {goal.current_value} / {goal.target_value} <span className="text-sm font-normal text-muted-foreground">{goal.unit}</span>
+                                                    </div>
+                                                    <Progress value={percentage} className="h-2 mb-2" />
+                                                    <p className="text-xs text-muted-foreground mb-4">
+                                                        {percentage.toFixed(0)}% Complete
+                                                        {goal.deadline && (
+                                                            <span className="ml-2">• Due {format(new Date(goal.deadline), 'MMM d, yyyy')}</span>
+                                                        )}
+                                                    </p>
 
-                                            {!isCompleted ? (
-                                                <Dialog open={editingId === goal.id} onOpenChange={(open) => !open && setEditingId(null)}>
-                                                    <DialogTrigger asChild>
-                                                        <Button variant="outline" size="sm" className="w-full" onClick={() => {
-                                                            setEditingId(goal.id)
-                                                            setEditValue(goal.current_value)
-                                                        }}>
-                                                            Update Progress
+                                                    {!isCompleted ? (
+                                                        <Dialog open={editingId === goal.id} onOpenChange={(open) => !open && setEditingId(null)}>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="outline" size="sm" className="w-full" onClick={() => {
+                                                                    setEditingId(goal.id)
+                                                                    setEditValue(goal.current_value)
+                                                                }}>
+                                                                    Update Progress
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent>
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Update Progress: {goal.title}</DialogTitle>
+                                                                </DialogHeader>
+                                                                <div className="py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Input
+                                                                            type="number"
+                                                                            value={editValue}
+                                                                            onChange={(e) => setEditValue(Number(e.target.value))}
+                                                                            step="0.1"
+                                                                        />
+                                                                        <span className="text-sm text-muted-foreground">{goal.unit}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <DialogFooter>
+                                                                    <Button onClick={() => handleUpdate(goal.id)}>Save</Button>
+                                                                </DialogFooter>
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                    ) : (
+                                                        <Button variant="secondary" size="sm" className="w-full text-green-600 bg-green-50 hover:bg-green-100 border-green-200" disabled>
+                                                            Completed
                                                         </Button>
-                                                    </DialogTrigger>
-                                                    <DialogContent>
-                                                        <DialogHeader>
-                                                            <DialogTitle>Update Progress: {goal.title}</DialogTitle>
-                                                        </DialogHeader>
-                                                        <div className="py-4">
-                                                            <div className="flex items-center gap-2">
-                                                                <Input
-                                                                    type="number"
-                                                                    value={editValue}
-                                                                    onChange={(e) => setEditValue(Number(e.target.value))}
-                                                                    step="0.1"
-                                                                />
-                                                                <span className="text-sm text-muted-foreground">{goal.unit}</span>
-                                                            </div>
-                                                        </div>
-                                                        <DialogFooter>
-                                                            <Button onClick={() => handleUpdate(goal.id)}>Save</Button>
-                                                        </DialogFooter>
-                                                    </DialogContent>
-                                                </Dialog>
-                                            ) : (
-                                                <Button variant="secondary" size="sm" className="w-full text-green-600 bg-green-50 hover:bg-green-100 border-green-200" disabled>
-                                                    Completed
-                                                </Button>
-                                            )}
-                                        </CardContent>
-                                    </Card>
+                                                    )}
+                                                </CardContent>
+                                            </Card>
+                                        </HoverEffect>
+                                    </StaggerItem>
                                 )
                             })}
-                        </div>
+                        </StaggerContainer>
                     </div>
                 )
             })}
