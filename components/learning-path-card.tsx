@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { HoverEffect } from '@/components/ui/hover-effect'
 
-interface LearningPathProps {
+export interface LearningPathProps {
     id: string
     title: string
     description?: string

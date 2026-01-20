@@ -3,12 +3,28 @@ import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { LearningPathCard } from '@/components/learning-path-card'
+import { LearningPathCard, LearningPathProps } from '@/components/learning-path-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
+import { ViewSelector } from './view-selector'
 
-export default async function LearningPathsPage() {
+export const dynamic = 'force-dynamic'
+
+export default async function LearningPathsPage(props: {
+    searchParams: Promise<{ view?: string }>
+}) {
+    const searchParams = await props.searchParams
+    const view = searchParams.view || 'active'
     const supabase = await createClient()
-    const { data: paths } = await supabase.from('learning_paths').select('*').neq('is_completed', true).order('created_at', { ascending: false })
+
+    let query = supabase.from('learning_paths').select('*')
+
+    if (view === 'completed') {
+        query = query.eq('is_completed', true)
+    } else {
+        query = query.neq('is_completed', true)
+    }
+
+    const { data: paths } = await query.order('created_at', { ascending: false })
 
     return (
         <div className="space-y-6">
@@ -17,21 +33,27 @@ export default async function LearningPathsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Learning Paths</h1>
                     <p className="text-muted-foreground">Follow structured paths to master new skills.</p>
                 </div>
-                <Link href="/dashboard/paths/new">
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Path
-                    </Button>
-                </Link>
+                <div className="flex items-center gap-4">
+                    <ViewSelector />
+                    <Link href="/dashboard/paths/new">
+                        <Button>
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add Path
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             {(!paths || paths.length === 0) ? (
                 <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg text-muted-foreground min-h-[200px]">
-                    No learning paths found. Create one to get started!
+                    {view === 'completed'
+                        ? "No completed learning paths found."
+                        : "No active learning paths found. Create one to get started!"
+                    }
                 </div>
             ) : (
-                <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {paths.map(path => (
+                <StaggerContainer key={view} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {paths.map((path: LearningPathProps) => (
                         <StaggerItem key={path.id} className="h-full">
                             <LearningPathCard path={path} />
                         </StaggerItem>

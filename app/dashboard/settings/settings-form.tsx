@@ -108,6 +108,45 @@ export default function SettingsForm({ user }: { user: any }) {
         }
     }
 
+    const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setLoading(true)
+        try {
+            const supabase = createClient()
+            const fileExt = file.name.split('.').pop()
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`
+            const filePath = `${fileName}`
+
+            // Upload to Supabase Storage - using 'backgrounds' bucket
+            const { error: uploadError } = await supabase.storage
+                .from('backgrounds')
+                .upload(filePath, file)
+
+            if (uploadError) throw uploadError
+
+            // Get Public URL
+            const { data: { publicUrl } } = supabase.storage
+                .from('backgrounds')
+                .getPublicUrl(filePath)
+
+            // Update Settings
+            await updateSettings({ backgroundImage: publicUrl })
+
+            // Optimistic update
+            const newSettings = { ...settings, backgroundImage: publicUrl }
+            setSettings(newSettings)
+            setSavedSection('appearance')
+            setTimeout(() => setSavedSection(null), 2000)
+        } catch (error: any) {
+            console.error('Background upload failed:', error)
+            alert('Background upload failed. Make sure the "backgrounds" bucket exists and is public.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="space-y-8">
             {/* SECTION 1: Account & Profile */}
@@ -512,6 +551,46 @@ export default function SettingsForm({ user }: { user: any }) {
                             </div>
                         </RadioGroup>
                     </div>
+
+                    <div className="space-y-3">
+                        <Label>Custom Background</Label>
+                        <div className="flex flex-col gap-4">
+                            {settings.backgroundImage && (
+                                <div className="relative aspect-video w-full max-w-sm rounded-lg overflow-hidden border">
+                                    <img src={settings.backgroundImage} alt="Custom Background" className="object-cover w-full h-full" />
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        className="absolute top-2 right-2 h-6 w-6 p-0"
+                                        onClick={() => handleSettingChange('backgroundImage', null, 'appearance')}
+                                    >
+                                        &times;
+                                    </Button>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                                <Label htmlFor="bg-upload" className="cursor-pointer">
+                                    <div className="flex items-center gap-2 h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium shadow-sm transition-colors">
+                                        <Upload className="h-4 w-4" />
+                                        Upload Background Image
+                                    </div>
+                                    <Input
+                                        id="bg-upload"
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleBackgroundUpload}
+                                        disabled={loading}
+                                    />
+                                </Label>
+                            </div>
+                            <p className="text-[0.8rem] text-muted-foreground">
+                                Recommended: 1920x1080px. Max 4MB.
+                            </p>
+                        </div>
+                    </div>
+
                     <div className="flex items-center justify-between">
                         <Label htmlFor="reduceMotion">Reduce Motion</Label>
                         <Switch
