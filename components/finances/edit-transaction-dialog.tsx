@@ -36,14 +36,22 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
     const [open, setOpen] = useState(false)
     const [type, setType] = useState<'Income' | 'Expense'>(transaction.type as 'Income' | 'Expense')
 
+    // Determine initial category state
+    const incomeCategories = ['Salary', 'Freelance', 'Investments', 'Gift', 'Other']
+    const expenseCategories = ['Food', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other']
+
+    const isCustomInitially = !incomeCategories.includes(transaction.category_name) && !expenseCategories.includes(transaction.category_name)
+    const [category, setCategory] = useState<string>(isCustomInitially ? 'Custom' : transaction.category_name)
+    const [customCategory, setCustomCategory] = useState<string>(isCustomInitially ? transaction.category_name : '')
+
     async function handleSubmit(formData: FormData) {
+        // If Custom is selected, override the category field with the custom value
+        if (category === 'Custom') {
+            formData.set('category', customCategory)
+        }
         await updateTransaction(transaction.id, formData)
         setOpen(false)
     }
-
-    // common categories
-    const incomeCategories = ['Salary', 'Freelance', 'Investments', 'Gift', 'Other']
-    const expenseCategories = ['Food', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other']
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -92,19 +100,46 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
                         <Label htmlFor="category" className="text-right">
                             Category
                         </Label>
-                        <Select name="category" defaultValue={transaction.category_name}>
+                        <Select
+                            name="category"
+                            value={category}
+                            onValueChange={setCategory}
+                        >
                             <SelectTrigger className="col-span-3">
                                 <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
                                 {type === 'Income' ? (
-                                    incomeCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
+                                    <>
+                                        {incomeCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                        <SelectItem value="Custom">Custom</SelectItem>
+                                    </>
                                 ) : (
-                                    expenseCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)
+                                    <>
+                                        {expenseCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                                        <SelectItem value="Custom">Custom</SelectItem>
+                                    </>
                                 )}
                             </SelectContent>
                         </Select>
                     </div>
+
+                    {category === 'Custom' && (
+                        <div className="grid grid-cols-4 items-center gap-4 animate-in slide-in-from-top-2 fade-in">
+                            <Label htmlFor="custom_category" className="text-right">
+                                Name
+                            </Label>
+                            <Input
+                                id="custom_category"
+                                value={customCategory}
+                                onChange={(e) => setCustomCategory(e.target.value)}
+                                placeholder="Enter custom category name"
+                                className="col-span-3"
+                                required
+                            />
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="description" className="text-right">
                             Description

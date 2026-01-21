@@ -126,16 +126,18 @@ export default function SettingsForm({ user }: { user: any }) {
 
             if (uploadError) throw uploadError
 
-            // Get Public URL
-            const { data: { publicUrl } } = supabase.storage
+            // Get Signed URL for display (valid for 1 hour is enough for session)
+            const { data: { signedUrl } } = await supabase.storage
                 .from('backgrounds')
-                .getPublicUrl(filePath)
+                .createSignedUrl(filePath, 3600)
 
-            // Update Settings
-            await updateSettings({ backgroundImage: publicUrl })
+            if (!signedUrl) throw new Error('Failed to sign URL')
 
-            // Optimistic update
-            const newSettings = { ...settings, backgroundImage: publicUrl }
+            // Update Settings with FILE PATH, not URL
+            await updateSettings({ backgroundImage: filePath })
+
+            // Optimistic update with Signed URL for display
+            const newSettings = { ...settings, backgroundImage: signedUrl }
             setSettings(newSettings)
             setSavedSection('appearance')
             setTimeout(() => setSavedSection(null), 2000)

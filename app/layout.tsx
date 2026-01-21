@@ -44,7 +44,17 @@ export default async function RootLayout({
       .single()
 
     if (userData && userData.settings && userData.settings.backgroundImage) {
-      customBackground = userData.settings.backgroundImage
+      const bgImage = userData.settings.backgroundImage
+      if (!bgImage.startsWith('http')) {
+        const { data } = await supabase.storage
+          .from('backgrounds')
+          .createSignedUrl(bgImage, 60 * 60 * 24) // 24 hours
+        if (data?.signedUrl) {
+          customBackground = data.signedUrl
+        }
+      } else {
+        customBackground = bgImage
+      }
     }
   }
 

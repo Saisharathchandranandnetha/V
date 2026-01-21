@@ -18,6 +18,17 @@ export default async function SettingsPage() {
     // Fetch user settings and ensure row exists
     const user = await getUserSettings()
 
+    // Sign background image URL if present and private
+    if (user?.settings?.backgroundImage && !user.settings.backgroundImage.startsWith('http')) {
+        const { data } = await supabase.storage
+            .from('backgrounds')
+            .createSignedUrl(user.settings.backgroundImage, 60 * 60 * 24) // 24 hours
+
+        if (data?.signedUrl) {
+            user.settings.backgroundImage = data.signedUrl
+        }
+    }
+
     const { data: resources } = await supabase
         .from('resources')
         .select('*')
