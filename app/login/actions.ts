@@ -72,7 +72,7 @@ export async function signup(formData: FormData) {
         email,
         password,
         options: {
-            emailRedirectTo: `${origin}/auth/callback`,
+            emailRedirectTo: `${origin}/auth/callback?next=/signup/verified`,
             data: {
                 full_name: full_name,
             },
@@ -84,7 +84,7 @@ export async function signup(formData: FormData) {
         return redirect(`/signup?error=${encodeURIComponent(error.message)}`) // Changed redirect to signup page for errors
     }
 
-    return redirect('/login?message=Check email to continue sign in process')
+    return redirect(`/signup/verify-email?email=${encodeURIComponent(email)}`)
 }
 
 export async function signout() {

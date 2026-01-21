@@ -127,9 +127,12 @@ export default function SettingsForm({ user }: { user: any }) {
             if (uploadError) throw uploadError
 
             // Get Signed URL for display (valid for 1 hour is enough for session)
-            const { data: { signedUrl } } = await supabase.storage
+            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
                 .from('backgrounds')
                 .createSignedUrl(filePath, 3600)
+
+            if (signedUrlError) throw signedUrlError
+            const signedUrl = signedUrlData?.signedUrl
 
             if (!signedUrl) throw new Error('Failed to sign URL')
 
