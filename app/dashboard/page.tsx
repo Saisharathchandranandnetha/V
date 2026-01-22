@@ -69,14 +69,14 @@ export default async function DashboardPage() {
         // Pending tasks: Scheduled for today OR earlier (overdue) AND not done
         supabase.from('tasks')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
+            .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
             .neq('status', 'Done')
             .lte('due_date', endOfDayISO),
         // Done tasks: Scheduled for today (due_date inside range) AND status is Done
         // This ensures the count reflects "Today's Schedule" regardless of when it was effectively clicked.
         supabase.from('tasks')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
+            .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
             .eq('status', 'Done')
             .gte('completed_at', startOfDayISO)
             .lte('completed_at', endOfDayISO),
