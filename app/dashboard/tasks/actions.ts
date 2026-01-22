@@ -34,6 +34,16 @@ export async function createTask(formData: FormData) {
 export async function updateTaskStatus(id: string, status: string, completedAt?: string, reason?: string) {
     const supabase = await createClient()
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    // Fetch task details to check for project linkage
+    const { data: task } = await supabase
+        .from('tasks')
+        .select('title, project_id, team_id')
+        .eq('id', id)
+        .single()
+
     const updateData: any = { status }
     if (status === 'Done' && completedAt) {
         updateData.completed_at = completedAt
@@ -49,6 +59,22 @@ export async function updateTaskStatus(id: string, status: string, completedAt?:
     if (error) {
         console.error('Error updating task status:', error)
         throw new Error('Failed to update task status')
+    }
+
+    // If task is completed and linked to a project, send a notification message
+    if (status === 'Done' && task?.project_id && task?.team_id) {
+        try {
+            await supabase.from('team_messages').insert({
+                team_id: task.team_id,
+                project_id: task.project_id,
+                message: `Task completed: ${task.title}`,
+                sender_id: user.id,
+                type: 'system' // Optional: if we want to style it differently later, or just standard text
+            })
+        } catch (msgError) {
+            console.error('Failed to send completion message:', msgError)
+            // Don't fail the task update if message fails
+        }
     }
 
     revalidatePath('/dashboard/tasks')

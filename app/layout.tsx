@@ -19,6 +19,7 @@ import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { UAParser } from 'ua-parser-js'
 import { BackgroundWrapper } from "@/components/background-wrapper"
+import { Toaster } from "@/components/ui/sonner"
 
 export default async function RootLayout({
   children,
@@ -77,6 +78,7 @@ export default async function RootLayout({
           {children}
         </ThemeProvider>
         <SpeedInsights />
+        <Toaster />
       </body>
     </html>
   );

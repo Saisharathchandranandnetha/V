@@ -79,7 +79,7 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
     const { data: tasks } = await supabase
         .from('tasks')
         .select('status')
-        .eq('user_id', user.id)
+        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
         .gte('due_date', start.toISOString())
         .lte('due_date', end.toISOString())
 

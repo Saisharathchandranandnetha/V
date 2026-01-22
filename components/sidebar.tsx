@@ -19,16 +19,23 @@ import {
     DollarSign,
     StickyNote,
     Folder,
-    Shield
+    Shield,
+    Users
 } from 'lucide-react'
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
 
+// Navigation items for the sidebar
 export const sidebarNavItems = [
     {
         title: 'Dashboard',
         href: '/dashboard',
         icon: LayoutDashboard,
+    },
+    {
+        title: 'Team Chat',
+        href: '/dashboard/chat',
+        icon: Users,
     },
     {
         title: 'Habits',
