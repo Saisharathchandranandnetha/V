@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createTeam } from '@/app/dashboard/teams/actions'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 
 export function CreateTeamDialog() {
     const [open, setOpen] = useState(false)
@@ -75,7 +75,8 @@ export function CreateTeamDialog() {
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={isLoading || !name.trim()}>
-                            {isLoading ? 'Creating...' : 'Create Team'}
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Create Team
                         </Button>
                     </DialogFooter>
                 </form>

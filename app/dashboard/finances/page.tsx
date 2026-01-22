@@ -16,6 +16,17 @@ export default async function FinancesPage() {
         .eq('user_id', user.id)
         .order('date', { ascending: false })
 
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name', { ascending: true })
+
+    const { data: projects } = await supabase
+        .from('projects')
+        .select('*')
+        .order('name', { ascending: true })
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -23,14 +34,14 @@ export default async function FinancesPage() {
                     <h2 className="text-3xl font-bold tracking-tight">Finances</h2>
                     <p className="text-muted-foreground">Monitor your income and expenses.</p>
                 </div>
-                <AddTransactionDialog />
+                <AddTransactionDialog categories={categories || []} projects={projects || []} />
             </div>
 
             {transactions && <FinanceOverview transactions={transactions} />}
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="col-span-7">
-                    <TransactionList transactions={transactions || []} />
+                    <TransactionList transactions={transactions || []} categories={categories || []} projects={projects || []} />
                 </div>
             </div>
         </div>

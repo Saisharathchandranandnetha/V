@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { addTeamMember } from '@/app/dashboard/teams/actions'
-import { UserPlus } from 'lucide-react'
+import { UserPlus, Loader2 } from 'lucide-react'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 
 interface AddMemberDialogProps {
@@ -103,7 +103,8 @@ export function AddMemberDialog({ teamId, open, onOpenChange }: AddMemberDialogP
                     </div>
                     <DialogFooter>
                         <Button type="submit" disabled={isLoading || !email.trim()}>
-                            {isLoading ? 'Adding...' : 'Add Member'}
+                            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Add Member
                         </Button>
                     </DialogFooter>
                 </form>

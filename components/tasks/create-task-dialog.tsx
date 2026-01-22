@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -25,6 +25,7 @@ import { createTask } from '@/app/dashboard/tasks/actions'
 
 export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
     const [open, setOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
     const effectiveDate = defaultDate || new Date()
     // Format date as YYYY-MM-DD for input value if we wanted to show it, 
     // but the requirement is to "select date ... and task ... added before" - implies hidden or read-only context.
@@ -32,13 +33,20 @@ export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
     // So we will hide the date input and pass it silently.
 
     async function onSubmit(formData: FormData) {
+        setLoading(true)
         // Append the formatted date to formData manually since the input is hidden/removed
         if (defaultDate) {
             // We can rely on a hidden input or append to formData
             // Hidden input is easiest for native form action
         }
-        await createTask(formData)
-        setOpen(false)
+        try {
+            await createTask(formData)
+            setOpen(false)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -81,7 +89,10 @@ export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
                     {/* Due Date is hidden as requested, dictated by the selected calendar date */}
 
                     <div className="flex justify-end">
-                        <Button type="submit">Create Task</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Create Task
+                        </Button>
                     </div>
                 </form>
             </DialogContent>

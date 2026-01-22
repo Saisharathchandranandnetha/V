@@ -9,32 +9,73 @@ export async function sendMessage(formData: FormData) {
     const message = formData.get('message') as string
     const teamId = formData.get('teamId') as string
     let projectId: string | null = formData.get('projectId') as string
+    const metadataRaw = formData.get('metadata') as string
 
     // Sanitize projectId
     if (projectId === 'undefined' || projectId === 'null' || !projectId) {
         projectId = null
     }
 
-    if (!message || !teamId) {
-        throw new Error('Message and Team ID are required')
+    if ((!message && !metadataRaw) || !teamId) {
+        throw new Error('Message or Attachment and Team ID are required')
     }
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    const { error } = await supabase
+    let metadata = null
+    try {
+        if (metadataRaw) {
+            metadata = JSON.parse(metadataRaw)
+        }
+    } catch (e) {
+        console.error('Failed to parse metadata', e)
+    }
+
+    const { data: insertedMessage, error } = await supabase
         .from('team_messages')
         .insert({
             team_id: teamId,
             project_id: projectId, // already sanitized to null or string
             message,
-            sender_id: user.id
+            sender_id: user.id,
+            metadata: metadata
         })
+        .select()
+        .single()
 
     if (error) {
         console.error('Error sending message:', JSON.stringify(error, null, 2))
         console.error('Debug Info:', { teamId, projectId, userId: user.id })
         throw new Error(`Failed to send message: ${error.message}`)
+    }
+
+    // Handle Shared Items
+    // Handle Shared Items
+    // Support new 'attachments' array or legacy 'attachment' object
+    const attachments = metadata?.attachments || (metadata?.attachment ? [metadata.attachment] : [])
+
+    if (attachments.length > 0) {
+        const validTypes = ['resource', 'note', 'learning_path']
+        const recordsToInsert = []
+
+        for (const attachment of attachments) {
+            const sharedType = attachment.type
+            if (validTypes.includes(sharedType) && attachment.item?.id) {
+                recordsToInsert.push({
+                    team_id: teamId,
+                    project_id: projectId || null,
+                    chat_message_id: insertedMessage.id,
+                    shared_type: sharedType as any,
+                    shared_item_id: attachment.item.id,
+                    shared_by: user.id
+                })
+            }
+        }
+
+        if (recordsToInsert.length > 0) {
+            await supabase.from('chat_shared_items').insert(recordsToInsert)
+        }
     }
 
     // We don't necessarily need to revalidate path if we are using Realtime, 
@@ -192,6 +233,39 @@ export async function deleteProject(projectId: string, teamId: string) {
     if (error) {
         console.error('Error deleting project:', error)
         throw new Error('Failed to delete project')
+    }
+
+    revalidatePath(`/dashboard/chat/${teamId}`)
+}
+
+export async function deleteMessage(messageId: string, teamId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) throw new Error('Unauthorized')
+
+    // Check ownership before delete
+    // OR isAdmin/Owner (not strictly enforced here for speed, but good practice to constrain)
+    const { data: message } = await supabase
+        .from('team_messages')
+        .select('sender_id')
+        .eq('id', messageId)
+        .single()
+
+    if (!message) return // Already deleted?
+
+    if (message.sender_id !== user.id) {
+        throw new Error('You can only delete your own messages')
+    }
+
+    const { error } = await supabase
+        .from('team_messages')
+        .delete()
+        .eq('id', messageId)
+
+    if (error) {
+        console.error('Error deleting message:', error)
+        throw new Error('Failed to delete message')
     }
 
     revalidatePath(`/dashboard/chat/${teamId}`)

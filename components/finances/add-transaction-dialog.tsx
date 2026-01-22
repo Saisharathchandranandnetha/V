@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -21,19 +21,52 @@ import {
 } from '@/components/ui/select'
 import { addTransaction } from '@/app/dashboard/finances/actions'
 
-const CATEGORIES = {
+interface Category {
+    id: string
+    name: string
+    type: 'Income' | 'Expense'
+    user_id: string
+}
+
+interface Project {
+    id: string
+    name: string
+}
+
+const DEFAULT_CATEGORIES = {
     Income: ['Salary', 'Freelance', 'Investment', 'Other'],
     Expense: ['Food', 'Rent', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other']
 }
 
-export function AddTransactionDialog() {
+export function AddTransactionDialog({ categories, projects }: { categories: Category[], projects?: Project[] }) {
     const [open, setOpen] = useState(false)
     const [type, setType] = useState<'Income' | 'Expense'>('Expense')
     const [category, setCategory] = useState<string>('')
+    const [loading, setLoading] = useState(false)
+
+    // Merge default categories with custom categories from DB
+    const availableCategories = [
+        ...DEFAULT_CATEGORIES[type],
+        ...categories
+            .filter(c => c.type === type && !DEFAULT_CATEGORIES[type].includes(c.name))
+            .map(c => c.name)
+    ].sort()
+
+    // Ensure 'Other' is always at the end
+    const sortedCategories = availableCategories.filter(c => c !== 'Other').concat('Other')
+    // Remove duplicates just in case
+    const uniqueCategories = Array.from(new Set(sortedCategories))
 
     async function onSubmit(formData: FormData) {
-        await addTransaction(formData)
-        setOpen(false)
+        setLoading(true)
+        try {
+            await addTransaction(formData)
+            setOpen(false)
+        } catch (error) {
+            console.error('Failed to add transaction', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -69,6 +102,21 @@ export function AddTransactionDialog() {
                     </div>
 
                     <div className="grid gap-2">
+                        <Label htmlFor="project">Project (Optional)</Label>
+                        <Select name="projectId">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Project" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="undefined">None</SelectItem>
+                                {projects?.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="grid gap-2">
                         <Label htmlFor="amount">Amount</Label>
                         <Input type="number" name="amount" placeholder="0.00" required step="0.01" />
                     </div>
@@ -80,7 +128,7 @@ export function AddTransactionDialog() {
                                 <SelectValue placeholder="Select Category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {CATEGORIES[type].map(cat => (
+                                {uniqueCategories.map(cat => (
                                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -104,7 +152,10 @@ export function AddTransactionDialog() {
                     </div>
 
                     <div className="flex justify-end">
-                        <Button type="submit">Save</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save
+                        </Button>
                     </div>
                 </form>
             </DialogContent>

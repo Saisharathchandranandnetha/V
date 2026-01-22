@@ -13,8 +13,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { createTaskFromMessage } from '@/app/dashboard/chat/actions'
+import { createTaskFromMessage, deleteMessage } from '@/app/dashboard/chat/actions'
 import { toast } from 'sonner'
+import { SharedContentCard } from './SharedContentCard'
 
 export interface Message {
     id: string
@@ -30,6 +31,7 @@ export interface Message {
     }
     is_sender?: boolean
     read_status?: 'sent' | 'delivered' | 'read'
+    metadata?: any
 }
 
 interface MessageItemProps {
@@ -59,6 +61,16 @@ export function MessageItem({ message, isConsecutive, teamId, projectId }: Messa
         } catch (e) {
             console.error("Failed to create task", e)
             toast.error("Failed to create task")
+        }
+    }
+
+    const handleDelete = async () => {
+        try {
+            await deleteMessage(message.id, teamId)
+            toast.success("Message deleted")
+        } catch (e) {
+            console.error("Failed to delete message", e)
+            toast.error("Failed to delete message")
         }
     }
 
@@ -122,13 +134,30 @@ export function MessageItem({ message, isConsecutive, teamId, projectId }: Messa
                                         Create Task
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-destructive">
-                                        Delete Message
-                                    </DropdownMenuItem>
+                                    {isSender && (
+                                        <DropdownMenuItem className="text-destructive" onClick={handleDelete}>
+                                            Delete Message
+                                        </DropdownMenuItem>
+                                    )}
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
                     </div>
+
+                    {/* Shared Content Card */}
+                    {message.metadata && (
+                        <div className="mt-2 mb-1 flex flex-wrap gap-2">
+                            {/* New Array Format */}
+                            {(message.metadata as any).attachments?.map((att: any, i: number) => (
+                                <SharedContentCard key={i} attachment={att} />
+                            ))}
+
+                            {/* Legacy Single Format */}
+                            {!(message.metadata as any).attachments && (message.metadata as any).attachment && (
+                                <SharedContentCard attachment={(message.metadata as any).attachment} />
+                            )}
+                        </div>
+                    )}
 
                     {/* Metadata (Time + Read Receipt) */}
                     <div className="flex items-center gap-1 mt-1 px-1">

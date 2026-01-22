@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getUserSettings } from '@/app/dashboard/settings/actions'
 import { ThemeSync } from '@/components/theme-sync'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -33,9 +34,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
                 </div>
 
-                <main className="flex-1 overflow-y-auto p-6 md:p-8">
-                    {children}
-                </main>
+                <ScrollArea className="flex-1">
+                    <main className="p-6 md:p-8">
+                        {children}
+                    </main>
+                </ScrollArea>
             </div>
         </div>
     )

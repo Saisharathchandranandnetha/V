@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { createCategory } from '@/app/dashboard/settings/actions'
 
 export function CreateCategoryDialog() {
@@ -75,7 +75,8 @@ export function CreateCategoryDialog() {
                             Cancel
                         </Button>
                         <Button type="submit" disabled={loading}>
-                            {loading ? 'Creating...' : 'Create Category'}
+                            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Create Category
                         </Button>
                     </DialogFooter>
                 </form>

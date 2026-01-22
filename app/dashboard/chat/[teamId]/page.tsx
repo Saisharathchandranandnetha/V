@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { MessageList } from '@/components/chat/MessageList'
-import { ChatInput } from '@/components/chat/ChatInput'
+import { ChatContainer } from '@/components/chat/ChatContainer'
 import { Separator } from '@/components/ui/separator'
 import { Hash } from 'lucide-react'
 
@@ -62,13 +61,17 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
                 </div>
             </div>
 
-            <MessageList
+            <ChatContainer
                 initialMessages={formattedMessages}
                 teamId={teamId}
-                currentUserId={user.id}
+                currentUser={{
+                    id: user.id,
+                    name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
+                    avatar: user.user_metadata.avatar_url || '',
+                    email: user.email!
+                }}
+                members={members}
             />
-
-            <ChatInput teamId={teamId} members={members} />
         </div>
     )
 }

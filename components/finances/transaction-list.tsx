@@ -18,9 +18,22 @@ interface Transaction {
     category_name: string
     description?: string
     date: string
+    project_id?: string | null
 }
 
-export function TransactionList({ transactions }: { transactions: Transaction[] }) {
+interface Category {
+    id: string
+    name: string
+    type: 'Income' | 'Expense'
+    user_id: string
+}
+
+interface Project {
+    id: string
+    name: string
+}
+
+export function TransactionList({ transactions, categories, projects }: { transactions: Transaction[], categories: Category[], projects: Project[] }) {
     return (
         <Card className="col-span-3">
             <CardHeader>
@@ -55,7 +68,7 @@ export function TransactionList({ transactions }: { transactions: Transaction[] 
                                             <div className={cn("font-medium", t.type === 'Income' ? "text-green-600" : "text-gray-900")}>
                                                 {t.type === 'Income' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
                                             </div>
-                                            <EditTransactionDialog transaction={t} />
+                                            <EditTransactionDialog transaction={t} categories={categories} projects={projects} />
                                             <ConfirmDeleteDialog
                                                 trigger={
                                                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">

@@ -41,6 +41,68 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_shared_items: {
+        Row: {
+          chat_message_id: string
+          created_at: string | null
+          id: string
+          project_id: string | null
+          shared_by: string
+          shared_item_id: string
+          shared_type: "resource" | "note" | "learning_path"
+          team_id: string
+        }
+        Insert: {
+          chat_message_id: string
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          shared_by: string
+          shared_item_id: string
+          shared_type: "resource" | "note" | "learning_path"
+          team_id: string
+        }
+        Update: {
+          chat_message_id?: string
+          created_at?: string | null
+          id?: string
+          project_id?: string | null
+          shared_by?: string
+          shared_item_id?: string
+          shared_type?: "resource" | "note" | "learning_path"
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_shared_items_chat_message_id_fkey"
+            columns: ["chat_message_id"]
+            isOneToOne: false
+            referencedRelation: "team_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_shared_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_shared_items_shared_by_fkey"
+            columns: ["shared_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_shared_items_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collections: {
         Row: {
           created_at: string
@@ -182,31 +244,43 @@ export type Database = {
       learning_paths: {
         Row: {
           collection_id: string | null
+          copied_at: string | null
+          copied_from_chat: boolean | null
           created_at: string
           description: string | null
           id: string
           is_completed: boolean | null
           links: string[] | null
+          original_item_id: string | null
+          project_id: string | null
           title: string
           user_id: string | null
         }
         Insert: {
           collection_id?: string | null
+          copied_at?: string | null
+          copied_from_chat?: boolean | null
           created_at?: string
           description?: string | null
           id?: string
           is_completed?: boolean | null
           links?: string[] | null
+          original_item_id?: string | null
+          project_id?: string | null
           title: string
           user_id?: string | null
         }
         Update: {
           collection_id?: string | null
+          copied_at?: string | null
+          copied_from_chat?: boolean | null
           created_at?: string
           description?: string | null
           id?: string
           is_completed?: boolean | null
           links?: string[] | null
+          original_item_id?: string | null
+          project_id?: string | null
           title?: string
           user_id?: string | null
         }
@@ -253,8 +327,12 @@ export type Database = {
         Row: {
           collection_id: string | null
           content: string | null
+          copied_at: string | null
+          copied_from_chat: boolean | null
           created_at: string
           id: string
+          original_item_id: string | null
+          project_id: string | null
           title: string
           updated_at: string
           user_id: string | null
@@ -262,8 +340,12 @@ export type Database = {
         Insert: {
           collection_id?: string | null
           content?: string | null
+          copied_at?: string | null
+          copied_from_chat?: boolean | null
           created_at?: string
           id?: string
+          original_item_id?: string | null
+          project_id?: string | null
           title: string
           updated_at?: string
           user_id?: string | null
@@ -271,8 +353,12 @@ export type Database = {
         Update: {
           collection_id?: string | null
           content?: string | null
+          copied_at?: string | null
+          copied_from_chat?: boolean | null
           created_at?: string
           id?: string
+          original_item_id?: string | null
+          project_id?: string | null
           title?: string
           updated_at?: string
           user_id?: string | null
@@ -347,8 +433,12 @@ export type Database = {
         Row: {
           category_id: string | null
           collection_id: string | null
+          copied_at: string | null
+          copied_from_chat: boolean | null
           created_at: string
           id: string
+          original_item_id: string | null
+          project_id: string | null
           summary: string | null
           tags: string[] | null
           title: string
@@ -359,8 +449,12 @@ export type Database = {
         Insert: {
           category_id?: string | null
           collection_id?: string | null
+          copied_at?: string | null
+          copied_from_chat?: boolean | null
           created_at?: string
           id?: string
+          original_item_id?: string | null
+          project_id?: string | null
           summary?: string | null
           tags?: string[] | null
           title: string
@@ -371,8 +465,12 @@ export type Database = {
         Update: {
           category_id?: string | null
           collection_id?: string | null
+          copied_at?: string | null
+          copied_from_chat?: boolean | null
           created_at?: string
           id?: string
+          original_item_id?: string | null
+          project_id?: string | null
           summary?: string | null
           tags?: string[] | null
           title?: string
@@ -446,8 +544,8 @@ export type Database = {
           project_id?: string | null
           status?: string | null
           team_id?: string | null
-          title?: string
-          user_id?: string
+          title: string
+          user_id: string
         }
         Relationships: [
           {
@@ -521,6 +619,7 @@ export type Database = {
           created_at: string
           id: string
           message: string
+          metadata: Json | null
           project_id: string | null
           sender_id: string | null
           team_id: string
@@ -529,6 +628,7 @@ export type Database = {
           created_at?: string
           id?: string
           message: string
+          metadata?: Json | null
           project_id?: string | null
           sender_id?: string | null
           team_id: string
@@ -537,6 +637,7 @@ export type Database = {
           created_at?: string
           id?: string
           message?: string
+          metadata?: Json | null
           project_id?: string | null
           sender_id?: string | null
           team_id?: string
@@ -595,6 +696,7 @@ export type Database = {
           date: string
           description: string | null
           id: string
+          project_id: string | null
           type: string
           user_id: string
         }
@@ -606,6 +708,7 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
+          project_id?: string | null
           type: string
           user_id: string
         }
@@ -617,6 +720,7 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
+          project_id?: string | null
           type?: string
           user_id?: string
         }
@@ -626,6 +730,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -666,7 +777,9 @@ export type Database = {
     }
     Functions: {
       admin_get_user_sessions: {
-        Args: { target_user_id: string }
+        Args: {
+          target_user_id: string
+        }
         Returns: {
           created_at: string
           id: string
@@ -675,10 +788,28 @@ export type Database = {
           user_agent: string
         }[]
       }
-      admin_revoke_session: { Args: { session_id: string }; Returns: undefined }
-      check_team_membership: { Args: { tid: string }; Returns: boolean }
-      create_new_team: { Args: { team_name: string }; Returns: string }
-      delete_user: { Args: never; Returns: undefined }
+      admin_revoke_session: {
+        Args: {
+          session_id: string
+        }
+        Returns: undefined
+      }
+      check_team_membership: {
+        Args: {
+          tid: string
+        }
+        Returns: boolean
+      }
+      create_new_team: {
+        Args: {
+          team_name: string
+        }
+        Returns: string
+      }
+      delete_user: {
+        Args: never
+        Returns: undefined
+      }
       get_active_sessions: {
         Args: never
         Returns: {
@@ -689,9 +820,22 @@ export type Database = {
           user_agent: string
         }[]
       }
-      get_my_team_ids: { Args: never; Returns: string[] }
-      is_team_admin: { Args: { tid: string }; Returns: boolean }
-      revoke_session: { Args: { session_id: string }; Returns: undefined }
+      get_my_team_ids: {
+        Args: never
+        Returns: string[]
+      }
+      is_team_admin: {
+        Args: {
+          tid: string
+        }
+        Returns: boolean
+      }
+      revoke_session: {
+        Args: {
+          session_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
@@ -708,116 +852,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {

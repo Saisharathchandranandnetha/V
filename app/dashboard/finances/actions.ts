@@ -47,6 +47,8 @@ export async function addTransaction(formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
+    const projectId = formData.get('projectId') as string
+
     // Handle Category Link
     const categoryId = await getOrCreateCategory(supabase, user.id, finalCategoryName, type)
 
@@ -57,7 +59,8 @@ export async function addTransaction(formData: FormData) {
         category_name: finalCategoryName,
         description,
         date: dateRaw ? new Date(dateRaw).toISOString() : new Date().toISOString(),
-        user_id: user.id
+        user_id: user.id,
+        project_id: projectId || null
     })
 
     if (error) {
@@ -96,6 +99,8 @@ export async function updateTransaction(id: string, formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
+    const projectId = formData.get('projectId') as string
+
     // Handle Category Link (reuse existing logic if possible, or duplicate for now safely)
     // We need to pass supabase client to helper if we want to reuse it, which we can.
     const categoryId = await getOrCreateCategory(supabase, user.id, finalCategoryName, type)
@@ -108,6 +113,7 @@ export async function updateTransaction(id: string, formData: FormData) {
             category_name: finalCategoryName,
             description,
             date: dateRaw ? new Date(dateRaw).toISOString() : new Date().toISOString(),
+            project_id: projectId || null
         })
         .eq('id', id)
         .eq('user_id', user.id)

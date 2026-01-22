@@ -30,19 +30,53 @@ interface Transaction {
     category_name: string
     description?: string
     date: string
+    project_id?: string | null
 }
 
-export function EditTransactionDialog({ transaction }: { transaction: Transaction }) {
+interface Category {
+    id: string
+    name: string
+    type: 'Income' | 'Expense'
+    user_id: string
+}
+
+const DEFAULT_CATEGORIES = {
+    Income: ['Salary', 'Freelance', 'Investments', 'Gift', 'Other'],
+    Expense: ['Food', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other']
+}
+
+interface Project {
+    id: string
+    name: string
+}
+
+export function EditTransactionDialog({ transaction, categories, projects }: { transaction: Transaction, categories: Category[], projects: Project[] }) {
     const [open, setOpen] = useState(false)
     const [type, setType] = useState<'Income' | 'Expense'>(transaction.type as 'Income' | 'Expense')
 
     // Determine initial category state
-    const incomeCategories = ['Salary', 'Freelance', 'Investments', 'Gift', 'Other']
-    const expenseCategories = ['Food', 'Transport', 'Rent', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other']
+    const incomeCategories = [
+        ...DEFAULT_CATEGORIES['Income'],
+        ...categories.filter(c => c.type === 'Income' && !DEFAULT_CATEGORIES['Income'].includes(c.name)).map(c => c.name)
+    ].sort()
+    const expenseCategories = [
+        ...DEFAULT_CATEGORIES['Expense'],
+        ...categories.filter(c => c.type === 'Expense' && !DEFAULT_CATEGORIES['Expense'].includes(c.name)).map(c => c.name)
+    ].sort()
 
-    const isCustomInitially = !incomeCategories.includes(transaction.category_name) && !expenseCategories.includes(transaction.category_name)
+    const availableCategories = type === 'Income' ? incomeCategories : expenseCategories
+
+    // Ensure 'Other' is always at the end
+    const sortedCategories = availableCategories.filter(c => c !== 'Other').concat('Other')
+    const uniqueCategories = Array.from(new Set(sortedCategories))
+
+    const isCustomInitially = !uniqueCategories.includes(transaction.category_name) && transaction.category_name !== 'Custom'
     const [category, setCategory] = useState<string>(isCustomInitially ? 'Custom' : transaction.category_name)
     const [customCategory, setCustomCategory] = useState<string>(isCustomInitially ? transaction.category_name : '')
+
+    // Add transaction has project_id? Need to check Transaction interface and backend data.
+    // Assuming backend returns project_id for transactions now. We need to update Transaction interface here.
+    const [projectId, setProjectId] = useState<string>(transaction.project_id || 'undefined')
 
     async function handleSubmit(formData: FormData) {
         // If Custom is selected, override the category field with the custom value
@@ -83,6 +117,37 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
                         </Select>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="date" className="text-right">
+                            Date
+                        </Label>
+                        <Input
+                            id="date"
+                            name="date"
+                            type="date"
+                            defaultValue={new Date(transaction.date).toISOString().split('T')[0]}
+                            className="col-span-3"
+                            required
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="project" className="text-right">
+                            Project
+                        </Label>
+                        <Select name="projectId" value={projectId} onValueChange={setProjectId}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select Project" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="undefined">None</SelectItem>
+                                {projects.map(p => (
+                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="amount" className="text-right">
                             Amount
                         </Label>
@@ -109,17 +174,10 @@ export function EditTransactionDialog({ transaction }: { transaction: Transactio
                                 <SelectValue placeholder="Select category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {type === 'Income' ? (
-                                    <>
-                                        {incomeCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                        <SelectItem value="Custom">Custom</SelectItem>
-                                    </>
-                                ) : (
-                                    <>
-                                        {expenseCategories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                                        <SelectItem value="Custom">Custom</SelectItem>
-                                    </>
-                                )}
+                                {uniqueCategories.map(c => (
+                                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                                ))}
+                                <SelectItem value="Custom">Custom</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

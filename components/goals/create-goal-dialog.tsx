@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -23,10 +23,18 @@ import { createGoal } from '@/app/dashboard/goals/actions'
 
 export function CreateGoalDialog() {
     const [open, setOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     async function onSubmit(formData: FormData) {
-        await createGoal(formData)
-        setOpen(false)
+        setLoading(true)
+        try {
+            await createGoal(formData)
+            setOpen(false)
+        } catch (error) {
+            console.error('Failed to create goal', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -80,7 +88,10 @@ export function CreateGoalDialog() {
                         </div>
                     </div>
                     <div className="flex justify-end">
-                        <Button type="submit">Create Goal</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Create Goal
+                        </Button>
                     </div>
                 </form>
             </DialogContent>

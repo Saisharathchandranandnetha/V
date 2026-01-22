@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -23,10 +23,18 @@ import { createHabit } from '@/app/dashboard/habits/actions'
 
 export function CreateHabitDialog() {
     const [open, setOpen] = useState(false)
+    const [loading, setLoading] = useState(false)
 
     async function onSubmit(formData: FormData) {
-        await createHabit(formData)
-        setOpen(false)
+        setLoading(true)
+        try {
+            await createHabit(formData)
+            setOpen(false)
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -59,7 +67,10 @@ export function CreateHabitDialog() {
                         </Select>
                     </div>
                     <div className="flex justify-end">
-                        <Button type="submit">Save Habit</Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Save Habit
+                        </Button>
                     </div>
                 </form>
             </DialogContent>

@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { MessageList } from '@/components/chat/MessageList'
-import { ChatInput } from '@/components/chat/ChatInput'
+import { ChatContainer } from '@/components/chat/ChatContainer'
 import { Folder } from 'lucide-react'
 
 interface ProjectChatPageProps {
@@ -60,22 +59,26 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
                     <Folder className="h-4 w-4 text-muted-foreground" />
                     {project.name}
                 </div>
-                <ProjectSettingsDialog 
-                    teamId={teamId} 
-                    projectId={projectId} 
+                <ProjectSettingsDialog
+                    teamId={teamId}
+                    projectId={projectId}
                     currentName={project.name}
                     currentUserRole={currentUserRole}
                 />
             </div>
 
-            <MessageList
+            <ChatContainer
                 initialMessages={formattedMessages}
                 teamId={teamId}
                 projectId={projectId}
-                currentUserId={user.id}
+                currentUser={{
+                    id: user.id,
+                    name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
+                    avatar: user.user_metadata.avatar_url || '',
+                    email: user.email!
+                }}
+                members={members}
             />
-
-            <ChatInput teamId={teamId} projectId={projectId} members={members} />
         </div>
     )
 }
