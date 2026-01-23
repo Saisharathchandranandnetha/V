@@ -13,13 +13,13 @@ import { CreateProjectDialog } from './CreateProjectDialog'
 import { TeamActionsMenu } from './TeamActionsMenu'
 
 
-type Project = {
+export type Project = {
     id: string
     name: string
     team_id: string
 }
 
-type Team = {
+export type Team = {
     id: string
     name: string
     currentUserRole?: string
@@ -28,9 +28,10 @@ type Team = {
 
 interface ChatSidebarProps {
     teams: Team[]
+    onSelect?: () => void
 }
 
-export function ChatSidebar({ teams }: ChatSidebarProps) {
+export function ChatSidebar({ teams, onSelect }: ChatSidebarProps) {
     const params = useParams()
     const pathname = usePathname()
     const currentTeamId = params.teamId as string
@@ -68,6 +69,7 @@ export function ChatSidebar({ teams }: ChatSidebarProps) {
                             <div className="flex items-center group">
                                 <Link
                                     href={`/dashboard/chat/${team.id}`}
+                                    onClick={onSelect}
                                     className={cn(
                                         "flex-1 flex items-center gap-2 px-2 py-1.5 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
                                         currentTeamId === team.id && !pathname.includes('/project/') ? "bg-accent text-accent-foreground" : "text-muted-foreground"
@@ -76,18 +78,13 @@ export function ChatSidebar({ teams }: ChatSidebarProps) {
                                     <Users className="h-4 w-4" />
                                     {team.name}
                                 </Link>
-                                <TeamActionsMenu 
-                                    teamId={team.id} 
-                                    teamName={team.name} 
+                                <TeamActionsMenu
+                                    teamId={team.id}
+                                    teamName={team.name}
                                     currentUserRole={team.currentUserRole}
                                 />
                                 <CollapsibleTrigger asChild>
                                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0 ml-1 opacity-0 group-hover:opacity-100 transition-opacity rotate-90 data-[state=open]:rotate-0">
-                                        {/* Use Chevron for collapse? Or just keep Hash/Arrow? Let's use simple Chevron but keep logic simple. */
-                                            /* Actually original was Hash. Let's swap to a Chevron for collapse indicator if we have actions separately. */
-                                            /* But for now, let's just ADD the menu NEXT to the collapse trigger. */
-                                            /* And maybe move collapse trigger to left or keep right. */
-                                        }
                                         <Hash className="h-3 w-3" />
                                     </Button>
                                 </CollapsibleTrigger>
@@ -98,6 +95,7 @@ export function ChatSidebar({ teams }: ChatSidebarProps) {
                                     <Link
                                         key={project.id}
                                         href={`/dashboard/chat/${team.id}/project/${project.id}`}
+                                        onClick={onSelect}
                                         className={cn(
                                             "flex items-center gap-2 px-2 py-1.5 text-sm rounded-md hover:bg-accent hover:text-accent-foreground transition-colors",
                                             pathname.includes(project.id) ? "bg-accent/50 text-accent-foreground" : "text-muted-foreground"
@@ -107,7 +105,7 @@ export function ChatSidebar({ teams }: ChatSidebarProps) {
                                         {project.name}
                                     </Link>
                                 ))}
-                                {['owner', 'admin'].includes(team.currentUserRole || '') && (
+                                {['owner', 'admin', 'member'].includes(team.currentUserRole || '') && (
                                     <CreateProjectDialog teamId={team.id} />
                                 )}
                             </CollapsibleContent>
