@@ -6,7 +6,12 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { differenceInMinutes } from 'date-fns'
 
 // Simplified MessageList
-export function MessageList({ messages, teamId, projectId }: { messages: Message[], teamId: string, projectId?: string }) {
+export function MessageList({ messages, teamId, projectId, onDelete }: {
+    messages: Message[],
+    teamId: string,
+    projectId?: string,
+    onDelete?: (id: string) => void
+}) {
     const bottomRef = useRef<HTMLDivElement>(null)
 
     // Scroll to bottom when messages change
@@ -41,6 +46,7 @@ export function MessageList({ messages, teamId, projectId }: { messages: Message
                         isConsecutive={msg.isConsecutive}
                         teamId={teamId}
                         projectId={projectId}
+                        onDelete={onDelete}
                     />
                 ))}
                 <div ref={bottomRef} className="h-1" />

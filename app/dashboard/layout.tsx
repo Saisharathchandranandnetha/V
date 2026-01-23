@@ -29,7 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent">
                 <ThemeSync userTheme={userSettings?.settings?.theme} />
                 {/* Mobile Header */}
-                <div className="md:hidden border-b p-4 flex items-center justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
+                <div className="md:hidden border-b p-4 flex items-center justify-between bg-background sticky top-0 z-50">
                     <span className="font-semibold">LifeOS</span>
                     <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
                 </div>

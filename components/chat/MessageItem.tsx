@@ -39,9 +39,10 @@ interface MessageItemProps {
     isConsecutive?: boolean
     teamId: string
     projectId?: string
+    onDelete?: (id: string) => void
 }
 
-export function MessageItem({ message, isConsecutive, teamId, projectId }: MessageItemProps) {
+export function MessageItem({ message, isConsecutive, teamId, projectId, onDelete }: MessageItemProps) {
     const isSender = message.is_sender
 
     // Format time
@@ -66,6 +67,8 @@ export function MessageItem({ message, isConsecutive, teamId, projectId }: Messa
 
     const handleDelete = async () => {
         try {
+            // Optimistic update
+            onDelete?.(message.id)
             await deleteMessage(message.id, teamId)
             toast.success("Message deleted")
         } catch (e) {

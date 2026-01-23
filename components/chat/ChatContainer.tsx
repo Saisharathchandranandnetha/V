@@ -1,5 +1,6 @@
 'use client'
 
+import { TypingIndicator } from './TypingIndicator'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Message } from './MessageItem'
@@ -28,8 +29,40 @@ type RealtimeStatus = 'connected' | 'reconnecting' | 'disconnected'
 
 export function ChatContainer({ initialMessages, teamId, projectId, currentUser, members }: ChatContainerProps) {
     const [messages, setMessages] = useState<Message[]>(initialMessages)
-    const [status, setStatus] = useState<RealtimeStatus>('connected') // Assume connected initially if hydration works
+    const [status, setStatus] = useState<RealtimeStatus>('connected')
+    const [typingUsers, setTypingUsers] = useState<Map<string, { name: string, until: number }>>(new Map())
     const supabase = useState(() => createClient())[0]
+
+    // Clear expired typing users
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now()
+            setTypingUsers(prev => {
+                const next = new Map(prev)
+                let changed = false
+                for (const [id, data] of next.entries()) {
+                    if (data.until < now) {
+                        next.delete(id)
+                        changed = true
+                    }
+                }
+                return changed ? next : prev
+            })
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [])
+
+    const handleBroadcastTyping = useCallback(async () => {
+        const channel = supabase.channel(`chat:${teamId}:${projectId || 'team'}`)
+        await channel.send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: {
+                userId: currentUser.id,
+                name: currentUser.name
+            }
+        })
+    }, [teamId, projectId, currentUser, supabase])
 
     // Optimistic Update Handler
     const handleSendMessage = async (formData: FormData) => {
@@ -79,6 +112,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
             .channel(`chat:${teamId}:${projectId || 'team'}`)
             .on(
                 'postgres_changes',
+                // ... existing postgres_changes config ...
                 {
                     event: '*',
                     schema: 'public',
@@ -86,9 +120,9 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                     filter: `team_id=eq.${teamId}`
                 },
                 async (payload) => {
+                    // ... existing postgres handler ...
                     if (payload.eventType === 'INSERT') {
                         const newMessage = payload.new as Message
-
                         // Filtering
                         if (projectId) {
                             if (newMessage.project_id !== projectId) return
@@ -96,42 +130,24 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                             if (newMessage.project_id) return
                         }
 
-                        // Ignore if we already have this message (deduplication from optimistic update)
-                        // Note: The optimistic ID is random UUID, real ID is from DB. 
-                        // If we use the returned ID to replace optimistic one, that's best.
-                        // Ideally we match by content/timestamp or just let the real one arrive and replace?
-                        // Simple dedupe: if sender is me and content matches last message? 
-                        // Better: The server action revalidates path, which might trigger a refresh?
-                        // Actually, Realtime will send the TRUE message.
-                        // We need to replace the optimistic message with the real one to get the real ID.
-                        // But we don't know the Real ID mapping easily without returning it from action.
-
-                        // Current approach: Just append. 
-                        // Issue: Optimistic message stays?
-                        // Fix: We need to identify the optimistic message. 
-                        // Typically we'd use a temp ID. 
-
-                        // For now, let's just fetch the sender data and append if distinct.
-                        // If it's my message, I might get a duplicate if I don't handle it.
+                        // Remove user from typing list if they sent a message
+                        setTypingUsers(prev => {
+                            const next = new Map(prev)
+                            next.delete(newMessage.sender_id)
+                            return next
+                        })
 
                         if (newMessage.sender_id === currentUser.id) {
-                            // It's me. Find the optimistic message that matches and replace/remove it.
-                            // OR, since `sendMessage` doesn't return the ID...
-
-                            // Let's rely on standard deduping if IDs match (won't match).
-                            // We'll replace the *last* message if it looks like an optimistic one from me?
-
+                            // ... existing optimistic dedupe ...
                             setMessages(prev => {
-                                // Find optimistic message (we can tag them or search by content recent)
+                                // Find optimistic message
                                 const optimisticMatch = prev.find(m =>
                                     m.is_sender &&
                                     m.message === newMessage.message &&
-                                    // Created recently
                                     Math.abs(new Date(m.created_at).getTime() - new Date(newMessage.created_at).getTime()) < 10000
                                 )
 
                                 if (optimisticMatch) {
-                                    // Replace optimistic with real
                                     return prev.map(m => m === optimisticMatch ? { ...newMessage, is_sender: true, sender: currentUser } : m)
                                 }
                                 return [...prev, { ...newMessage, is_sender: true, sender: currentUser }]
@@ -150,10 +166,23 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                                 is_sender: false
                             }])
                         }
-                    }
-                    else if (payload.eventType === 'DELETE') {
+                    } else if (payload.eventType === 'DELETE') {
                         setMessages(prev => prev.filter(m => m.id !== payload.old.id))
                     }
+                }
+            )
+            .on(
+                'broadcast',
+                { event: 'typing' },
+                (payload) => {
+                    const { userId, name } = payload.payload
+                    if (userId === currentUser.id) return
+
+                    setTypingUsers(prev => {
+                        const next = new Map(prev)
+                        next.set(userId, { name, until: Date.now() + 3000 })
+                        return next
+                    })
                 }
             )
             .subscribe((status) => {
@@ -166,6 +195,11 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
         }
     }, [teamId, projectId, supabase, currentUser])
 
+    // Optimistic Delete Handler
+    const handleDeleteMessage = useCallback((messageId: string) => {
+        setMessages(prev => prev.filter(m => m.id !== messageId))
+    }, [])
+
     return (
         <div className="flex flex-col h-full bg-background relative overflow-hidden">
             <ConnectionStatus status={status} />
@@ -174,13 +208,19 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                 messages={messages}
                 teamId={teamId}
                 projectId={projectId}
+                onDelete={handleDeleteMessage}
             />
+
+            <div className="absolute bottom-20 left-0 right-0 z-10 pointer-events-none">
+                <TypingIndicator users={Array.from(typingUsers.entries()).map(([id, data]) => ({ id, name: data.name }))} />
+            </div>
 
             <ChatInput
                 teamId={teamId}
                 projectId={projectId}
                 members={members}
                 onSendMessage={handleSendMessage}
+                onTyping={handleBroadcastTyping}
             />
         </div>
     )

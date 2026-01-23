@@ -16,9 +16,10 @@ interface ChatInputProps {
     projectId?: string
     members?: any[]
     onSendMessage?: (formData: FormData) => Promise<void>
+    onTyping?: () => void
 }
 
-export function ChatInput({ teamId, projectId, members = [], onSendMessage }: ChatInputProps) {
+export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTyping }: ChatInputProps) {
     const [message, setMessage] = useState('')
     const [isSending, setIsSending] = useState(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -85,11 +86,20 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage }: Ch
         }
     }
 
+    const lastTypingTimeRef = useRef(0)
+
     // Auto-resize textarea
     const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setMessage(e.target.value)
         e.target.style.height = 'auto'
         e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`
+
+        // Throttle typing event
+        const now = Date.now()
+        if (onTyping && now - lastTypingTimeRef.current > 2000) {
+            onTyping()
+            lastTypingTimeRef.current = now
+        }
     }
 
     const [attachments, setAttachments] = useState<{ type: string, item: any }[]>([])
