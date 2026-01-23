@@ -3,14 +3,18 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Book, FileText, GraduationCap } from 'lucide-react'
+import { use } from 'react'
 
-export default async function ProjectLayout({
-    children,
-    params
-}: {
+export default async function ProjectLayout(props: {
     children: React.ReactNode
-    params: { projectId: string }
+    params: Promise<{ projectId: string }>
 }) {
+    const params = await props.params;
+
+    const {
+        children
+    } = props;
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
