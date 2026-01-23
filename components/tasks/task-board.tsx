@@ -29,6 +29,11 @@ interface Task {
     due_date: string | null
     completed_at?: string | null
     completion_reason?: string | null
+    team?: { name: string } | null
+    project?: { name: string } | null
+    message?: {
+        sender: { name: string } | null
+    } | null
 }
 
 // Columns
@@ -152,6 +157,11 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                                                 <div className="mt-2 text-xs bg-muted/50 p-2 rounded border">
                                                     <p className="font-semibold text-green-600 dark:text-green-400">Completed on {format(new Date(task.completed_at), 'MMM d')}</p>
                                                     <p className="text-muted-foreground italic mt-1">"{task.completion_reason}"</p>
+                                                </div>
+                                            )}
+                                            {(task.team || task.project) && task.message?.sender && (
+                                                <div className="mt-2 text-xs text-muted-foreground border-t pt-2">
+                                                    Assigned by {task.message.sender.name} in {task.team?.name || task.project?.name}
                                                 </div>
                                             )}
                                         </CardContent>

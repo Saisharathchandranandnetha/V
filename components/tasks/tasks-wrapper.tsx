@@ -20,6 +20,11 @@ interface Task {
     created_at: string
     completed_at?: string | null
     completion_reason?: string | null
+    team?: { name: string } | null
+    project?: { name: string } | null
+    message?: {
+        sender: { name: string } | null
+    } | null
 }
 
 export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {

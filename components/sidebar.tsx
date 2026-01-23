@@ -28,6 +28,17 @@ import {
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 // Navigation items for the sidebar
 export const sidebarNavItems = [
@@ -201,12 +212,28 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                 </div>
             </div>
             <div className="p-4 border-t">
-                <form action={signout}>
-                    <SubmitButton variant="outline" className="w-full justify-start" formAction={signout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign Out
-                    </SubmitButton>
-                </form>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start">
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Sign Out
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Sign Out</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Are you sure you want to sign out?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <form action={signout}>
+                                <AlertDialogAction type="submit" className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Sign Out</AlertDialogAction>
+                            </form>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     )

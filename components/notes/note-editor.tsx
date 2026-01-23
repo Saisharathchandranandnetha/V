@@ -100,7 +100,7 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
 
             <div className="flex-1 min-h-[500px] border rounded-md overflow-hidden relative">
                 {isPreview ? (
-                    <div className="h-full w-full p-4 overflow-auto prose prose-invert max-w-none bg-zinc-950">
+                    <div className="h-full w-full p-4 overflow-auto prose dark:prose-invert max-w-none bg-background text-foreground">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={{

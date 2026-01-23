@@ -29,6 +29,11 @@ interface Task {
     description?: string | null
     completed_at?: string | null
     completion_reason?: string | null
+    team?: { name: string } | null
+    project?: { name: string } | null
+    message?: {
+        sender: { name: string } | null
+    } | null
 }
 
 export function TaskList({ tasks }: { tasks: Task[] }) {
@@ -123,6 +128,11 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                                 {task.status === 'Done' && task.completed_at && task.completion_reason && (
                                     <div className="text-xs bg-muted/50 p-2 rounded border mt-2 ml-0 md:ml-[156px]">
                                         <p className="font-semibold text-green-600">Completed on {format(new Date(task.completed_at), 'MMM d')} <span className="text-muted-foreground font-normal italic">- "{task.completion_reason}"</span></p>
+                                    </div>
+                                )}
+                                {(task.team || task.project) && task.message?.sender && (
+                                    <div className="text-xs text-muted-foreground mt-2 md:ml-[156px]">
+                                        Assigned by {task.message.sender.name} in {task.team?.name || task.project?.name}
                                     </div>
                                 )}
                             </div>
