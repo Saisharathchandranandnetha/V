@@ -1,16 +1,13 @@
 'use client'
 
 import { useState, useRef, KeyboardEvent } from 'react'
-import { Send, Smile, Paperclip, CheckSquare, X, Calendar as CalendarIcon } from 'lucide-react'
+import { Send, Smile, Paperclip, CheckSquare, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { sendMessage, createTaskDirectly } from '@/app/dashboard/chat/actions'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Calendar } from '@/components/ui/calendar'
-import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { AttachmentPicker } from './AttachmentPicker'
 
@@ -30,7 +27,7 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
     // Task Mode State
     const [isTaskMode, setIsTaskMode] = useState(false)
     const [assignedTo, setAssignedTo] = useState<string>('')
-    const [dueDate, setDueDate] = useState<Date | undefined>(undefined)
+    const [priority, setPriority] = useState<string>('Medium')
 
     const handleSend = async () => {
         if ((!message.trim() && attachments.length === 0) || isSending) return
@@ -44,13 +41,13 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                 formData.append('teamId', teamId)
                 if (projectId) formData.append('projectId', projectId)
                 if (assignedTo) formData.append('assignedTo', assignedTo)
-                if (dueDate) formData.append('dueDate', dueDate.toISOString())
+                formData.append('priority', priority)
 
                 await createTaskDirectly(formData)
                 toast.success('Task created successfully')
                 setIsTaskMode(false)
                 setAssignedTo('')
-                setDueDate(undefined)
+                setPriority('Medium')
             } else {
                 // Send Message
                 const formData = new FormData()
@@ -150,8 +147,8 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                         New Task
                     </div>
                     <Select value={assignedTo} onValueChange={setAssignedTo}>
-                        <SelectTrigger className="h-7 w-[180px] text-xs">
-                            <SelectValue placeholder="Assign to (Optional)" />
+                        <SelectTrigger className="h-7 w-[150px] text-xs">
+                            <SelectValue placeholder="Assign to" />
                         </SelectTrigger>
                         <SelectContent>
                             {members.map(member => (
@@ -168,29 +165,16 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                         </SelectContent>
                     </Select>
 
-                    <Popover>
-                        <PopoverTrigger asChild>
-                            <Button
-                                variant={dueDate ? "default" : "outline"}
-                                size="sm"
-                                className={cn(
-                                    "h-7 text-xs px-2",
-                                    !dueDate && "text-muted-foreground"
-                                )}
-                            >
-                                <CalendarIcon className="mr-2 h-3 w-3" />
-                                {dueDate ? format(dueDate, "PPP") : "Set Deadline"}
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                                mode="single"
-                                selected={dueDate}
-                                onSelect={setDueDate}
-                                initialFocus
-                            />
-                        </PopoverContent>
-                    </Popover>
+                    <Select value={priority} onValueChange={setPriority}>
+                        <SelectTrigger className="h-7 w-[100px] text-xs">
+                            <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Low">Low</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="High">High</SelectItem>
+                        </SelectContent>
+                    </Select>
 
                     <Button
                         variant="ghost"
