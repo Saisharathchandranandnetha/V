@@ -56,7 +56,7 @@ export function SharedContentCard({ attachment }: { attachment: { type: string, 
                 if (result.isNew) {
                     toast.success('Added to your account!', { id: toastId })
                 } else {
-                    toast.success('Opening your copy...', { id: toastId })
+                    toast.success('Opening item...', { id: toastId })
                 }
 
                 // Redirect to the item page

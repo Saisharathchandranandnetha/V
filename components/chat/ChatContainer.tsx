@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Message } from './MessageItem'
 import { MessageList } from './MessageList'
 import { ChatInput } from './ChatInput'
-import { sendMessage } from '@/app/dashboard/chat/actions'
+import { sendMessage, markProjectMessagesAsRead } from '@/app/dashboard/chat/actions'
 import { v4 as uuidv4 } from 'uuid'
 import { toast } from 'sonner'
 import { differenceInMinutes } from 'date-fns'
@@ -32,6 +32,11 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
     const [status, setStatus] = useState<RealtimeStatus>('connected')
     const [typingUsers, setTypingUsers] = useState<Map<string, { name: string, until: number }>>(new Map())
     const supabase = useState(() => createClient())[0]
+
+    // Mark messages as read when entering the chat
+    useEffect(() => {
+        markProjectMessagesAsRead(teamId, projectId || null)
+    }, [teamId, projectId])
 
     // Clear expired typing users
     useEffect(() => {

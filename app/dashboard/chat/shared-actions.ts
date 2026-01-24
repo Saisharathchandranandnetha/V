@@ -133,6 +133,18 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
 
     let existingCopy: any = null
 
+    // Check if user is the OWNER of the original item
+    if (type === 'resource') {
+        const { data } = await supabase.from('resources').select('id').eq('id', originalItemId).eq('user_id', user.id).single()
+        if (data) return { success: true, newId: originalItemId, isNew: false }
+    } else if (type === 'note') {
+        const { data } = await supabase.from('notes').select('id').eq('id', originalItemId).eq('user_id', user.id).single()
+        if (data) return { success: true, newId: originalItemId, isNew: false }
+    } else if (type === 'learning_path') {
+        const { data } = await supabase.from('learning_paths').select('id').eq('id', originalItemId).eq('user_id', user.id).single()
+        if (data) return { success: true, newId: originalItemId, isNew: false }
+    }
+
     if (type === 'resource') {
         const { data } = await supabase.from('resources')
             .select('id')

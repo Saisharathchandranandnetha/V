@@ -37,6 +37,14 @@ export async function createProject(formData: FormData) {
     const supabase = await createClient()
     const name = formData.get('name') as string
     const teamId = formData.get('teamId') as string
+    const membersJson = formData.get('members') as string
+
+    let members: string[] = []
+    try {
+        members = membersJson ? JSON.parse(membersJson) : []
+    } catch (e) {
+        console.error("Failed to parse members", e)
+    }
 
     if (!name || !teamId) {
         throw new Error('Project name and Team ID are required')
@@ -45,17 +53,41 @@ export async function createProject(formData: FormData) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) throw new Error('Unauthorized')
 
-    const { error } = await supabase
+    // Start a transaction-like flow (Standard fetch doesn't support explicit transactions easily, we chain)
+    const { data: project, error } = await supabase
         .from('projects')
         .insert({
             name,
             team_id: teamId,
             created_by: user.id
         })
+        .select()
+        .single()
 
     if (error) {
         console.error('Error creating project:', error)
         throw new Error('Failed to create project')
+    }
+
+    // Add creator to members automatically
+    const membersToAdd = new Set([...members, user.id])
+
+    const projectMembers = Array.from(membersToAdd).map(userId => ({
+        project_id: project.id,
+        user_id: userId,
+        role: userId === user.id ? 'owner' : 'member'
+    }))
+
+    if (projectMembers.length > 0) {
+        const { error: membersError } = await supabase
+            .from('project_members')
+            .insert(projectMembers)
+
+        if (membersError) {
+            console.error('Error adding project members:', membersError)
+            // Non-fatal? Or fatal? Project exists but members missing.
+            // We'll log it.
+        }
     }
 
     revalidatePath('/dashboard/chat')

@@ -148,6 +148,7 @@ export async function createTaskDirectly(formData: FormData) {
     const projectId = formData.get('projectId') as string
     const assignedTo = formData.get('assignedTo') as string
     const dueDate = formData.get('dueDate') as string
+    const priority = formData.get('priority') as string
 
     if (!title || !teamId) throw new Error('Title and Team ID required')
 
@@ -187,13 +188,45 @@ export async function createTaskDirectly(formData: FormData) {
             user_id: user.id,
             due_date: dueDate || null,
             status: 'Todo',
-            priority: 'Medium',
+            priority: priority || 'Medium',
             description: description || null
         })
 
     if (error) {
         console.error('Error creating task:', error)
         throw new Error('Failed to create task')
+    }
+
+    // Send automated assignment message if assigned
+    if (assignedTo) {
+        try {
+            // Fetch assignee name
+            const { data: assigneeData } = await supabase
+                .from('users')
+                .select('name, email')
+                .eq('id', assignedTo)
+                .single()
+
+            const assigneeName = assigneeData?.name || assigneeData?.email || 'Unknown User'
+
+            console.log('Sending assignment message...')
+            const { error: assignMsgError } = await supabase.from('team_messages').insert({
+                team_id: teamId,
+                project_id: projectId || null,
+                message: `Assigned task '${title}' to ${assigneeName}`,
+                sender_id: user.id,
+                type: 'system'
+            })
+
+            if (assignMsgError) {
+                console.error('Assignment message error:', assignMsgError)
+            } else {
+                console.log('Assignment message sent successfully')
+            }
+        } catch (msgError) {
+            console.error('Failed to send assignment message:', msgError)
+            // Don't fail the task creation
+        }
     }
 
     revalidatePath(`/dashboard/chat/${teamId}`)
@@ -269,4 +302,94 @@ export async function deleteMessage(messageId: string, teamId: string) {
     }
 
     revalidatePath(`/dashboard/chat/${teamId}`)
+}
+
+export async function getUnreadCounts() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return {}
+
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+    // Fetch recent messages
+    const { data: recentMessages } = await supabase
+        .from('team_messages')
+        .select(`
+            id,
+            team_id,
+            project_id,
+            message_reads (
+                user_id
+            )
+        `)
+        .neq('sender_id', user.id)
+        .gte('created_at', thirtyDaysAgo.toISOString())
+
+    if (!recentMessages) return {}
+
+    const unreadCounts: Record<string, number> = {}
+
+    recentMessages.forEach((msg: any) => {
+        // Check if current user has read it
+        // message_reads is an array of objects { user_id: string }
+        const hasRead = msg.message_reads?.some((r: any) => r.user_id === user.id)
+
+        if (!hasRead) {
+            // Increment Team Count
+            if (msg.team_id) {
+                unreadCounts[msg.team_id] = (unreadCounts[msg.team_id] || 0) + 1
+            }
+            // Increment Project Count
+            if (msg.project_id) {
+                unreadCounts[msg.project_id] = (unreadCounts[msg.project_id] || 0) + 1
+            }
+        }
+    })
+
+    return unreadCounts
+}
+
+export async function markProjectMessagesAsRead(teamId: string, projectId: string | null) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return
+
+    // Limit to recent messages for performance (e.g. last 50)
+    let query = supabase
+        .from('team_messages')
+        .select('id, message_reads(user_id)')
+        .eq('team_id', teamId)
+        .neq('sender_id', user.id)
+
+    if (projectId) {
+        query = query.eq('project_id', projectId)
+    } else {
+        query = query.is('project_id', null)
+    }
+
+    const { data: messages } = await query.order('created_at', { ascending: false }).limit(50)
+
+    if (!messages) return
+
+    const unreadMessageIds = messages
+        .filter((msg: any) => !msg.message_reads?.some((r: any) => r.user_id === user.id))
+        .map((msg: any) => msg.id)
+
+    if (unreadMessageIds.length === 0) return
+
+    const recordsToInsert = unreadMessageIds.map(id => ({
+        message_id: id,
+        user_id: user.id
+    }))
+
+    const { error } = await supabase.from('message_reads').insert(recordsToInsert)
+
+    if (error) {
+        console.error("Error marking messages as read:", error)
+    } else {
+        revalidatePath('/dashboard/chat')
+    }
 }
