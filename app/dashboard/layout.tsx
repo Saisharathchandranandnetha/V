@@ -34,7 +34,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
                 </div>
 
-                <ScrollArea className="flex-1">
+                <ScrollArea className="flex-1 min-h-0">
                     <main className="p-6 md:p-8">
                         {children}
                     </main>
