@@ -41,7 +41,8 @@ export function Entrance({
     return (
         <motion.div
             initial={getInitial()}
-            animate={animate}
+            whileInView={animate} // Use whileInView instead of animate to trigger on scroll
+            viewport={{ once: true, margin: "-50px" }} // Trigger once, slightly before in view
             transition={{
                 duration: duration,
                 delay: delay,
@@ -59,7 +60,7 @@ export function StaggerContainer({
     children,
     className,
     delay = 0,
-    staggerDelay = 0.1,
+    staggerDelay = 0.05, // Faster stagger for mobile feel
     ...props
 }: {
     children: React.ReactNode
@@ -70,7 +71,8 @@ export function StaggerContainer({
     return (
         <motion.div
             initial="hidden"
-            animate="show"
+            whileInView="show"
+            viewport={{ once: true, margin: "-50px" }}
             variants={{
                 hidden: {},
                 show: {
@@ -92,8 +94,16 @@ export function StaggerItem({ children, className, ...props }: { children: React
     return (
         <motion.div
             variants={{
-                hidden: { opacity: 0, y: 20 },
-                show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                hidden: { opacity: 0, y: 10 }, // Reduced distance
+                show: {
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                        type: "tween", // Switched from spring to tween for performance
+                        ease: "easeOut",
+                        duration: 0.3
+                    }
+                }
             }}
             className={className}
             {...props as any}
