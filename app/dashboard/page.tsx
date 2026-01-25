@@ -46,9 +46,42 @@ export default async function DashboardPage() {
     const startOfDayISO = startOfDay.toISOString()
     const endOfDayISO = endOfDay.toISOString()
 
-    const { data: userHabits } = await supabase.from('habits').select('id').eq('user_id', user.id)
+    // 1. Start fetching user habits
+    const userHabitsPromise = supabase.from('habits').select('id').eq('user_id', user.id)
+
+    // 2. Start fetching independent data in parallel
+    const tasksPendingPromise = supabase.from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
+        .neq('status', 'Done')
+        .lte('due_date', endOfDayISO)
+
+    const tasksDonePromise = supabase.from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
+        .eq('status', 'Done')
+        .gte('completed_at', startOfDayISO)
+        .lte('completed_at', endOfDayISO)
+
+    const goalsPromise = supabase.from('goals').select('current_value, target_value').eq('user_id', user.id)
+    const transactionsPromise = supabase.from('transactions').select('amount, type').eq('user_id', user.id)
+    const resourcesCountPromise = supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+    const pathsCountPromise = supabase.from('learning_paths').select('*', { count: 'exact', head: true }).neq('is_completed', true)
+    const notesCountPromise = supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+    const collectionsCountPromise = supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+    const categoriesCountPromise = supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+
+    // 3. Await user habits to proceed with dependent query
+    const { data: userHabits } = await userHabitsPromise
     const habitIds = userHabits?.map(h => h.id) || []
 
+    const habitLogsPromise = supabase.from('habit_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('date', today)
+        .eq('status', true)
+        .in('habit_id', habitIds)
+
+    // 4. Await all results
     const [
         { count: dailyHabitsCompleted },
         { count: tasksPendingCount },
@@ -61,32 +94,16 @@ export default async function DashboardPage() {
         { count: collectionsCountData },
         { count: categoriesCountData }
     ] = await Promise.all([
-        supabase.from('habit_logs')
-            .select('*', { count: 'exact', head: true })
-            .eq('date', today)
-            .eq('status', true)
-            .in('habit_id', habitIds),
-        // Pending tasks: Scheduled for today OR earlier (overdue) AND not done
-        supabase.from('tasks')
-            .select('*', { count: 'exact', head: true })
-            .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
-            .neq('status', 'Done')
-            .lte('due_date', endOfDayISO),
-        // Done tasks: Scheduled for today (due_date inside range) AND status is Done
-        // This ensures the count reflects "Today's Schedule" regardless of when it was effectively clicked.
-        supabase.from('tasks')
-            .select('*', { count: 'exact', head: true })
-            .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
-            .eq('status', 'Done')
-            .gte('completed_at', startOfDayISO)
-            .lte('completed_at', endOfDayISO),
-        supabase.from('goals').select('current_value, target_value').eq('user_id', user.id),
-        supabase.from('transactions').select('amount, type').eq('user_id', user.id),
-        supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('learning_paths').select('*', { count: 'exact', head: true }).neq('is_completed', true),
-        supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
+        habitLogsPromise,
+        tasksPendingPromise,
+        tasksDonePromise,
+        goalsPromise,
+        transactionsPromise,
+        resourcesCountPromise,
+        pathsCountPromise,
+        notesCountPromise,
+        collectionsCountPromise,
+        categoriesCountPromise
     ])
 
     // Remap variables to match original names

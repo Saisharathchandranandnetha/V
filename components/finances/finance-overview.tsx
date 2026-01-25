@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
     PieChart,
     Pie,
@@ -40,7 +41,20 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
             return acc
         }, {} as Record<string, number>)
 
-    const chartData = Object.entries(expenseCategories).map(([name, value]) => ({
+    const expenseData = Object.entries(expenseCategories).map(([name, value]) => ({
+        name,
+        value
+    }))
+
+    // Prepare data for Chart (Income by Category)
+    const incomeCategories = transactions
+        .filter(t => t.type === 'Income')
+        .reduce((acc, t) => {
+            acc[t.category_name] = (acc[t.category_name] || 0) + t.amount
+            return acc
+        }, {} as Record<string, number>)
+
+    const incomeData = Object.entries(incomeCategories).map(([name, value]) => ({
         name,
         value
     }))
@@ -77,36 +91,73 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
 
                 <Card className="col-span-3">
                     <CardHeader>
-                        <CardTitle>Expense Breakdown</CardTitle>
+                        <CardTitle>Breakdown</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[300px]">
-                            {chartData.length > 0 ? (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie
-                                            data={chartData}
-                                            cx="50%"
-                                            cy="50%"
-                                            labelLine={false}
-                                            label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                                            outerRadius={80}
-                                            fill="#8884d8"
-                                            dataKey="value"
-                                        >
-                                            {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip formatter={(value: any) => formatCurrency(Number(value || 0))} />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                    No expenses to display
+                        <Tabs defaultValue="expenses" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="expenses">Expenses</TabsTrigger>
+                                <TabsTrigger value="income">Income</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="expenses">
+                                <div className="h-[300px] mt-4">
+                                    {expenseData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={expenseData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    labelLine={false}
+                                                    label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                                                    outerRadius={80}
+                                                    fill="#8884d8"
+                                                    dataKey="value"
+                                                >
+                                                    {expenseData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip formatter={(value: any) => formatCurrency(Number(value || 0))} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                                            No expenses to display
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
+                            </TabsContent>
+                            <TabsContent value="income">
+                                <div className="h-[300px] mt-4">
+                                    {incomeData.length > 0 ? (
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={incomeData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    labelLine={false}
+                                                    label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                                                    outerRadius={80}
+                                                    fill="#8884d8"
+                                                    dataKey="value"
+                                                >
+                                                    {incomeData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip formatter={(value: any) => formatCurrency(Number(value || 0))} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                                            No income to display
+                                        </div>
+                                    )}
+                                </div>
+                            </TabsContent>
+                        </Tabs>
                     </CardContent>
                 </Card>
             </div>

@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select'
 import { updateTransaction } from '@/app/dashboard/finances/actions'
 import { Edit2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Transaction {
     id: string
@@ -83,7 +84,14 @@ export function EditTransactionDialog({ transaction, categories, projects }: { t
         if (category === 'Custom') {
             formData.set('category', customCategory)
         }
-        await updateTransaction(transaction.id, formData)
+        const result = await updateTransaction(transaction.id, formData)
+
+        if (result?.error) {
+            toast.error(result.error)
+            return
+        }
+
+        toast.success("Transaction updated successfully")
         setOpen(false)
     }
 
