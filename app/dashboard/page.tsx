@@ -46,10 +46,21 @@ export default async function DashboardPage() {
     const startOfDayISO = startOfDay.toISOString()
     const endOfDayISO = endOfDay.toISOString()
 
-    // 1. Start fetching user habits
-    const userHabitsPromise = supabase.from('habits').select('id').eq('user_id', user.id)
+    // 1. Start fetching all metrics in parallel
+    // Combined habits query: Get logs directly by filtering on joined habits
+    const habitLogsPromise = supabase
+        .from('habit_logs')
+        .select('id, habits!inner(id)', { count: 'exact', head: true })
+        .eq('habits.user_id', user.id)
+        .eq('date', today)
+        .eq('status', true)
 
-    // 2. Start fetching independent data in parallel
+    // Also need total habits count for denominator
+    const totalHabitsPromise = supabase
+        .from('habits')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+
     const tasksPendingPromise = supabase.from('tasks')
         .select('*', { count: 'exact', head: true })
         .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
@@ -71,19 +82,10 @@ export default async function DashboardPage() {
     const collectionsCountPromise = supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
     const categoriesCountPromise = supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
 
-    // 3. Await user habits to proceed with dependent query
-    const { data: userHabits } = await userHabitsPromise
-    const habitIds = userHabits?.map(h => h.id) || []
-
-    const habitLogsPromise = supabase.from('habit_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('date', today)
-        .eq('status', true)
-        .in('habit_id', habitIds)
-
-    // 4. Await all results
+    // 2. Await all results
     const [
         { count: dailyHabitsCompleted },
+        { count: totalHabitsCount },
         { count: tasksPendingCount },
         { count: tasksDoneCount },
         { data: goalsData },
@@ -95,6 +97,7 @@ export default async function DashboardPage() {
         { count: categoriesCountData }
     ] = await Promise.all([
         habitLogsPromise,
+        totalHabitsPromise,
         tasksPendingPromise,
         tasksDonePromise,
         goalsPromise,
@@ -106,9 +109,9 @@ export default async function DashboardPage() {
         categoriesCountPromise
     ])
 
-    // Remap variables to match original names
-    const habits = userHabits
+    // Remap variables to match original logic
     const habitsCompleted = dailyHabitsCompleted
+    const habitsCount = totalHabitsCount
     const tasksPending = tasksPendingCount
     const tasksDone = tasksDoneCount
     const goalsVector = goalsData
@@ -150,7 +153,7 @@ export default async function DashboardPage() {
                                 <CalendarCheck className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{habitsCompleted} / {habits?.length || 0}</div>
+                                <div className="text-2xl font-bold">{habitsCompleted} / {habitsCount || 0}</div>
                                 <p className="text-xs text-muted-foreground">completed today</p>
                             </CardContent>
                         </Card>

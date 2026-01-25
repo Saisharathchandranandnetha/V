@@ -9,7 +9,9 @@ import { createClient } from '@/lib/supabase/server'
 
 export default async function ResourcesPage() {
     const supabase = await createClient()
-    const { data: resources } = await supabase.from('resources').select('*').order('created_at', { ascending: false })
+    const { data: resources } = await supabase.from('resources')
+        .select('id, title, type, summary, tags, url, created_at')
+        .order('created_at', { ascending: false })
 
     const typedResources = (resources || []).map(r => ({
         ...r,

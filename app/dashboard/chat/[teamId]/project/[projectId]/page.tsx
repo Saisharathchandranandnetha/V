@@ -20,23 +20,17 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return null
 
-    // Fetch Project Details
-    const { data: project } = await supabase
+    // Parallelize independent fetches
+    const projectPromise = supabase
         .from('projects')
         .select('name')
         .eq('id', projectId)
         .single()
 
-    if (!project) {
-        return <div>Project not found</div>
-    }
+    const membersPromise = getTeamMembers(teamId)
 
-    // Fetch Members
-    const members = await getTeamMembers(teamId)
-    const currentUserRole = members.find(m => m.id === user.id)?.role || 'member'
-
-    // Fetch Initial Messages
-    const { data: messages } = await supabase
+    // Fetch latest 50 messages (reverse order for limit)
+    const messagesPromise = supabase
         .from('team_messages')
         .select(`
         *,
@@ -45,7 +39,27 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
     `)
         .eq('team_id', teamId)
         .eq('project_id', projectId)
-        .order('created_at', { ascending: true })
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+    const [
+        { data: project },
+        members,
+        { data: rawMessages }
+    ] = await Promise.all([
+        projectPromise,
+        membersPromise,
+        messagesPromise
+    ])
+
+    if (!project) {
+        return <div>Project not found</div>
+    }
+
+    // Sort messages back to chronological order
+    const messages = rawMessages?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) || []
+
+    const currentUserRole = members.find(m => m.id === user.id)?.role || 'member'
 
     const totalMembers = members.length
 

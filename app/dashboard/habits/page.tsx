@@ -22,6 +22,8 @@ export default async function HabitsPage() {
         )
     `)
         .eq('user_id', user.id)
+        // Optimization: Only fetch recent logs (last 90 days) to calculate streaks/analytics
+        .gte('habit_logs.date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
         .order('created_at', { ascending: false })
 
     return (
