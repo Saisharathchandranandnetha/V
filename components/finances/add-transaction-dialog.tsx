@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -60,10 +61,16 @@ export function AddTransactionDialog({ categories, projects }: { categories: Cat
     async function onSubmit(formData: FormData) {
         setLoading(true)
         try {
-            await addTransaction(formData)
+            const result = await addTransaction(formData)
+            if (result?.error) {
+                toast.error(result.error)
+                return
+            }
+            toast.success("Transaction added successfully")
             setOpen(false)
         } catch (error) {
             console.error('Failed to add transaction', error)
+            toast.error("An unexpected error occurred")
         } finally {
             setLoading(false)
         }

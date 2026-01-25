@@ -60,7 +60,7 @@ export function TransactionList({ transactions, categories, projects }: { transa
                                             <div>
                                                 <p className="text-sm font-medium leading-none">{t.category_name}</p>
                                                 <p className="text-xs text-muted-foreground mt-1">
-                                                    {t.description || format(new Date(t.date), 'MMM d, yyyy')}
+                                                    {format(new Date(t.date), 'MMM d, yyyy')}{t.description ? ` • ${t.description}` : ''}
                                                 </p>
                                             </div>
                                         </div>
