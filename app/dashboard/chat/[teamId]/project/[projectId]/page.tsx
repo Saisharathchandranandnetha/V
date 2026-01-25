@@ -40,17 +40,34 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
         .from('team_messages')
         .select(`
         *,
-        sender:users(name, avatar, email)
+        sender:users(name, avatar, email),
+        message_reads(user_id)
     `)
         .eq('team_id', teamId)
         .eq('project_id', projectId)
         .order('created_at', { ascending: true })
 
-    const formattedMessages = messages?.map(msg => ({
-        ...msg,
-        is_sender: msg.sender_id === user.id,
-        sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender
-    })) || []
+    const totalMembers = members.length
+
+    const formattedMessages = messages?.map(msg => {
+        const reads = msg.message_reads || []
+        const uniqueReaders = new Set(reads.map((r: any) => r.user_id))
+
+        let readStatus: 'sent' | 'delivered' | 'read' = 'sent'
+        if (uniqueReaders.size >= totalMembers - 1) {
+            readStatus = 'read'
+        } else if (uniqueReaders.size > 0) {
+            readStatus = 'delivered'
+        }
+
+        return {
+            ...msg,
+            is_sender: msg.sender_id === user.id,
+            sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+            read_status: readStatus,
+            message_reads: reads
+        }
+    }) || []
 
     return (
         <div className="flex flex-col h-full">

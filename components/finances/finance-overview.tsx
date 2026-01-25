@@ -3,14 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-    PieChart,
-    Pie,
-    Cell,
-    ResponsiveContainer,
-    Tooltip,
-    Legend
-} from 'recharts'
+import { BreakdownChart } from '@/components/finances/breakdown-chart'
 
 interface Transaction {
     id: string
@@ -20,7 +13,7 @@ interface Transaction {
     date: string
 }
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#a855f7', '#ec4899', '#6366f1'];
+
 
 export function FinanceOverview({ transactions }: { transactions: Transaction[] }) {
     const totalIncome = transactions
@@ -95,67 +88,27 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
                     </CardHeader>
                     <CardContent>
                         <Tabs defaultValue="expenses" className="w-full">
-                            <TabsList className="grid w-full grid-cols-2">
+                            <TabsList className="grid w-full grid-cols-2 mb-4">
                                 <TabsTrigger value="expenses">Expenses</TabsTrigger>
                                 <TabsTrigger value="income">Income</TabsTrigger>
                             </TabsList>
                             <TabsContent value="expenses">
-                                <div className="h-[300px] mt-4">
-                                    {expenseData.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={expenseData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    labelLine={false}
-                                                    label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                                                    outerRadius={80}
-                                                    fill="#8884d8"
-                                                    dataKey="value"
-                                                >
-                                                    {expenseData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip formatter={(value: any) => formatCurrency(Number(value || 0))} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-muted-foreground">
-                                            No expenses to display
-                                        </div>
-                                    )}
-                                </div>
+                                {expenseData.length > 0 ? (
+                                    <BreakdownChart data={expenseData} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-[300px] text-muted-foreground border border-dashed rounded-lg">
+                                        No expenses to display
+                                    </div>
+                                )}
                             </TabsContent>
                             <TabsContent value="income">
-                                <div className="h-[300px] mt-4">
-                                    {incomeData.length > 0 ? (
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <PieChart>
-                                                <Pie
-                                                    data={incomeData}
-                                                    cx="50%"
-                                                    cy="50%"
-                                                    labelLine={false}
-                                                    label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
-                                                    outerRadius={80}
-                                                    fill="#8884d8"
-                                                    dataKey="value"
-                                                >
-                                                    {incomeData.map((entry, index) => (
-                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                    ))}
-                                                </Pie>
-                                                <Tooltip formatter={(value: any) => formatCurrency(Number(value || 0))} />
-                                            </PieChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <div className="flex items-center justify-center h-full text-muted-foreground">
-                                            No income to display
-                                        </div>
-                                    )}
-                                </div>
+                                {incomeData.length > 0 ? (
+                                    <BreakdownChart data={incomeData} />
+                                ) : (
+                                    <div className="flex items-center justify-center h-[300px] text-muted-foreground border border-dashed rounded-lg">
+                                        No income to display
+                                    </div>
+                                )}
                             </TabsContent>
                         </Tabs>
                     </CardContent>

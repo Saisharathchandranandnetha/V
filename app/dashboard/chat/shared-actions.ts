@@ -168,12 +168,60 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
         existingCopy = data
     }
 
-    if (existingCopy) {
-        return { success: true, newId: existingCopy.id, isNew: false }
-    }
-
     // Use Admin Client to fetch original item (Bypass RLS)
     const adminSupabase = createAdminClient()
+
+    // --- UPDATE EXISTING LOGIC ---
+    if (existingCopy) {
+        // Fetch latest original data
+        let updated = false
+        if (type === 'resource') {
+            const { data: original } = await adminSupabase.from('resources').select('*').eq('id', originalItemId).single()
+            if (original) {
+                await supabase.from('resources').update({
+                    title: original.title,
+                    type: original.type,
+                    url: original.url,
+                    summary: original.summary,
+                    tags: original.tags,
+                    updated_at: new Date().toISOString()
+                }).eq('id', existingCopy.id)
+                updated = true
+            }
+        } else if (type === 'note') {
+            const { data: original } = await adminSupabase.from('notes').select('*').eq('id', originalItemId).single()
+            if (original) {
+                await supabase.from('notes').update({
+                    title: original.title,
+                    content: original.content,
+                    updated_at: new Date().toISOString()
+                }).eq('id', existingCopy.id)
+                updated = true
+            }
+        } else if (type === 'learning_path') {
+            const { data: original } = await adminSupabase.from('learning_paths').select('*').eq('id', originalItemId).single()
+            if (original) {
+                await supabase.from('learning_paths').update({
+                    title: original.title,
+                    description: original.description,
+                    links: original.links,
+                    // updated_at might not exist on paths? Check schema. Assumed yes or standard.
+                }).eq('id', existingCopy.id)
+                updated = true
+            }
+        }
+
+        if (updated) {
+            revalidatePath('/dashboard/resources')
+            revalidatePath('/dashboard/notes')
+            revalidatePath('/dashboard/learning')
+            return { success: true, newId: existingCopy.id, isNew: false, updated: true }
+        } else {
+            return { success: true, newId: existingCopy.id, isNew: false, updated: false }
+        }
+    }
+
+
     let newId = ''
 
     // Create Copy

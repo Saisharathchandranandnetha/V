@@ -38,18 +38,41 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
         .from('team_messages')
         .select(`
         *,
-        sender:users(name, avatar, email)
+        sender:users(name, avatar, email),
+        message_reads(user_id)
     `)
         .eq('team_id', teamId)
         .is('project_id', null) // Team only chat
         .order('created_at', { ascending: true })
 
+    const totalMembers = members.length
+
     // Transform messages to add is_sender
-    const formattedMessages = messages?.map(msg => ({
-        ...msg,
-        is_sender: msg.sender_id === user.id,
-        sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender
-    })) || []
+    const formattedMessages = messages?.map(msg => {
+        const reads = msg.message_reads || []
+        // Read if read by (total - 1) others. 
+        // Note: Assuming logic where I don't read my own messages in explicit table, or if I do, simpler threshold is just N-1.
+        // Actually unique readers excluding sender is safer.
+        const uniqueReaders = new Set(reads.map((r: any) => r.user_id))
+        // If I am sender, I want to know if everyone else read it.
+        // If I am NOT sender, I just see if I read it (usually).
+        // But requested feature is double tick for SENDER.
+
+        let readStatus: 'sent' | 'delivered' | 'read' = 'sent'
+        if (uniqueReaders.size >= totalMembers - 1) {
+            readStatus = 'read'
+        } else if (uniqueReaders.size > 0) {
+            readStatus = 'delivered'
+        }
+
+        return {
+            ...msg,
+            is_sender: msg.sender_id === user.id,
+            sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+            read_status: readStatus,
+            message_reads: reads
+        }
+    }) || []
 
     return (
         <div className="flex flex-col h-full">

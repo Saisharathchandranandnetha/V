@@ -10,6 +10,8 @@ import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { AttachmentPicker } from './AttachmentPicker'
+import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface ChatInputProps {
     teamId: string
@@ -117,6 +119,12 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
         setAttachments(attachments.filter((_, i) => i !== index))
     }
 
+    const onEmojiClick = (emojiData: EmojiClickData) => {
+        setMessage(prev => prev + emojiData.emoji)
+        // Optionally focus back to textarea but keep cursor position logic if needed (complex)
+        // For simplicity, we just append.
+    }
+
     return (
         <div className="p-4 border-t border-border bg-card/10 backdrop-blur-sm">
             {attachments.length > 0 && (
@@ -215,9 +223,21 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
 
                 <div className="flex items-center gap-1 shrink-0 pb-1">
                     {!isTaskMode && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full">
-                            <Smile className="h-5 w-5" />
-                        </Button>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full">
+                                    <Smile className="h-5 w-5" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent side="top" align="end" className="w-full p-0 border-none bg-transparent shadow-none">
+                                <EmojiPicker
+                                    onEmojiClick={onEmojiClick}
+                                    theme={Theme.AUTO}
+                                    width={350}
+                                    height={400}
+                                />
+                            </PopoverContent>
+                        </Popover>
                     )}
                     <Button
                         onClick={handleSend}

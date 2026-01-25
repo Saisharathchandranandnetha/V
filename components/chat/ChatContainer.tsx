@@ -28,10 +28,13 @@ interface ChatContainerProps {
 type RealtimeStatus = 'connected' | 'reconnecting' | 'disconnected'
 
 export function ChatContainer({ initialMessages, teamId, projectId, currentUser, members }: ChatContainerProps) {
+    // Enrich messages with read tracking
     const [messages, setMessages] = useState<Message[]>(initialMessages)
     const [status, setStatus] = useState<RealtimeStatus>('connected')
     const [typingUsers, setTypingUsers] = useState<Map<string, { name: string, until: number }>>(new Map())
     const supabase = useState(() => createClient())[0]
+
+    const totalMembers = members.length
 
     // Mark messages as read when entering the chat
     useEffect(() => {
@@ -94,7 +97,8 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
             },
             is_sender: true,
             read_status: 'sent',
-            metadata: metadata
+            metadata: metadata,
+            message_reads: [] // Initialize empty reads
         }
 
         // 2. Add to State Immediately
@@ -117,7 +121,6 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
             .channel(`chat:${teamId}:${projectId || 'team'}`)
             .on(
                 'postgres_changes',
-                // ... existing postgres_changes config ...
                 {
                     event: '*',
                     schema: 'public',
@@ -125,7 +128,6 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                     filter: `team_id=eq.${teamId}`
                 },
                 async (payload) => {
-                    // ... existing postgres handler ...
                     if (payload.eventType === 'INSERT') {
                         const newMessage = payload.new as Message
                         // Filtering
@@ -143,7 +145,6 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                         })
 
                         if (newMessage.sender_id === currentUser.id) {
-                            // ... existing optimistic dedupe ...
                             setMessages(prev => {
                                 // Find optimistic message
                                 const optimisticMatch = prev.find(m =>
@@ -153,9 +154,9 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                                 )
 
                                 if (optimisticMatch) {
-                                    return prev.map(m => m === optimisticMatch ? { ...newMessage, is_sender: true, sender: currentUser } : m)
+                                    return prev.map(m => m === optimisticMatch ? { ...newMessage, is_sender: true, sender: currentUser, message_reads: [] } : m)
                                 }
-                                return [...prev, { ...newMessage, is_sender: true, sender: currentUser }]
+                                return [...prev, { ...newMessage, is_sender: true, sender: currentUser, message_reads: [] }]
                             })
                         } else {
                             // Someone else
@@ -165,15 +166,52 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                                 .eq('id', newMessage.sender_id)
                                 .single()
 
+                            // Mark as read immediately if visible
+                            // In a real app we might check visibility/focus
+                            markProjectMessagesAsRead(teamId, projectId || null)
+
                             setMessages(prev => [...prev, {
                                 ...newMessage,
                                 sender: senderData || undefined,
-                                is_sender: false
+                                is_sender: false,
+                                message_reads: []
                             }])
                         }
                     } else if (payload.eventType === 'DELETE') {
                         setMessages(prev => prev.filter(m => m.id !== payload.old.id))
                     }
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'message_reads'
+                },
+                (payload) => {
+                    const newRead = payload.new
+                    setMessages(prev => prev.map(msg => {
+                        if (msg.id === newRead.message_id) {
+                            // Add to reads
+                            const existingReads = (msg.message_reads || []) as any[]
+                            if (existingReads.some(r => r.user_id === newRead.user_id)) return msg
+
+                            const updatedReads = [...existingReads, { user_id: newRead.user_id }]
+
+                            // Check for double tick condition
+                            // Read by everyone excluding sender
+                            // If I am sender, I need (totalMembers - 1) reads.
+                            const isReadByAll = updatedReads.length >= (totalMembers - 1)
+
+                            return {
+                                ...msg,
+                                message_reads: updatedReads,
+                                read_status: isReadByAll ? 'read' : 'delivered' // Upgrade to delivered at least if someone read it
+                            }
+                        }
+                        return msg
+                    }))
                 }
             )
             .on(
@@ -198,7 +236,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [teamId, projectId, supabase, currentUser])
+    }, [teamId, projectId, supabase, currentUser, totalMembers])
 
     // Optimistic Delete Handler
     const handleDeleteMessage = useCallback((messageId: string) => {

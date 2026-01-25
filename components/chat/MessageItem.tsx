@@ -32,6 +32,7 @@ export interface Message {
     is_sender?: boolean
     read_status?: 'sent' | 'delivered' | 'read'
     metadata?: any
+    message_reads?: { user_id: string }[]
 }
 
 interface MessageItemProps {
