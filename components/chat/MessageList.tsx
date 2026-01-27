@@ -3,14 +3,21 @@
 import { useEffect, useRef } from 'react'
 import { MessageItem, Message } from './MessageItem'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { differenceInMinutes } from 'date-fns'
+import { differenceInMinutes, isSameDay, isToday, isYesterday, format } from 'date-fns'
+
+function formatDateLabel(date: Date) {
+    if (isToday(date)) return 'Today'
+    if (isYesterday(date)) return 'Yesterday'
+    return format(date, 'MMMM d, yyyy')
+}
 
 // Simplified MessageList
-export function MessageList({ messages, teamId, projectId, onDelete }: {
+export function MessageList({ messages, teamId, projectId, onDelete, members }: {
     messages: Message[],
     teamId: string,
     projectId?: string,
-    onDelete?: (id: string) => void
+    onDelete?: (id: string) => void,
+    members: any[]
 }) {
     const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -39,16 +46,30 @@ export function MessageList({ messages, teamId, projectId, onDelete }: {
                     </div>
                 )}
 
-                {groupedMessages.map((msg) => (
-                    <MessageItem
-                        key={msg.id}
-                        message={msg}
-                        isConsecutive={msg.isConsecutive}
-                        teamId={teamId}
-                        projectId={projectId}
-                        onDelete={onDelete}
-                    />
-                ))}
+                {groupedMessages.map((msg, index) => {
+                    const prevMsg = groupedMessages[index - 1];
+                    const isNewDay = !prevMsg || !isSameDay(new Date(msg.created_at), new Date(prevMsg.created_at));
+
+                    return (
+                        <div key={msg.id + '-container'} className="flex flex-col">
+                            {isNewDay && (
+                                <div className="flex items-center justify-center my-4">
+                                    <div className="bg-muted/50 text-xs text-muted-foreground px-3 py-1 rounded-full">
+                                        {formatDateLabel(new Date(msg.created_at))}
+                                    </div>
+                                </div>
+                            )}
+                            <MessageItem
+                                message={msg}
+                                isConsecutive={msg.isConsecutive}
+                                teamId={teamId}
+                                projectId={projectId}
+                                onDelete={onDelete}
+                                members={members}
+                            />
+                        </div>
+                    );
+                })}
                 <div ref={bottomRef} className="h-1" />
             </div>
         </ScrollArea>

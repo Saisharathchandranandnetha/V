@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, KeyboardEvent } from 'react'
-import { Send, Smile, Paperclip, CheckSquare, X } from 'lucide-react'
+import { Send, Smile, Paperclip, CheckSquare, X, Calendar as CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { sendMessage, createTaskDirectly } from '@/app/dashboard/chat/actions'
@@ -12,6 +12,8 @@ import { cn } from '@/lib/utils'
 import { AttachmentPicker } from './AttachmentPicker'
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import { format } from 'date-fns'
 
 interface ChatInputProps {
     teamId: string
@@ -30,6 +32,7 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
     const [isTaskMode, setIsTaskMode] = useState(false)
     const [assignedTo, setAssignedTo] = useState<string>('')
     const [priority, setPriority] = useState<string>('Medium')
+    const [dueDate, setDueDate] = useState<Date>()
 
     const handleSend = async () => {
         if ((!message.trim() && attachments.length === 0) || isSending) return
@@ -43,6 +46,7 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                 formData.append('teamId', teamId)
                 if (projectId) formData.append('projectId', projectId)
                 if (assignedTo) formData.append('assignedTo', assignedTo)
+                if (dueDate) formData.append('dueDate', dueDate.toISOString())
                 formData.append('priority', priority)
 
                 await createTaskDirectly(formData)
@@ -50,6 +54,7 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                 setIsTaskMode(false)
                 setAssignedTo('')
                 setPriority('Medium')
+                setDueDate(undefined)
             } else {
                 // Send Message
                 const formData = new FormData()
@@ -184,6 +189,30 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                         </SelectContent>
                     </Select>
 
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={cn(
+                                    "h-7 border-dashed gap-1 text-xs font-normal",
+                                    !dueDate && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="h-3 w-3" />
+                                {dueDate ? format(dueDate, "MMM d") : "Due"}
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={dueDate}
+                                onSelect={setDueDate}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
+
                     <Button
                         variant="ghost"
                         size="icon"
@@ -249,6 +278,6 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                     </Button>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

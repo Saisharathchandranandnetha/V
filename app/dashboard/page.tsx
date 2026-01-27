@@ -65,7 +65,7 @@ export default async function DashboardPage() {
         .select('*', { count: 'exact', head: true })
         .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
         .neq('status', 'Done')
-        .lte('due_date', endOfDayISO)
+        .or(`due_date.lte.${endOfDayISO},due_date.is.null`)
 
     const tasksDonePromise = supabase.from('tasks')
         .select('*', { count: 'exact', head: true })

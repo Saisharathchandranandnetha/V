@@ -16,6 +16,7 @@ import {
 import { createTaskFromMessage, deleteMessage } from '@/app/dashboard/chat/actions'
 import { toast } from 'sonner'
 import { SharedContentCard } from './SharedContentCard'
+import { CreateTaskDialog } from './CreateTaskDialog'
 
 export interface Message {
     id: string
@@ -41,29 +42,18 @@ interface MessageItemProps {
     teamId: string
     projectId?: string
     onDelete?: (id: string) => void
+    members?: any[]
 }
 
-export function MessageItem({ message, isConsecutive, teamId, projectId, onDelete }: MessageItemProps) {
+export function MessageItem({ message, isConsecutive, teamId, projectId, onDelete, members = [] }: MessageItemProps) {
     const isSender = message.is_sender
+    const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
 
     // Format time
     const time = format(new Date(message.created_at), 'p')
 
-    const handleCreateTask = async () => {
-        try {
-            const formData = new FormData()
-            formData.append('title', message.message.substring(0, 50) + (message.message.length > 50 ? '...' : ''))
-            formData.append('messageId', message.id)
-            formData.append('teamId', teamId)
-            if (projectId) formData.append('projectId', projectId)
-            // Default assignment to self or none? For now let's just create it.
-
-            await createTaskFromMessage(formData)
-            toast.success("Task created successfully!")
-        } catch (e) {
-            console.error("Failed to create task", e)
-            toast.error("Failed to create task")
-        }
+    const handleCreateTask = () => {
+        setIsCreateTaskOpen(true)
     }
 
     const handleDelete = async () => {
@@ -165,7 +155,7 @@ export function MessageItem({ message, isConsecutive, teamId, projectId, onDelet
 
                     {/* Metadata (Time + Read Receipt) */}
                     <div className="flex items-center gap-1 mt-1 px-1">
-                        <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[10px] text-muted-foreground">
                             {time}
                         </span>
                         {isSender && (
@@ -181,7 +171,17 @@ export function MessageItem({ message, isConsecutive, teamId, projectId, onDelet
                         )}
                     </div>
                 </div>
+
             </div>
-        </div>
+            <CreateTaskDialog
+                open={isCreateTaskOpen}
+                onOpenChange={setIsCreateTaskOpen}
+                messageId={message.id}
+                initialTitle={message.message.substring(0, 50) + (message.message.length > 50 ? '...' : '')}
+                teamId={teamId}
+                projectId={projectId}
+                members={members}
+            />
+        </div >
     )
 }

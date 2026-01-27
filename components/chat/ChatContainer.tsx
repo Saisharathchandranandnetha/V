@@ -252,6 +252,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                 teamId={teamId}
                 projectId={projectId}
                 onDelete={handleDeleteMessage}
+                members={members}
             />
 
             <div className="absolute bottom-20 left-0 right-0 z-10 pointer-events-none">
