@@ -28,9 +28,11 @@ export async function createNote(formData: FormData) {
         return { error: 'Title is required' }
     }
 
-    const { error } = await supabase
+    const { data: note, error } = await supabase
         .from('notes')
         .insert([{ title, content }])
+        .select()
+        .single()
 
     if (error) {
         console.error('Error creating note:', error)
@@ -38,7 +40,7 @@ export async function createNote(formData: FormData) {
     }
 
     revalidatePath('/dashboard/notes')
-    return { success: true }
+    return { success: true, note }
 }
 
 export async function updateNote(formData: FormData) {

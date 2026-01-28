@@ -47,32 +47,37 @@ export default async function TeamSharedPage(props: SharedPageProps) {
     const resourcesIds = sharedItems.filter(i => i.shared_type === 'resource').map(i => i.shared_item_id)
     const notesIds = sharedItems.filter(i => i.shared_type === 'note').map(i => i.shared_item_id)
     const pathIds = sharedItems.filter(i => i.shared_type === 'learning_path').map(i => i.shared_item_id)
+    const roadmapIds = sharedItems.filter(i => i.shared_type === 'roadmap').map(i => i.shared_item_id)
 
-    const [resourcesRes, notesRes, pathsRes] = await Promise.all([
+    const [resourcesRes, notesRes, pathsRes, roadmapsRes] = await Promise.all([
         resourcesIds.length > 0 ? supabase.from('resources').select('*').in('id', resourcesIds) : { data: [] },
         notesIds.length > 0 ? supabase.from('notes').select('*').in('id', notesIds) : { data: [] },
-        pathIds.length > 0 ? supabase.from('learning_paths').select('*').in('id', pathIds) : { data: [] }
+        pathIds.length > 0 ? supabase.from('learning_paths').select('*').in('id', pathIds) : { data: [] },
+        roadmapIds.length > 0 ? supabase.from('roadmaps').select('*').in('id', roadmapIds) : { data: [] }
     ])
 
     const resourcesMap = new Map((resourcesRes.data || []).map(i => [i.id, i]))
     const notesMap = new Map((notesRes.data || []).map(i => [i.id, i]))
     const pathsMap = new Map((pathsRes.data || []).map(i => [i.id, i]))
+    const roadmapsMap = new Map((roadmapsRes.data || []).map(i => [i.id, i]))
 
     // Check if user has already added these items
     // We need to fetch user's items which have original_item_id in these sets.
 
     const allOriginalIds = sharedItems.map(i => i.shared_item_id)
 
-    const [userResources, userNotes, userPaths] = await Promise.all([
+    const [userResources, userNotes, userPaths, userRoadmaps] = await Promise.all([
         allOriginalIds.length > 0 ? supabase.from('resources').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] },
         allOriginalIds.length > 0 ? supabase.from('notes').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] },
-        allOriginalIds.length > 0 ? supabase.from('learning_paths').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] }
+        allOriginalIds.length > 0 ? supabase.from('learning_paths').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] },
+        allOriginalIds.length > 0 ? supabase.from('roadmaps').select('original_roadmap_id').eq('owner_id', user.id).not('original_roadmap_id', 'is', null).in('original_roadmap_id', allOriginalIds) : { data: [] }
     ])
 
     const addedSet = new Set([
         ...(userResources.data || []).map(i => i.original_item_id),
         ...(userNotes.data || []).map(i => i.original_item_id),
-        ...(userPaths.data || []).map(i => i.original_item_id)
+        ...(userPaths.data || []).map(i => i.original_item_id),
+        ...(userRoadmaps.data || []).map(i => i.original_roadmap_id),
     ])
 
     const enrichedItems = sharedItems.map(item => {
@@ -80,6 +85,7 @@ export default async function TeamSharedPage(props: SharedPageProps) {
         if (item.shared_type === 'resource') details = resourcesMap.get(item.shared_item_id) || {}
         if (item.shared_type === 'note') details = notesMap.get(item.shared_item_id) || {}
         if (item.shared_type === 'learning_path') details = pathsMap.get(item.shared_item_id) || {}
+        if (item.shared_type === 'roadmap') details = roadmapsMap.get(item.shared_item_id) || {}
 
         return {
             ...item,

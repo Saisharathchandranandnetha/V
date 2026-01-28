@@ -23,7 +23,8 @@ import {
     Users,
     ChevronDown,
     MessageSquare,
-    Layout
+    Layout,
+    Map as MapIcon
 } from 'lucide-react'
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
@@ -103,6 +104,11 @@ export const sidebarNavItems = [
         title: 'Learning Paths',
         href: '/dashboard/paths',
         icon: Route,
+    },
+    {
+        title: 'Roadmaps',
+        href: '/dashboard/roadmaps',
+        icon: MapIcon,
     },
     {
         title: 'Notes',

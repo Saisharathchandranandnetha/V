@@ -8,7 +8,7 @@ import { NoteCard } from './note-card'
 import { NoteEditor } from './note-editor'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { deleteNote } from '@/app/dashboard/notes/actions'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -23,6 +23,7 @@ interface Note {
     title: string
     content: string
     created_at: string
+    updated_at?: string
 }
 
 interface NotesLayoutProps {
@@ -40,9 +41,19 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
 
     const router = useRouter()
 
+    const searchParams = useSearchParams()
+
     useEffect(() => {
         setNotes(initialNotes)
-    }, [initialNotes])
+
+        const noteId = searchParams.get('id')
+        if (noteId) {
+            const note = initialNotes.find(n => n.id === noteId)
+            if (note) {
+                setSelectedNote(note)
+            }
+        }
+    }, [initialNotes, searchParams])
 
     const handleCreateNew = () => {
         setSelectedNote(null)
@@ -76,18 +87,22 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
 
     const handleNoteSaved = (updatedNote: Partial<Note>) => {
         // Update local state immediately for responsiveness
-        if (selectedNote) {
+        if (selectedNote && notes.some(n => n.id === updatedNote.id)) {
             setNotes(prev => prev.map(n =>
                 n.id === selectedNote.id
-                    ? { ...n, ...updatedNote }
+                    ? { ...n, ...updatedNote } as Note
                     : n
             ))
             // Also update the selected note so the editor reflects current state
-            setSelectedNote(prev => prev ? { ...prev, ...updatedNote } : null)
+            setSelectedNote(prev => prev ? { ...prev, ...updatedNote } as Note : null)
         } else {
-            // New note - router refresh will handle adding it to the list usually, 
-            // but we can try to anticipate it if we had the ID.
-            // For now, refresh is called in NoteEditor.
+            // New note - prepend to the list
+            const newNote = updatedNote as Note
+            if (newNote.id && newNote.title) {
+                setNotes(prev => [newNote, ...prev])
+                setSelectedNote(newNote)
+            }
+            // Router refresh to ensure server sync
             router.refresh()
         }
     }

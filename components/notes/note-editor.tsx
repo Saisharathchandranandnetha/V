@@ -18,9 +18,10 @@ interface NoteEditorProps {
         id: string
         title: string
         content: string
+        created_at?: string
     }
     onClose?: () => void
-    onSave?: (note: { id: string, title: string, content: string }) => void
+    onSave?: (note: { id: string, title: string, content: string, created_at?: string, updated_at?: string }) => void
 }
 
 export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
@@ -53,13 +54,13 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
 
         if (onSave) {
             // Optimistic update / Notify parent
+            const createdNote = (result as any).note
             onSave({
-                id: note?.id || (result as any).id, // We might need the ID from create result if it returns it. 
-                // Actually actions.createNote doesn't return ID currently.
-                // For now, if it's a new note, we might rely on refresh. 
-                // But let's pass what we have.
+                id: note?.id || createdNote?.id,
                 title,
-                content
+                content,
+                created_at: note?.created_at || createdNote?.created_at || new Date().toISOString(),
+                updated_at: new Date().toISOString() // Always set updated time on save
             })
             router.refresh()
         } else {

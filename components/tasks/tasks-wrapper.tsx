@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { isSameDay, isBefore, startOfDay, format } from 'date-fns'
 import { ActivitiesCalendar } from './activities-calendar'
 import { CreateTaskDialog } from './create-task-dialog'
@@ -27,11 +27,20 @@ interface Task {
     } | null
 }
 
+import { useRouter } from 'next/navigation'
+
 export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
+    const [tasks, setTasks] = useState<Task[]>(initialTasks)
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+    const router = useRouter()
+
+    // Sync state with server/prop updates
+    useEffect(() => {
+        setTasks(initialTasks)
+    }, [initialTasks])
 
     // Filter Logic
-    const filteredTasks = initialTasks.filter((task) => {
+    const filteredTasks = tasks.filter((task) => {
         const taskDate = task.due_date ? new Date(task.due_date) : new Date(task.created_at) // Fallback to created_at if no due date? Or just ignore?
         // Actually, let's assume due_date is the source of truth for "scheduled" day.
 
@@ -74,7 +83,17 @@ export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
                             {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'} scheduled
                         </p>
                     </div>
-                    <CreateTaskDialog defaultDate={selectedDate} />
+                    <CreateTaskDialog
+                        defaultDate={selectedDate}
+                        onTaskCreated={(newTask) => {
+                            // Since tasks prop is immutable from server, we can't mutate it directly?
+                            // Actually, we can use useState to hold the tasks, init with initialTasks
+                            // But wait, TasksWrapper already takes tasks as prop.
+                            // We need to change TasksWrapper to use state for tasks.
+                            setTasks(prev => [newTask, ...prev])
+                            router.refresh()
+                        }}
+                    />
                 </div>
             </div>
 

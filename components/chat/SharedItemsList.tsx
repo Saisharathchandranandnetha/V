@@ -6,14 +6,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { FileText, BookOpen, StickyNote, ArrowDownToLine, Check, ExternalLink } from 'lucide-react'
+import { FileText, BookOpen, StickyNote, ArrowDownToLine, Check, ExternalLink, Map as MapIcon } from 'lucide-react'
 import { addToMyAccount } from '@/app/dashboard/chat/shared-actions'
 import { toast } from 'sonner'
 import Link from 'next/link'
 
 interface SharedItem {
     id: string
-    shared_type: 'resource' | 'note' | 'learning_path'
+    shared_type: 'resource' | 'note' | 'learning_path' | 'roadmap'
     created_at: string
     shared_by_user: {
         name: string
@@ -60,7 +60,8 @@ export function SharedItemsList({ items: initialItems, teamId }: SharedItemsList
 
     const renderCard = (item: SharedItem) => {
         const Icon = item.shared_type === 'resource' ? FileText :
-            item.shared_type === 'learning_path' ? BookOpen : StickyNote
+            item.shared_type === 'learning_path' ? BookOpen :
+                item.shared_type === 'roadmap' ? MapIcon : StickyNote
 
         return (
             <Card key={item.id} className="overflow-hidden">
@@ -95,9 +96,11 @@ export function SharedItemsList({ items: initialItems, teamId }: SharedItemsList
                 </CardContent>
                 <CardFooter className="p-4 pt-0 flex gap-2">
                     {/* View Button - For now just a placeholder or could open a modal */}
-                    <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" asChild>
+                    <Button variant="outline" size="sm" className="flex-1 h-8 text-xs" onClick={() => handleView(item)}>
                         {/* TODO: Add proper view link/modal */}
-                        <span className="cursor-not-allowed opacity-50">Preview</span>
+                        <span className={item.shared_type === 'roadmap' ? '' : 'cursor-not-allowed opacity-50'}>
+                            {item.shared_type === 'roadmap' ? 'Open' : 'Preview'}
+                        </span>
                     </Button>
 
                     <Button
@@ -124,6 +127,12 @@ export function SharedItemsList({ items: initialItems, teamId }: SharedItemsList
         )
     }
 
+    const handleView = (item: SharedItem) => {
+        if (item.shared_type === 'roadmap') {
+            window.location.href = `/dashboard/roadmaps/${item.id}`
+        }
+    }
+
     const filterItems = (type: string) => {
         if (type === 'all') return items
         return items.filter(item => item.shared_type === type)
@@ -137,6 +146,7 @@ export function SharedItemsList({ items: initialItems, teamId }: SharedItemsList
                     <TabsTrigger value="resource" className="data-[state=active]:bg-primary/10 h-8 rounded-full px-4 text-xs">Resources</TabsTrigger>
                     <TabsTrigger value="learning_path" className="data-[state=active]:bg-primary/10 h-8 rounded-full px-4 text-xs">Learning Paths</TabsTrigger>
                     <TabsTrigger value="note" className="data-[state=active]:bg-primary/10 h-8 rounded-full px-4 text-xs">Notes</TabsTrigger>
+                    <TabsTrigger value="roadmap" className="data-[state=active]:bg-primary/10 h-8 rounded-full px-4 text-xs">Roadmaps</TabsTrigger>
                 </TabsList>
             </div>
 
@@ -153,7 +163,7 @@ export function SharedItemsList({ items: initialItems, teamId }: SharedItemsList
                 </ScrollArea>
             </TabsContent>
 
-            {['resource', 'learning_path', 'note'].map(type => (
+            {['resource', 'learning_path', 'note', 'roadmap'].map(type => (
                 <TabsContent key={type} value={type} className="flex-1 p-0 m-0 overflow-hidden">
                     <ScrollArea className="h-full p-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">

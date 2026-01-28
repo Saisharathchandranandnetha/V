@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Paperclip, Book, FileText, TrendingUp, GraduationCap, X } from 'lucide-react'
+import { Paperclip, Book, FileText, TrendingUp, GraduationCap, X, Map as MapIcon } from 'lucide-react'
 import {
     Popover,
     PopoverContent,
@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
 
-type AttachmentType = 'resource' | 'note' | 'finance' | 'learning_path'
+type AttachmentType = 'resource' | 'note' | 'finance' | 'learning_path' | 'roadmap'
 
 interface AttachmentPickerProps {
     onSelect: (type: AttachmentType, item: any) => void
@@ -58,6 +58,9 @@ export function AttachmentPicker({ onSelect, projectId }: AttachmentPickerProps)
             } else if (type === 'finance') {
                 const { data: projects } = await supabase.from('projects').select('id, name')
                 data = projects?.map(p => ({ id: p.id, title: p.name, project_id: p.id })) || []
+            } else if (type === 'roadmap') {
+                const { data: roadmaps } = await supabase.from('roadmaps').select('id, title, project_id').limit(20)
+                data = roadmaps || []
             }
         } catch (error) {
             console.error('Failed to fetch items', error)
@@ -99,6 +102,10 @@ export function AttachmentPicker({ onSelect, projectId }: AttachmentPickerProps)
                             <TrendingUp className="mr-2 h-4 w-4" />
                             Share Finance
                         </Button>
+                        <Button variant="ghost" className="justify-start font-normal" onClick={() => handleTypeSelect('roadmap')}>
+                            <MapIcon className="mr-2 h-4 w-4" />
+                            Share Roadmap
+                        </Button>
                     </div>
                 </PopoverContent>
             </Popover>
@@ -109,7 +116,8 @@ export function AttachmentPicker({ onSelect, projectId }: AttachmentPickerProps)
                         <DialogTitle>
                             Select {pickerType === 'resource' ? 'Resource' :
                                 pickerType === 'note' ? 'Note' :
-                                    pickerType === 'learning_path' ? 'Learning Path' : 'Project'}
+                                    pickerType === 'learning_path' ? 'Learning Path' :
+                                        pickerType === 'roadmap' ? 'Roadmap' : 'Project'}
                         </DialogTitle>
                     </DialogHeader>
                     <div className="p-2 border-b">
@@ -141,6 +149,7 @@ export function AttachmentPicker({ onSelect, projectId }: AttachmentPickerProps)
                                     {pickerType === 'note' && <FileText className="mr-2 h-4 w-4 opacity-50" />}
                                     {pickerType === 'learning_path' && <GraduationCap className="mr-2 h-4 w-4 opacity-50" />}
                                     {pickerType === 'finance' && <TrendingUp className="mr-2 h-4 w-4 opacity-50" />}
+                                    {pickerType === 'roadmap' && <MapIcon className="mr-2 h-4 w-4 opacity-50" />}
                                     {item.title}
                                 </button>
                             ))}

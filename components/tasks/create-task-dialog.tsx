@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import { createTask } from '@/app/dashboard/tasks/actions'
 
-export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
+export function CreateTaskDialog({ defaultDate, onTaskCreated }: { defaultDate?: Date, onTaskCreated?: (task: any) => void }) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const effectiveDate = defaultDate || new Date()
@@ -40,7 +40,10 @@ export function CreateTaskDialog({ defaultDate }: { defaultDate?: Date }) {
             // Hidden input is easiest for native form action
         }
         try {
-            await createTask(formData)
+            const result = await createTask(formData)
+            if (result?.task && onTaskCreated) {
+                onTaskCreated(result.task)
+            }
             setOpen(false)
         } catch (error) {
             console.error(error)

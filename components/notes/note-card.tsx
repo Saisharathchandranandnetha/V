@@ -7,6 +7,7 @@ interface NoteCardProps {
         id: string
         title: string
         created_at: string
+        updated_at?: string
     }
     onClick: () => void
 }
@@ -21,7 +22,7 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
                 <CardHeader>
                     <CardTitle className="text-lg truncate">{note.title}</CardTitle>
                     <CardDescription>
-                        {formatDistanceToNow(new Date(note.created_at), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(note.updated_at || note.created_at), { addSuffix: true })}
                     </CardDescription>
                 </CardHeader>
             </Card>

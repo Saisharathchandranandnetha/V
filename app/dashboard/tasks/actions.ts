@@ -15,14 +15,14 @@ export async function createTask(formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Unauthorized')
 
-    const { error } = await supabase.from('tasks').insert({
+    const { data: task, error } = await supabase.from('tasks').insert({
         title,
         priority,
         due_date: dueDateRaw ? new Date(dueDateRaw).toISOString() : null,
         status: 'Todo',
         description,
         user_id: user.id
-    })
+    }).select().single()
 
     if (error) {
         console.error('Error creating task:', error)
@@ -30,6 +30,7 @@ export async function createTask(formData: FormData) {
     }
 
     revalidatePath('/dashboard/tasks')
+    return { success: true, task }
 }
 
 export async function updateTaskStatus(id: string, status: string, completedAt?: string, reason?: string) {
