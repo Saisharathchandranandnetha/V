@@ -31,7 +31,9 @@ interface NotesLayoutProps {
 }
 
 export function NotesLayout({ initialNotes }: NotesLayoutProps) {
-    const [notes, setNotes] = useState<Note[]>(initialNotes)
+    const [serverNotes, setServerNotes] = useState<Note[]>(initialNotes)
+    const [localNotes, setLocalNotes] = useState<Note[]>([])
+
     const [selectedNote, setSelectedNote] = useState<Note | null>(null)
     const [isCreating, setIsCreating] = useState(false)
 
@@ -43,8 +45,14 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
 
     const searchParams = useSearchParams()
 
+    // Merge notes
+    const notes = [...localNotes, ...serverNotes.filter(sn => !localNotes.find(ln => ln.id === sn.id))]
+
     useEffect(() => {
-        setNotes(initialNotes)
+        setServerNotes(initialNotes)
+        if (initialNotes.length > 0) {
+            setLocalNotes(prev => prev.filter(local => !initialNotes.find(server => server.id === local.id)))
+        }
 
         const noteId = searchParams.get('id')
         if (noteId) {
@@ -88,18 +96,19 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     const handleNoteSaved = (updatedNote: Partial<Note>) => {
         // Update local state immediately for responsiveness
         if (selectedNote && notes.some(n => n.id === updatedNote.id)) {
-            setNotes(prev => prev.map(n =>
-                n.id === selectedNote.id
-                    ? { ...n, ...updatedNote } as Note
-                    : n
-            ))
+            setLocalNotes(prev => {
+                const filtered = prev.filter(n => n.id !== updatedNote.id)
+                const existing = notes.find(n => n.id === updatedNote.id)
+                const merged = existing ? { ...existing, ...updatedNote } as Note : { ...updatedNote } as Note
+                return [merged, ...filtered]
+            })
             // Also update the selected note so the editor reflects current state
             setSelectedNote(prev => prev ? { ...prev, ...updatedNote } as Note : null)
         } else {
             // New note - prepend to the list
             const newNote = updatedNote as Note
             if (newNote.id && newNote.title) {
-                setNotes(prev => [newNote, ...prev])
+                setLocalNotes(prev => [newNote, ...prev])
                 setSelectedNote(newNote)
             }
             // Router refresh to ensure server sync

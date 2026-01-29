@@ -35,7 +35,7 @@ export function ChatLayout({
     const isRoot = pathname === '/dashboard/chat'
 
     return (
-        <div className="flex flex-col md:flex-row h-[calc(100vh-2rem)] rounded-xl border border-border overflow-hidden bg-background/50 backdrop-blur-sm shadow-sm relative">
+        <div className="flex flex-col md:flex-row h-[100dvh] md:h-[calc(100vh-2rem)] rounded-none md:rounded-xl border-0 md:border border-border overflow-hidden bg-background/50 backdrop-blur-sm shadow-none md:shadow-sm relative">
             {/* Mobile Sidebar Trigger - Floating Action Button (Only on root or if we want it everywhere? Usually mostly on root) */}
             {/* Actually, if we are on root, we show sidebar full screen. If we are on chat, we hide sidebar. FAB allows opening sidebar on chat. */}
 

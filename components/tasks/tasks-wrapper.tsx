@@ -30,14 +30,22 @@ interface Task {
 import { useRouter } from 'next/navigation'
 
 export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
-    const [tasks, setTasks] = useState<Task[]>(initialTasks)
+    const [serverTasks, setServerTasks] = useState<Task[]>(initialTasks)
+    const [localTasks, setLocalTasks] = useState<Task[]>([])
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
     const router = useRouter()
 
     // Sync state with server/prop updates
     useEffect(() => {
-        setTasks(initialTasks)
+        setServerTasks(initialTasks)
+        // Cleanup local tasks that are now present in server tasks
+        if (initialTasks.length > 0) {
+            setLocalTasks(prev => prev.filter(local => !initialTasks.find(server => server.id === local.id)))
+        }
     }, [initialTasks])
+
+    // Merge tasks: Local tasks first (assuming they are newer), then server tasks, deduplicated
+    const tasks = [...localTasks, ...serverTasks.filter(st => !localTasks.find(lt => lt.id === st.id))]
 
     // Filter Logic
     const filteredTasks = tasks.filter((task) => {
@@ -90,7 +98,8 @@ export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
                             // Actually, we can use useState to hold the tasks, init with initialTasks
                             // But wait, TasksWrapper already takes tasks as prop.
                             // We need to change TasksWrapper to use state for tasks.
-                            setTasks(prev => [newTask, ...prev])
+                            // We add to localTasks to show it immediately
+                            setLocalTasks(prev => [newTask, ...prev])
                             router.refresh()
                         }}
                     />
