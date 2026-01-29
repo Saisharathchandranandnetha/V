@@ -13,10 +13,10 @@ export function ThemeSync({ userTheme, userId }: { userTheme?: string, userId?: 
 
     // Initial sync
     useEffect(() => {
-        if (userTheme && userTheme !== 'system' && userTheme !== theme) {
+        if (userTheme && userTheme !== theme) {
             setTheme(userTheme)
         }
-    }, [userTheme, setTheme]) // Removed 'theme' dependency to avoid loops on first load
+    }, [userTheme, setTheme]) // Sync only when userTheme changes from props
 
     // Real-time sync
     useEffect(() => {
@@ -24,17 +24,19 @@ export function ThemeSync({ userTheme, userId }: { userTheme?: string, userId?: 
 
         const supabase = createClient()
 
-        const channel = supabase.channel(`user_settings_${userId}`)
+        const channel = supabase.channel(`user_theme_sync_${userId}`)
             .on(
                 'postgres_changes',
                 {
                     event: 'UPDATE',
                     schema: 'public',
-                    table: 'user_settings',
-                    filter: `user_id=eq.${userId}`
+                    table: 'users',
+                    filter: `id=eq.${userId}`
                 },
                 (payload: any) => {
-                    const newTheme = payload.new.theme
+                    const newSettings = payload.new.settings
+                    const newTheme = newSettings?.theme
+
                     if (newTheme && newTheme !== theme) {
                         console.log('Syncing theme from remote:', newTheme)
                         setTheme(newTheme)

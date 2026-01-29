@@ -34,6 +34,13 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
     const [priority, setPriority] = useState<string>('Medium')
     const [dueDate, setDueDate] = useState<Date>()
 
+    // Mention State
+    const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+    const [mentionIndex, setMentionIndex] = useState<number>(-1)
+    const [mentionedUserIds, setMentionedUserIds] = useState<Set<string>>(new Set())
+    const [activeMemberIndex, setActiveMemberIndex] = useState(0)
+
+
     const handleSend = async () => {
         if ((!message.trim() && attachments.length === 0) || isSending) return
 
@@ -61,8 +68,13 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
                 formData.append('message', message)
                 formData.append('teamId', teamId)
                 if (projectId) formData.append('projectId', projectId)
-                if (attachments.length > 0) {
-                    formData.append('metadata', JSON.stringify({ attachments }))
+
+                const meta: any = {}
+                if (attachments.length > 0) meta.attachments = attachments
+                if (mentionedUserIds.size > 0) meta.mentions = Array.from(mentionedUserIds)
+
+                if (Object.keys(meta).length > 0) {
+                    formData.append('metadata', JSON.stringify(meta))
                 }
 
                 if (onSendMessage) {
@@ -74,6 +86,7 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
 
             setMessage('')
             setAttachments([])
+            setMentionedUserIds(new Set())
 
             // Reset height
             if (textareaRef.current) {
@@ -90,6 +103,30 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
     }
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (mentionQuery !== null) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault()
+                setActiveMemberIndex(prev => (prev + 1) % filteredMembers.length)
+                return
+            }
+            if (e.key === 'ArrowUp') {
+                e.preventDefault()
+                setActiveMemberIndex(prev => (prev - 1 + filteredMembers.length) % filteredMembers.length)
+                return
+            }
+            if (e.key === 'Enter' || e.key === 'Tab') {
+                e.preventDefault()
+                if (filteredMembers[activeMemberIndex]) {
+                    selectMember(filteredMembers[activeMemberIndex])
+                }
+                return
+            }
+            if (e.key === 'Escape') {
+                setMentionQuery(null)
+                return
+            }
+        }
+
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault()
             handleSend()
@@ -100,9 +137,37 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
 
     // Auto-resize textarea
     const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setMessage(e.target.value)
+        const val = e.target.value
+        setMessage(val)
         e.target.style.height = 'auto'
         e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`
+
+        // Mention Detection
+        const selectionStart = e.target.selectionStart
+        const textBeforeCursor = val.slice(0, selectionStart)
+        const lastAt = textBeforeCursor.lastIndexOf('@')
+
+        if (lastAt !== -1) {
+            const query = textBeforeCursor.slice(lastAt + 1)
+            // Ensure no spaces (simple mention) - or allow spaces if we want "@John Doe"
+            // Let's stick to simple first: standard is usually name without spaces OR spaces allowed if we check bounds.
+            // Usually we stop at space if we support complex like Slack, but simplistic is fine.
+            // Actually, names have spaces. So we should allow spaces IF it looks like a name start.
+            // But typically we simply check if there's a newline or specific chars breaking it.
+            // Let's simplify: Only trigger if there is no space so far OR allow spaces.
+            // Standard: Check if we are "in" a mention.
+            // If query contains newline, abort.
+            if (!query.includes('\n')) {
+                setMentionQuery(query)
+                setMentionIndex(lastAt)
+                setActiveMemberIndex(0)
+            } else {
+                setMentionQuery(null)
+            }
+        } else {
+            setMentionQuery(null)
+        }
+
 
         // Throttle typing event
         const now = Date.now()
@@ -110,6 +175,21 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
             onTyping()
             lastTypingTimeRef.current = now
         }
+    }
+
+    const filteredMembers = mentionQuery !== null
+        ? members.filter(m => m.name.toLowerCase().includes(mentionQuery.toLowerCase()))
+        : []
+
+    const selectMember = (member: any) => {
+        const before = message.slice(0, mentionIndex)
+        const after = message.slice(mentionIndex + (mentionQuery?.length || 0) + 1)
+        const newText = `${before}@${member.name} ${after}`
+        setMessage(newText)
+        setMentionedUserIds(prev => new Set(prev).add(member.id))
+        setMentionQuery(null)
+        // Focus and set cursor? Hard with React controlled input sometimes.
+        // We let user continue typing at end of name.
     }
 
     const [attachments, setAttachments] = useState<{ type: string, item: any }[]>([])
@@ -126,12 +206,34 @@ export function ChatInput({ teamId, projectId, members = [], onSendMessage, onTy
 
     const onEmojiClick = (emojiData: EmojiClickData) => {
         setMessage(prev => prev + emojiData.emoji)
-        // Optionally focus back to textarea but keep cursor position logic if needed (complex)
-        // For simplicity, we just append.
     }
 
     return (
-        <div className="p-4 border-t border-border bg-card/10 backdrop-blur-sm">
+        <div className="p-4 border-t border-border bg-card/10 backdrop-blur-sm relative">
+            {/* Mention Popup */}
+            {mentionQuery !== null && filteredMembers.length > 0 && (
+                <div className="absolute bottom-full left-4 mb-2 w-64 bg-popover border rounded-lg shadow-lg overflow-hidden z-50 animate-in slide-in-from-bottom-2">
+                    <div className="p-1">
+                        {filteredMembers.map((member, i) => (
+                            <button
+                                key={member.id}
+                                className={cn(
+                                    "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm transition-colors",
+                                    i === activeMemberIndex ? "bg-accent text-accent-foreground" : "hover:bg-muted"
+                                )}
+                                onClick={() => selectMember(member)}
+                            >
+                                <Avatar className="h-6 w-6">
+                                    <AvatarImage src={member.avatar} />
+                                    <AvatarFallback>{member.name?.[0]}</AvatarFallback>
+                                </Avatar>
+                                <span>{member.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {attachments.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-2">
                     {attachments.map((att, i) => (

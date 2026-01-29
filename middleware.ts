@@ -1,7 +1,10 @@
-import { type NextRequest } from 'next/server'
+import { type NextRequest, userAgent } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
+    const { device } = userAgent(request)
+    const viewport = device.type === 'mobile' ? 'mobile' : 'desktop'
+    request.headers.set('x-device-type', viewport)
     return await updateSession(request)
 }
 

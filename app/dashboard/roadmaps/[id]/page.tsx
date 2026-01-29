@@ -1,9 +1,10 @@
+import { copyRoadmapFromShare, syncRoadmap } from '@/app/dashboard/roadmaps/actions'
+import { redirect, notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { notFound } from 'next/navigation'
 import { RoadmapEditor } from '@/components/roadmaps/RoadmapEditor'
 import { RoadmapView } from '@/components/roadmaps/RoadmapView'
 
-export default async function RoadmapPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RoadmapPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { id } = await params
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -15,6 +16,51 @@ export default async function RoadmapPage({ params }: { params: Promise<{ id: st
         .single()
 
     if (error || !roadmap) notFound()
+
+    // Auto-copy logic for shared roadmaps
+    if (user && roadmap.owner_id !== user.id) {
+        // Check if user already has a copy of this roadmap
+        const { data: existingCopy } = await supabase
+            .from('roadmaps')
+            .select('id, updated_at, created_at')
+            .eq('owner_id', user.id)
+            .eq('original_roadmap_id', roadmap.id)
+            .eq('copied_from_chat', true)
+            .single()
+
+        let redirectToId = null
+
+        if (existingCopy) {
+            const originalTime = new Date(roadmap.updated_at).getTime()
+            const copyTime = new Date(existingCopy.updated_at || existingCopy.created_at).getTime()
+
+            if (originalTime > copyTime) {
+                try {
+                    console.log('Syncing shared roadmap...')
+                    await syncRoadmap(existingCopy.id, roadmap.id)
+                    redirectToId = existingCopy.id
+                } catch (e) {
+                    console.error('Failed to sync roadmap:', e)
+                    redirectToId = existingCopy.id
+                }
+            } else {
+                redirectToId = existingCopy.id
+            }
+        } else {
+            // Not copied yet.
+            try {
+                console.log('Auto-copying shared roadmap...')
+                const newRoadmap = await copyRoadmapFromShare(roadmap.id)
+                redirectToId = newRoadmap.id
+            } catch (e) {
+                console.error('Failed to auto-copy roadmap:', e)
+            }
+        }
+
+        if (redirectToId) {
+            redirect(`/dashboard/roadmaps/${redirectToId}`)
+        }
+    }
 
     const { data: stepsData } = await supabase
         .from('roadmap_steps')

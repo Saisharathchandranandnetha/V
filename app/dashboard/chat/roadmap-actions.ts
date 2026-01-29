@@ -7,6 +7,15 @@ export async function shareRoadmapAndSend(teamId: string, projectId: string | un
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
 
+    // 0. Fetch Roadmap details for metadata
+    const { data: roadmap, error: rError } = await supabase
+        .from('roadmaps')
+        .select('title')
+        .eq('id', roadmapId)
+        .single()
+
+    if (rError || !roadmap) throw new Error('Roadmap not found')
+
     // 1. Create message
     const { data: message, error: msgError } = await supabase
         .from('team_messages')
@@ -14,7 +23,18 @@ export async function shareRoadmapAndSend(teamId: string, projectId: string | un
             team_id: teamId,
             project_id: projectId || null,
             sender_id: user.id,
-            message: content, // The actual chat text
+            message: content,
+            metadata: {
+                attachments: [
+                    {
+                        type: 'roadmap',
+                        item: {
+                            id: roadmapId,
+                            title: roadmap.title
+                        }
+                    }
+                ]
+            }
         })
         .select()
         .single() // Return single row

@@ -32,11 +32,21 @@ export function SharedContentCard({ attachment }: { attachment: { type: string, 
             icon = <TrendingUp className="h-4 w-4" />
             color = "bg-emerald-500/10 text-emerald-500"
             break
+        case 'roadmap':
+            icon = <TrendingUp className="h-4 w-4" /> // Or a Map-like icon
+            color = "bg-indigo-500/10 text-indigo-500"
+            break
     }
 
     const handleClick = async (e: React.MouseEvent) => {
         e.preventDefault()
         e.stopPropagation()
+
+        // Direct navigation for Roadmap (Page handles logic)
+        if (type === 'roadmap') {
+            router.push(`/dashboard/roadmaps/${item.id}`)
+            return
+        }
 
         if (type === 'finance') {
             router.push('/dashboard/finances')

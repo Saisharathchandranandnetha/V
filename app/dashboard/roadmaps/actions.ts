@@ -222,31 +222,200 @@ export async function copyRoadmapFromShare(originalRoadmapId: string) {
 
     if (steps && steps.length > 0) {
         // 4. Insert steps for new roadmap
-        // Clear linked items as they might not be accessible or need to be deep copied too?
-        // Prompt says "Deep-copy ALL roadmap steps". It doesn't explicitly say to copy linked resources.
-        // Usually linked resources are pointers. If I point to a resource I don't satisfy policies for, I can't see it.
-        // But resources in Shared page are usually shared too. 
-        // For now, I will keep the links. If the user can see the resource in the shared context, they might be able to see it here if they are in the team.
-        // If it's a personal copy, ideally we should copy resources too, but that's recursive and complex.
-        // I will just copy the step metadata.
+        // We perform a two-pass insert to handle parent-child relationships securely.
+        // First, we generate valid UUIDs for all new steps so we can map OldID -> NewID immediately.
+        // But supabase insert doesn't let us provide custom IDs effectively without risk or just relying on return.
 
-        const newSteps = steps.map(step => ({
+        // Strategy:
+        // 1. Map Old Step Order -> Old Step ID (assuming order is unique per roadmap? Usually yes)
+        // 2. Insert keys first? No.
+        // Better Strategy:
+        // 1. Insert all steps with parent_step_id = NULL first.
+        // 2. Build Map of OldID -> NewID (using Order as proxy if needed, or by fetching inserted rows)
+        // 3. Update new steps with correct parent_step_id.
+
+        const newStepsPayload = steps.map(step => ({
             roadmap_id: newRoadmap.id,
             title: step.title,
             description: step.description,
             order: step.order,
-            completed: false, // Reset completion
-            linked_resource_id: step.linked_resource_id, // Keep link? Maybe.
+            completed: false,
+            parent_step_id: null, // Set to NULL initially to avoid FK constraint errors
+            linked_resource_id: step.linked_resource_id,
             linked_note_id: step.linked_note_id,
             linked_path_id: step.linked_path_id,
-            linked_task_id: null // Reset task links as tasks are definitely personal states
+            linked_task_id: null
         }))
 
-        const { error: stepsError } = await supabase.from('roadmap_steps').insert(newSteps)
+        const { data: insertedSteps, error: stepsError } = await supabase
+            .from('roadmap_steps')
+            .insert(newStepsPayload)
+            .select()
+
         if (stepsError) throw new Error(stepsError.message)
+
+        // Create Map: Old Step ID -> New Step ID
+        // We match them by 'order'. This assumes 'order' is unique and preserved.
+        const stepMap = new Map<string, string>() // OldID -> NewID
+
+        insertedSteps.forEach(newStep => {
+            const oldStep = steps.find(s => s.order === newStep.order)
+            if (oldStep) {
+                stepMap.set(oldStep.id, newStep.id)
+            }
+        })
+
+        // Update parent_step_id for new steps
+        const updatePromises = steps
+            .filter(oldStep => oldStep.parent_step_id) // Only those with parents
+            .map(async (oldStep) => {
+                const newStepId = stepMap.get(oldStep.id)
+                const newParentId = stepMap.get(oldStep.parent_step_id!)
+
+                if (newStepId && newParentId) {
+                    await supabase
+                        .from('roadmap_steps')
+                        .update({ parent_step_id: newParentId })
+                        .eq('id', newStepId)
+                }
+            })
+
+        await Promise.all(updatePromises)
+
+        // 5. Copy Step Links (New Relation Table)
+        const oldStepIds = steps.map(s => s.id)
+        const { data: oldLinks } = await supabase
+            .from('roadmap_step_links')
+            .select('*')
+            .in('step_id', oldStepIds)
+
+        if (oldLinks && oldLinks.length > 0 && insertedSteps) {
+            const newLinks = []
+            for (const link of oldLinks) {
+                // Find matching new step
+                const newStepId = stepMap.get(link.step_id)
+                if (newStepId) {
+                    newLinks.push({
+                        step_id: newStepId,
+                        note_id: link.note_id,
+                        learning_path_id: link.learning_path_id,
+                        resource_id: link.resource_id,
+                        goal_id: link.goal_id
+                    })
+                }
+            }
+
+            if (newLinks.length > 0) {
+                await supabase.from('roadmap_step_links').insert(newLinks)
+            }
+        }
     }
 
     return newRoadmap
+}
+
+export async function syncRoadmap(copyId: string, originalId: string) {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error('Not authenticated')
+
+    // 1. Fetch original steps
+    const { data: originalSteps } = await supabase
+        .from('roadmap_steps')
+        .select('*')
+        .eq('roadmap_id', originalId)
+
+    if (!originalSteps || originalSteps.length === 0) return
+
+    // 2. Fetch original Links
+    const originalStepIds = originalSteps.map(s => s.id)
+    const { data: originalLinks } = await supabase
+        .from('roadmap_step_links')
+        .select('*')
+        .in('step_id', originalStepIds)
+
+    // 3. Delete existing steps of the copy (Cascade deletes links)
+    const { error: deleteError } = await supabase
+        .from('roadmap_steps')
+        .delete()
+        .eq('roadmap_id', copyId)
+
+    if (deleteError) throw new Error(deleteError.message)
+
+    // 4. Insert new steps
+    const newStepsPayload = originalSteps.map(step => ({
+        roadmap_id: copyId,
+        title: step.title,
+        description: step.description,
+        order: step.order,
+        completed: false, // Reset completed on sync? Or try to preserve? For now reset or copy.
+        // Logic: If sync, we want latest structure. Progress might be lost if we delete?
+        // Ideally we should map old copy steps to new copy steps to preserve 'completed' if title matches?
+        // User asked for "update", usually implies structure update. Progress preservation is tricky if steps changed.
+        // For simplicity: Reset progress or assume user wants fresh copy if structure changed heavily.
+        // Let's keep it simple: Reset. 
+        parent_step_id: null,
+        linked_resource_id: step.linked_resource_id,
+        linked_note_id: step.linked_note_id,
+        linked_path_id: step.linked_path_id,
+        linked_task_id: null
+    }))
+
+    const { data: insertedSteps, error: stepsError } = await supabase
+        .from('roadmap_steps')
+        .insert(newStepsPayload)
+        .select()
+
+    if (stepsError) throw new Error(stepsError.message)
+
+    // Remap Parent IDs
+    const stepMap = new Map<string, string>() // OldID -> NewID
+    insertedSteps.forEach(newStep => {
+        const oldStep = originalSteps.find(s => s.order === newStep.order)
+        if (oldStep) {
+            stepMap.set(oldStep.id, newStep.id)
+        }
+    })
+
+    const updatePromises = originalSteps
+        .filter(oldStep => oldStep.parent_step_id)
+        .map(async (oldStep) => {
+            const newStepId = stepMap.get(oldStep.id)
+            const newParentId = stepMap.get(oldStep.parent_step_id!)
+
+            if (newStepId && newParentId) {
+                await supabase
+                    .from('roadmap_steps')
+                    .update({ parent_step_id: newParentId })
+                    .eq('id', newStepId)
+            }
+        })
+
+    await Promise.all(updatePromises)
+
+    // 5. Insert new links
+    if (originalLinks && originalLinks.length > 0 && insertedSteps) {
+        const newLinks = []
+        for (const link of originalLinks) {
+            const newStepId = stepMap.get(link.step_id)
+            if (newStepId) {
+                newLinks.push({
+                    step_id: newStepId,
+                    note_id: link.note_id,
+                    learning_path_id: link.learning_path_id,
+                    resource_id: link.resource_id,
+                    goal_id: link.goal_id
+                })
+            }
+        }
+
+        if (newLinks.length > 0) {
+            await supabase.from('roadmap_step_links').insert(newLinks)
+        }
+    }
+
+    // 6. Update roadmap updated_at to match (or just touch it)
+    await supabase.from('roadmaps').update({ updated_at: new Date().toISOString() }).eq('id', copyId)
 }
 
 export async function addStepLink(stepId: string, type: 'note' | 'path' | 'resource' | 'goal', resourceId: string) {

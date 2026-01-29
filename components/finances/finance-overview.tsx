@@ -53,8 +53,8 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
     }))
 
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-4 grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
+            <div className="col-span-1 md:col-span-2 lg:col-span-4 grid gap-4 grid-cols-1 md:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Income</CardTitle>
@@ -82,7 +82,7 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
                     </CardContent>
                 </Card>
 
-                <Card className="col-span-3">
+                <Card className="col-span-1 md:col-span-3">
                     <CardHeader>
                         <CardTitle>Breakdown</CardTitle>
                     </CardHeader>

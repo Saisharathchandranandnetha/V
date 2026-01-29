@@ -29,7 +29,7 @@ export default async function FinancesPage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight">Finances</h2>
                     <p className="text-muted-foreground">Monitor your income and expenses.</p>
@@ -39,8 +39,8 @@ export default async function FinancesPage() {
 
             {transactions && <FinanceOverview transactions={transactions} />}
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <div className="col-span-7">
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
+                <div className="col-span-1 md:col-span-2 lg:col-span-7">
                     <TransactionList transactions={transactions || []} categories={categories || []} projects={projects || []} />
                 </div>
             </div>
