@@ -445,7 +445,15 @@ export function RoadmapEditor({ roadmap, initialSteps }: { roadmap: Roadmap, ini
     }
 
     const handleDeleteStep = async (id: string) => {
-        setSteps(prev => prev.filter(s => s.id !== id))
+        // Optimistically update local state:
+        // 1. Remove the deleted step
+        // 2. Update any children of this step to have no parent (orphan them to root)
+        setSteps(prev => prev.map(s => {
+            if (s.id === id) return null // Mark for removal
+            if (s.parent_step_id === id) return { ...s, parent_step_id: null } // Re-parent children
+            return s
+        }).filter(Boolean) as Step[])
+
         await deleteRoadmapStep(id)
     }
 
@@ -575,7 +583,7 @@ export function RoadmapEditor({ roadmap, initialSteps }: { roadmap: Roadmap, ini
                         <p className="text-sm text-muted-foreground mb-4 text-center">
                             This flow is generated automatically from your steps and branches.
                         </p>
-                        <MermaidDiagram chart={generateMermaidChart(steps)} />
+                        <MermaidDiagram chart={generateMermaidChart(sortedSteps)} />
                     </div>
                 </TabsContent>
             </Tabs>
