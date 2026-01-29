@@ -20,6 +20,17 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import {
     arrayMove,
     SortableContext,
     sortableKeyboardCoordinates,
@@ -458,14 +469,12 @@ export function RoadmapEditor({ roadmap, initialSteps }: { roadmap: Roadmap, ini
     }
 
     const handleDeleteRoadmap = async () => {
-        if (confirm('Are you sure you want to delete this roadmap? This action cannot be undone.')) {
-            try {
-                await deleteRoadmap(roadmap.id)
-                toast.success('Roadmap deleted')
-            } catch (error: any) {
-                if (error.message === 'NEXT_REDIRECT') return
-                toast.error('Failed to delete roadmap')
-            }
+        try {
+            await deleteRoadmap(roadmap.id)
+            toast.success('Roadmap deleted')
+        } catch (error: any) {
+            if (error.message === 'NEXT_REDIRECT') return
+            toast.error('Failed to delete roadmap')
         }
     }
 
@@ -496,10 +505,28 @@ export function RoadmapEditor({ roadmap, initialSteps }: { roadmap: Roadmap, ini
                         <Progress value={roadmap.progress || 0} className="h-2" />
                         <span className="text-sm font-medium text-muted-foreground w-12 text-right">{roadmap.progress || 0}%</span>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={handleDeleteRoadmap} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete Roadmap
-                    </Button>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive hover:bg-destructive/10">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Roadmap
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete your roadmap and remove your data from our servers.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDeleteRoadmap} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
 

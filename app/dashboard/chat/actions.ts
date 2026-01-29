@@ -56,7 +56,7 @@ export async function sendMessage(formData: FormData) {
     const attachments = metadata?.attachments || (metadata?.attachment ? [metadata.attachment] : [])
 
     if (attachments.length > 0) {
-        const validTypes = ['resource', 'note', 'learning_path']
+        const validTypes = ['resource', 'note', 'learning_path', 'roadmap']
         const recordsToInsert = []
 
         for (const attachment of attachments) {

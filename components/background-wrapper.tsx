@@ -99,14 +99,8 @@ export function BackgroundWrapper({ deviceType, customUrl }: BackgroundWrapperPr
                         priority={true}
                         quality={deviceType === 'mobile' ? 60 : 80}
                         onLoad={(e) => setImgElement(e.currentTarget)}
-                        unoptimized={true} // Needed if external domain issues persist, but 'remotePatterns' should handle it. However, if 'remotePatterns' fails, this is a fallback. To be safe with 'ColorThief' accessing pixel data, 'unoptimized' ensures we get the raw image or simple proxy without strict CORS headers sometimes interfering if Next optimizes it oddly? Next optimization mirrors CORS usually. I'll stick to optimized if possible, but for ColorThief robustness with external signed URLs, unoptimized might be safer? 
-                    // Actually, signed URLs might expire or strict CORS.
-                    // I will set unoptimized={false} to use next/image benefits, but if it breaks, we revert.
-                    // Wait, 'customUrl' implies user uploaded.
-                    // I will use unoptimized={true} for now to guarantee the signed URL works directly as src without Next.js middleware changing headers, effectively like the <img> tag but with lazy load potential (though priority=true negates lazy).
-                    // Actually, if priority=true, Next image preloads it.
-                    // PROCEED WITH UNOPTIMIZED=FALSE (Optimized) to get size reduction!
-                    // But I need to ensure CORS.
+                        unoptimized={true}
+                        crossOrigin="anonymous"
                     />
                     <div className="absolute inset-0 bg-black/20" />
                 </div>

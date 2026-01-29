@@ -45,6 +45,35 @@ interface MessageItemProps {
     members?: any[]
 }
 
+// Helper to render mentions
+const renderMessageWithMentions = (text: string, mentions: string[] | undefined, isSender: boolean) => {
+    if (!text) return null
+    if (!mentions || mentions.length === 0) return text
+
+    // Split by spaces or special chars to find potential mentions
+    // Simpler: Regex for @Word
+    const parts = text.split(/(@\w+(?:\s+\w+)?)/g) // Split keeping delimiters
+
+    return parts.map((part, i) => {
+        if (part.startsWith('@')) {
+            return (
+                <span
+                    key={i}
+                    className={cn(
+                        "font-bold px-1 rounded-sm",
+                        isSender
+                            ? "bg-primary-foreground/20 text-primary-foreground"
+                            : "bg-primary/10 text-primary"
+                    )}
+                >
+                    {part}
+                </span>
+            )
+        }
+        return part
+    })
+}
+
 export function MessageItem({ message, isConsecutive, teamId, projectId, onDelete, members = [] }: MessageItemProps) {
     const isSender = message.is_sender
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
@@ -97,7 +126,7 @@ export function MessageItem({ message, isConsecutive, teamId, projectId, onDelet
                                     : "bg-card border border-border text-card-foreground rounded-tl-sm"
                             )}
                         >
-                            {message.message}
+                            {renderMessageWithMentions(message.message, message.metadata?.mentions, isSender || false)}
                         </div>
 
                         {/* Actions Overlay */}

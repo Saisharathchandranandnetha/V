@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { ChatContainer } from '@/components/chat/ChatContainer'
 import { Separator } from '@/components/ui/separator'
-import { Hash } from 'lucide-react'
+import { Hash, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 interface TeamChatPageProps {
     params: Promise<{
@@ -76,11 +77,16 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="h-14 border-b border-border flex items-center px-6 bg-card/50 backdrop-blur-sm shrink-0 justify-between">
-                <div className="flex items-center gap-2 font-semibold">
-                    <Hash className="h-4 w-4 text-muted-foreground" />
-                    {team.name}
-                    <span className="text-muted-foreground font-normal ml-2 text-xs border border-border px-2 py-0.5 rounded-full">General</span>
+            <div className="h-14 border-b border-border flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm shrink-0 justify-between gap-3">
+                <div className="flex items-center gap-3 font-semibold overflow-hidden">
+                    <Link href="/dashboard/chat" className="md:hidden flex items-center justify-center h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Link>
+                    <div className="flex items-center gap-2 truncate">
+                        <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="truncate">{team.name}</span>
+                        <span className="text-muted-foreground font-normal ml-2 text-xs border border-border px-2 py-0.5 rounded-full hidden sm:inline-block">General</span>
+                    </div>
                 </div>
             </div>
 
