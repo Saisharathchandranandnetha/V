@@ -7,6 +7,7 @@ import { headers } from 'next/headers'
 import { getUserSettings } from '@/app/dashboard/settings/actions'
 import { ThemeSync } from '@/components/theme-sync'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { DashboardContent } from '@/components/dashboard-content'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -38,17 +39,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
                     <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
                 </div>
 
-                <ScrollArea className="flex-1 min-h-0">
-                    <main className="p-6 md:p-8">
-                        <div className="mb-4 text-xs text-muted-foreground md:hidden">
-                            Detected Device: {deviceType}
-                        </div>
-                        <div className="hidden md:block mb-4 text-xs text-muted-foreground">
-                            Detected Device: {deviceType}
-                        </div>
-                        {children}
-                    </main>
-                </ScrollArea>
+                <DashboardContent deviceType={deviceType}>
+                    {children}
+                </DashboardContent>
             </div>
         </div>
     )

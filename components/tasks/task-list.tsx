@@ -74,7 +74,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                     No tasks found. Create one to get started!
                 </div>
             )}
-            <StaggerContainer className="flex flex-col gap-4">
+            <StaggerContainer className="flex flex-col gap-4" animate="show">
                 {tasks.map((task) => (
                     <StaggerItem key={task.id} className="w-full">
                         <HoverEffect variant="lift">
