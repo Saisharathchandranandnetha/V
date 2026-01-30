@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { ChatContainer } from '@/components/chat/ChatContainer'
-import { Folder } from 'lucide-react'
+import { Folder, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
 
 interface ProjectChatPageProps {
     params: Promise<{
@@ -84,11 +85,16 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
     }) || []
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="h-14 border-b border-border flex items-center px-6 bg-card/50 backdrop-blur-sm shrink-0 justify-between">
-                <div className="flex items-center gap-2 font-semibold">
-                    <Folder className="h-4 w-4 text-muted-foreground" />
-                    {project.name}
+        <div className="flex-1 flex flex-col min-h-0 w-full">
+            <div className="h-14 border-b border-border flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm shrink-0 justify-between gap-3">
+                <div className="flex items-center gap-3 font-semibold overflow-hidden">
+                    <Link href="/dashboard/chat" className="flex items-center justify-center h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Link>
+                    <div className="flex items-center gap-2 truncate">
+                        <Folder className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="truncate">{project.name}</span>
+                    </div>
                 </div>
                 <ProjectSettingsDialog
                     teamId={teamId}
@@ -98,18 +104,20 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
                 />
             </div>
 
-            <ChatContainer
-                initialMessages={formattedMessages}
-                teamId={teamId}
-                projectId={projectId}
-                currentUser={{
-                    id: user.id,
-                    name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
-                    avatar: user.user_metadata.avatar_url || '',
-                    email: user.email!
-                }}
-                members={members}
-            />
+            <div className="flex-1 min-h-0 relative w-full flex flex-col">
+                <ChatContainer
+                    initialMessages={formattedMessages}
+                    teamId={teamId}
+                    projectId={projectId}
+                    currentUser={{
+                        id: user.id,
+                        name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
+                        avatar: user.user_metadata.avatar_url || '',
+                        email: user.email!
+                    }}
+                    members={members}
+                />
+            </div>
         </div>
     )
 }

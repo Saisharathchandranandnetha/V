@@ -92,7 +92,7 @@ export function ChatLayout({
             <div className="w-64 hidden md:block border-r border-border bg-card/30">
                 <ChatSidebar teams={teams} />
             </div>
-            <main className="flex-1 flex flex-col min-w-0 bg-background/30 w-full relative">
+            <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden bg-background/30 w-full relative">
                 {children}
             </main>
         </div>

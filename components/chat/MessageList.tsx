@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { MessageItem, Message } from './MessageItem'
-import { ScrollArea } from '@/components/ui/scroll-area'
+
 import { differenceInMinutes, isSameDay, isToday, isYesterday, format } from 'date-fns'
 
 function formatDateLabel(date: Date) {
@@ -19,11 +19,18 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
     onDelete?: (id: string) => void,
     members: any[]
 }) {
-    const bottomRef = useRef<HTMLDivElement>(null)
+    const scrollRef = useRef<HTMLDivElement>(null)
 
     // Scroll to bottom when messages change
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+        if (scrollRef.current) {
+            // Use requestAnimationFrame to ensure DOM is ready
+            requestAnimationFrame(() => {
+                if (scrollRef.current) {
+                    scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+                }
+            })
+        }
     }, [messages.length])
 
     // Group messages
@@ -37,7 +44,11 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
     })
 
     return (
-        <ScrollArea className="flex-1 min-h-0 p-4">
+        <div
+            ref={scrollRef}
+            className="flex-1 min-h-0 w-full overflow-y-auto p-4 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent overscroll-y-contain"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+        >
             <div className="flex flex-col gap-1 pb-4">
                 {groupedMessages.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-50">
@@ -70,8 +81,7 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
                         </div>
                     );
                 })}
-                <div ref={bottomRef} className="h-1" />
             </div>
-        </ScrollArea>
+        </div>
     )
 }

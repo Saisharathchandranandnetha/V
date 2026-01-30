@@ -56,13 +56,15 @@ export function Entrance({
     )
 }
 
+import { HTMLMotionProps } from 'framer-motion'
+
 export function StaggerContainer({
     children,
     className,
     delay = 0,
-    staggerDelay = 0.05, // Faster stagger for mobile feel
+    staggerDelay = 0.05,
     ...props
-}: {
+}: HTMLMotionProps<'div'> & {
     children: React.ReactNode
     className?: string
     delay?: number

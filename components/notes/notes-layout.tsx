@@ -131,7 +131,7 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                     </Button>
                 </div>
 
-                <StaggerContainer className="flex-1 overflow-y-auto space-y-3 pr-2">
+                <StaggerContainer className="flex-1 overflow-y-auto space-y-3 pr-2" animate="show">
                     {notes.map((note) => (
                         <StaggerItem key={note.id} className="relative group w-full">
                             <NoteCard

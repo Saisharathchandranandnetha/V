@@ -76,7 +76,7 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
     }) || []
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex-1 flex flex-col min-h-0 w-full">
             <div className="h-14 border-b border-border flex items-center px-4 md:px-6 bg-card/50 backdrop-blur-sm shrink-0 justify-between gap-3">
                 <div className="flex items-center gap-3 font-semibold overflow-hidden">
                     <Link href="/dashboard/chat" className="md:hidden flex items-center justify-center h-8 w-8 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
@@ -90,17 +90,19 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
                 </div>
             </div>
 
-            <ChatContainer
-                initialMessages={formattedMessages}
-                teamId={teamId}
-                currentUser={{
-                    id: user.id,
-                    name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
-                    avatar: user.user_metadata.avatar_url || '',
-                    email: user.email!
-                }}
-                members={members}
-            />
+            <div className="flex-1 min-h-0 relative w-full flex flex-col">
+                <ChatContainer
+                    initialMessages={formattedMessages}
+                    teamId={teamId}
+                    currentUser={{
+                        id: user.id,
+                        name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
+                        avatar: user.user_metadata.avatar_url || '',
+                        email: user.email!
+                    }}
+                    members={members}
+                />
+            </div>
         </div>
     )
 }
