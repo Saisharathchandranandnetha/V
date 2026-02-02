@@ -6,14 +6,16 @@ import { createClient } from '@/lib/supabase/server'
 import { LearningPathCard, LearningPathProps } from '@/components/learning-path-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { ViewSelector } from './view-selector'
+import { DashboardSearch } from '@/components/dashboard-search'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LearningPathsPage(props: {
-    searchParams: Promise<{ view?: string }>
+    searchParams: Promise<{ view?: string, q?: string }>
 }) {
     const searchParams = await props.searchParams
     const view = searchParams.view || 'active'
+    const searchQuery = searchParams.q || ''
     const supabase = await createClient()
 
     let query = supabase.from('learning_paths').select('*')
@@ -44,6 +46,8 @@ export default async function LearningPathsPage(props: {
                 </div>
             </div>
 
+            <DashboardSearch placeholder="Search learning paths..." />
+
             {(!paths || paths.length === 0) ? (
                 <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg text-muted-foreground min-h-[200px]">
                     {view === 'completed'
@@ -52,8 +56,11 @@ export default async function LearningPathsPage(props: {
                     }
                 </div>
             ) : (
-                <StaggerContainer key={view} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {paths.map((path: LearningPathProps) => (
+                <StaggerContainer key={view + searchQuery} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {paths.filter((p: LearningPathProps) =>
+                        !searchQuery ||
+                        (p.title?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+                    ).map((path: LearningPathProps) => (
                         <StaggerItem key={path.id} className="h-full">
                             <LearningPathCard path={path} />
                         </StaggerItem>

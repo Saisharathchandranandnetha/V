@@ -8,8 +8,14 @@ import { HoverEffect } from '@/components/ui/hover-effect'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { Button } from '@/components/ui/button'
 import { CreateCategoryDialog } from './create-category-dialog'
+import { DashboardSearch } from '@/components/dashboard-search'
 
-export default async function CategoriesPage() {
+export default async function CategoriesPage({
+    searchParams
+}: {
+    searchParams: Promise<{ q?: string }>
+}) {
+    const { q: searchQuery } = await searchParams
     const supabase = await createClient()
     const { data: categories } = await supabase
         .from('categories')
@@ -31,8 +37,13 @@ export default async function CategoriesPage() {
                 </div>
             </div>
 
-            <StaggerContainer className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {categories?.map((category: any) => (
+            <DashboardSearch placeholder="Search categories..." />
+
+            <StaggerContainer key={searchQuery} className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {categories?.filter((c: any) =>
+                    !searchQuery ||
+                    (c.name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+                ).map((category: any) => (
                     <StaggerItem key={category.id} className="h-full">
                         <HoverEffect variant="lift">
                             <Link href={`/dashboard/categories/${category.id}`}>

@@ -6,8 +6,14 @@ import { CreateCollectionDialog } from './create-collection-dialog'
 import { CollectionCard } from './collection-card'
 import { HoverEffect } from '@/components/ui/hover-effect'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
+import { DashboardSearch } from '@/components/dashboard-search'
 
-export default async function CollectionsPage() {
+export default async function CollectionsPage({
+    searchParams
+}: {
+    searchParams: Promise<{ q?: string }>
+}) {
+    const { q: searchQuery } = await searchParams
     const supabase = await createClient()
     const { data: collections } = await supabase
         .from('collections')
@@ -24,8 +30,13 @@ export default async function CollectionsPage() {
                 <CreateCollectionDialog />
             </div>
 
-            <StaggerContainer className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-                {collections?.map((collection: any) => (
+            <DashboardSearch placeholder="Search collections..." />
+
+            <StaggerContainer key={searchQuery} className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+                {collections?.filter((c: any) =>
+                    !searchQuery ||
+                    (c.name?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+                ).map((collection: any) => (
                     <StaggerItem key={collection.id} className="h-full">
                         <HoverEffect variant="lift">
                             <CollectionCard collection={collection} />

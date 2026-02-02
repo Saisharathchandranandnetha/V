@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, MoreVertical, Trash2, FolderInput } from 'lucide-react'
+import { Plus, MoreVertical, Trash2, FolderInput, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { NoteCard } from './note-card'
 import { NoteEditor } from './note-editor'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
@@ -36,6 +37,7 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
 
     const [selectedNote, setSelectedNote] = useState<Note | null>(null)
     const [isCreating, setIsCreating] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
 
     // Action States
     const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
@@ -46,7 +48,12 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     const searchParams = useSearchParams()
 
     // Merge notes
-    const notes = [...localNotes, ...serverNotes.filter(sn => !localNotes.find(ln => ln.id === sn.id))]
+    const allNotes = [...localNotes, ...serverNotes.filter(sn => !localNotes.find(ln => ln.id === sn.id))]
+
+    const notes = allNotes.filter(note =>
+        (note.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (note.content?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    )
 
     useEffect(() => {
         setServerNotes(initialNotes)
@@ -131,7 +138,17 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                     </Button>
                 </div>
 
-                <StaggerContainer className="flex-1 overflow-y-auto space-y-3 pr-2" animate="show">
+                <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                        placeholder="Search notes..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 bg-background/50 backdrop-blur-sm focus-visible:ring-primary/50 transition-all text-foreground"
+                    />
+                </div>
+
+                <StaggerContainer key={searchQuery} className="flex-1 overflow-y-auto space-y-3 pr-2" animate="show">
                     {notes.map((note) => (
                         <StaggerItem key={note.id} className="relative group w-full">
                             <NoteCard
@@ -172,7 +189,20 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                     ))}
                     {notes.length === 0 && (
                         <div className="text-center text-muted-foreground py-10">
-                            No notes yet. Create one to get started!
+                            {searchQuery ? (
+                                <>
+                                    <p>No notes found matching "{searchQuery}"</p>
+                                    <Button
+                                        variant="link"
+                                        onClick={() => setSearchQuery('')}
+                                        className="mt-2"
+                                    >
+                                        Clear search
+                                    </Button>
+                                </>
+                            ) : (
+                                "No notes yet. Create one to get started!"
+                            )}
                         </div>
                     )}
                 </StaggerContainer>

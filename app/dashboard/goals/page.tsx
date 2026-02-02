@@ -9,6 +9,7 @@ import { DeleteGoalButton } from '@/components/goals/delete-goal-button'
 import { UpdateProgressDialog } from '@/components/goals/update-progress-dialog'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { GoalSearch } from './goal-search'
 
 interface Goal {
     id: string
@@ -26,7 +27,12 @@ interface Goal {
     updated_at?: string
 }
 
-export default async function GoalsPage() {
+export default async function GoalsPage({
+    searchParams
+}: {
+    searchParams: Promise<{ q?: string }>
+}) {
+    const { q: searchQuery } = await searchParams
     const supabase = await createClient()
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -41,7 +47,15 @@ export default async function GoalsPage() {
         .eq('user_id', user.id)
         .order('deadline', { ascending: true })
 
-    const goals = (goalsData || []) as Goal[]
+    const allGoals = (goalsData || []) as Goal[]
+
+    const filteredGoals = allGoals.filter(goal =>
+        !searchQuery ||
+        (goal.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+        (goal.description?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    )
+
+    const goals = filteredGoals
 
     // Filter goals into active and completed
     const activeGoals = goals.filter(goal => goal.current_value < goal.target_value)
@@ -76,6 +90,10 @@ export default async function GoalsPage() {
                 <CreateGoalDialog />
             </div>
 
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                <GoalSearch />
+            </div>
+
             {goals.length === 0 ? (
                 <div className="text-center p-8 border border-dashed rounded-lg">
                     <p className="text-muted-foreground">No goals set yet. Create one to get started!</p>
@@ -88,7 +106,7 @@ export default async function GoalsPage() {
                             {sortedTypes.map((type) => (
                                 <div key={type} className="space-y-4">
                                     <h3 className="text-xl font-semibold">{type}</h3>
-                                    <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                    <StaggerContainer key={`${type}-${searchQuery}`} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                         {groupedActiveGoals[type].map((goal) => {
                                             const progress = Math.min((goal.current_value / goal.target_value) * 100, 100)
 
@@ -137,7 +155,7 @@ export default async function GoalsPage() {
                     {completedGoals.length > 0 && (
                         <div className="space-y-4 pt-4 border-t">
                             <h3 className="text-xl font-semibold text-muted-foreground">Completed Goals</h3>
-                            <StaggerContainer className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            <StaggerContainer key={`completed-${searchQuery}`} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {completedGoals.map((goal) => {
                                     return (
                                         <StaggerItem key={goal.id}>

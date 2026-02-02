@@ -6,14 +6,25 @@ import Link from 'next/link'
 import { ResourceCard, ResourceType } from '@/components/resource-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { createClient } from '@/lib/supabase/server'
+import { ResourceSearch } from './resource-search'
 
-export default async function ResourcesPage() {
+export default async function ResourcesPage({
+    searchParams
+}: {
+    searchParams: Promise<{ q?: string }>
+}) {
+    const { q: searchQuery } = await searchParams
     const supabase = await createClient()
     const { data: resources } = await supabase.from('resources')
         .select('id, title, type, summary, tags, url, created_at')
         .order('created_at', { ascending: false })
 
-    const typedResources = (resources || []).map(r => ({
+    const filteredResources = (resources || []).filter(r =>
+        !searchQuery ||
+        (r.title?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+    )
+
+    const typedResources = filteredResources.map(r => ({
         ...r,
         date: r.created_at
     }))
@@ -37,6 +48,10 @@ export default async function ResourcesPage() {
                 </Link>
             </div>
 
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                <ResourceSearch />
+            </div>
+
             <Tabs defaultValue="all" className="space-y-4">
                 <div className="w-full overflow-x-auto pb-2">
                     <TabsList>
@@ -52,7 +67,7 @@ export default async function ResourcesPage() {
                             No resources found. Add one to get started!
                         </div>
                     ) : (
-                        <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <StaggerContainer key={`all-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {typedResources.map(r => (
                                 <StaggerItem key={r.id} className="h-full">
                                     <ResourceCard resource={r as any} />
@@ -62,7 +77,7 @@ export default async function ResourcesPage() {
                     )}
                 </TabsContent>
                 <TabsContent value="links" className="space-y-4">
-                    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StaggerContainer key={`links-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {linkResources.map(r => (
                             <StaggerItem key={r.id} className="h-full">
                                 <ResourceCard resource={r as any} />
@@ -72,7 +87,7 @@ export default async function ResourcesPage() {
                     {linkResources.length === 0 && <div className="text-center text-muted-foreground p-8">No links found.</div>}
                 </TabsContent>
                 <TabsContent value="documents" className="space-y-4">
-                    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StaggerContainer key={`docs-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {docResources.map(r => (
                             <StaggerItem key={r.id} className="h-full">
                                 <ResourceCard resource={r as any} />
@@ -82,7 +97,7 @@ export default async function ResourcesPage() {
                     {docResources.length === 0 && <div className="text-center text-muted-foreground p-8">No documents found.</div>}
                 </TabsContent>
                 <TabsContent value="3d" className="space-y-4">
-                    <StaggerContainer className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <StaggerContainer key={`3d-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {modelResources.map(r => (
                             <StaggerItem key={r.id} className="h-full">
                                 <ResourceCard resource={r as any} />

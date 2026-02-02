@@ -11,8 +11,14 @@ import {
 } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { createRoadmap } from './actions'
+import { DashboardSearch } from '@/components/dashboard-search'
 
-export default async function RoadmapsPage() {
+export default async function RoadmapsPage({
+    searchParams
+}: {
+    searchParams: Promise<{ q?: string }>
+}) {
+    const { q: searchQuery } = await searchParams
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -41,8 +47,14 @@ export default async function RoadmapsPage() {
                 </form>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {roadmaps?.map((roadmap: any) => (
+            <DashboardSearch placeholder="Search roadmaps..." className="mb-8" />
+
+            <div key={searchQuery} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {roadmaps?.filter((r: any) =>
+                    !searchQuery ||
+                    (r.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+                    (r.description && (r.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()))
+                ).map((roadmap: any) => (
                     <Link key={roadmap.id} href={`/dashboard/roadmaps/${roadmap.id}`}>
                         <Card className="h-full hover:border-primary/50 transition-colors cursor-pointer group">
                             <CardHeader>
