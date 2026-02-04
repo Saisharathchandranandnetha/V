@@ -8,6 +8,7 @@ import { getUserSettings } from '@/app/dashboard/settings/actions'
 import { ThemeSync } from '@/components/theme-sync'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardContent } from '@/components/dashboard-content'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -26,17 +27,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const deviceType = headersList.get('x-device-type')
 
     return (
-        <div className="flex h-screen overflow-hidden">
-            {/* Desktop Sidebar */}
-            <Sidebar isAdmin={user.email === process.env.ADMIN_EMAIL} className="hidden md:block w-64 shrink-0" />
+        <div className="flex min-h-screen relative">
+            {/* Desktop Sidebar - Sticky for root scroll */}
+            <aside className="hidden md:block w-64 shrink-0 sticky top-0 h-screen z-40 bg-background/50 backdrop-blur-md">
+                <Sidebar isAdmin={user.email === process.env.ADMIN_EMAIL} className="h-full border-r" />
+            </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col h-screen overflow-hidden bg-transparent">
+            <div className="flex-1 flex flex-col min-h-screen relative z-10">
                 <ThemeSync userTheme={userSettings?.settings?.theme} userId={user.id} />
+
                 {/* Mobile Header */}
                 <div className="md:hidden border-b p-4 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-                    <span className="font-semibold">LifeOS ({deviceType})</span>
-                    <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
+                    <span className="font-semibold text-primary">LifeOS ({deviceType})</span>
+                    <div className="flex items-center gap-2">
+                        <ThemeToggle />
+                        <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
+                    </div>
                 </div>
 
                 <DashboardContent deviceType={deviceType}>

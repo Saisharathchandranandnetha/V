@@ -7,6 +7,7 @@ import { ResourceCard, ResourceType } from '@/components/resource-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { createClient } from '@/lib/supabase/server'
 import { ResourceSearch } from './resource-search'
+import { MagneticText } from '@/components/ui/magnetic-text'
 
 export default async function ResourcesPage({
     searchParams
@@ -37,7 +38,9 @@ export default async function ResourcesPage({
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
+                    <MagneticText>
+                        <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
+                    </MagneticText>
                     <p className="text-muted-foreground">Manage your learning materials.</p>
                 </div>
                 <Link href="/dashboard/resources/new">

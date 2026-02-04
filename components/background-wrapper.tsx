@@ -10,7 +10,7 @@ interface BackgroundWrapperProps {
     children?: React.ReactNode
 }
 
-export function BackgroundWrapper({ deviceType, customUrl }: BackgroundWrapperProps) {
+export function BackgroundWrapper({ deviceType, customUrl, children }: BackgroundWrapperProps) {
     const [imgElement, setImgElement] = useState<HTMLImageElement | null>(null)
 
     useEffect(() => {
@@ -87,54 +87,61 @@ export function BackgroundWrapper({ deviceType, customUrl }: BackgroundWrapperPr
     }, [customUrl, imgElement])
 
     return (
-        <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-            {/* Custom Background Override */}
-            {customUrl && (
-                <div className="absolute inset-0">
-                    <Image
-                        src={customUrl}
-                        alt="Background"
-                        fill
-                        className="object-cover transition-opacity duration-700"
-                        priority={true}
-                        quality={deviceType === 'mobile' ? 60 : 80}
-                        onLoad={(e) => setImgElement(e.currentTarget)}
-                        unoptimized={true}
-                        crossOrigin="anonymous"
-                    />
-                    <div className="absolute inset-0 bg-black/20" />
-                </div>
-            )}
-
-            {!customUrl && (
-                <>
-                    {/* Desktop Background - Luxury Aurora/Mesh Gradient */}
-                    {deviceType === 'desktop' && (
-                        <div className="absolute inset-0 bg-[#0a0a0a]">
-                            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-900/20 blur-[120px] animate-pulse" />
-                            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/20 blur-[120px] animate-pulse delay-1000" />
-                            <div className="absolute top-[20%] left-[30%] w-[40%] h-[40%] rounded-full bg-slate-900/50 blur-[100px]" />
-                            <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] mix-blend-overlay" />
-                        </div>
-                    )}
-
-                    {/* Mobile/Tablet Background - Simplified, Vertical Luxury */}
-                    {(deviceType === 'mobile' || deviceType === 'tablet') && (
-                        <div className="absolute inset-0 bg-[#050505]">
-                            {/* Reduced blur radius and simplified DOM for mobile performance */}
-                            <div className="absolute top-0 left-0 w-full h-[30%] bg-gradient-to-b from-purple-900/15 to-transparent blur-[40px]" />
-                            <div className="absolute bottom-0 right-0 w-full h-[40%] bg-gradient-to-t from-indigo-900/15 to-transparent blur-[40px]" />
-                        </div>
-                    )}
-
-                    {/* Light Mode Override */}
-                    <div className="dark:hidden absolute inset-0 bg-gradient-to-br from-slate-50 to-gray-200">
-                        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-purple-200/30 blur-[100px]" />
-                        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-200/30 blur-[100px]" />
+        <>
+            <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+                {/* Custom Background Override */}
+                {customUrl && (
+                    <div className="absolute inset-0">
+                        <Image
+                            src={customUrl}
+                            alt="Background"
+                            fill
+                            className="object-cover transition-opacity duration-700"
+                            priority={true}
+                            quality={deviceType === 'mobile' ? 60 : 80}
+                            onLoad={(e) => setImgElement(e.currentTarget)}
+                            unoptimized={true}
+                            crossOrigin="anonymous"
+                        />
+                        <div className="absolute inset-0 bg-black/20" />
                     </div>
-                </>
-            )}
-        </div>
+                )}
+
+                {!customUrl && (
+                    <>
+                        {/* Desktop Background - Luxury Aurora/Mesh Gradient */}
+                        {deviceType === 'desktop' && (
+                            <div className="absolute inset-0 bg-[#050505]">
+                                <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-600/20 blur-[120px] animate-blob" />
+                                <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/20 blur-[120px] animate-blob animation-delay-2000" />
+                                <div className="absolute top-[20%] left-[30%] w-[40%] h-[40%] rounded-full bg-cyan-600/10 blur-[120px] animate-blob animation-delay-4000" />
+
+                                {/* Texture & Overlay */}
+                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] mix-blend-soft-light pointer-events-none" />
+                                <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/40" />
+                            </div>
+                        )}
+
+                        {/* Mobile/Tablet Background - Simplified, Vertical Luxury */}
+                        {(deviceType === 'mobile' || deviceType === 'tablet') && (
+                            <div className="absolute inset-0 bg-[#050505]">
+                                <div className="absolute top-0 left-0 w-full h-[50%] bg-gradient-to-b from-indigo-900/20 to-transparent blur-[60px] animate-pulse" />
+                                <div className="absolute bottom-0 right-0 w-full h-[50%] bg-gradient-to-t from-purple-900/20 to-transparent blur-[60px] animate-pulse delay-1000" />
+                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.1] mix-blend-soft-light" />
+                            </div>
+                        )}
+
+                        {/* Light Mode Override - Modernized */}
+                        <div className="dark:hidden absolute inset-0 bg-slate-50">
+                            <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] rounded-full bg-indigo-100/50 blur-[100px] animate-blob" />
+                            <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-100/50 blur-[100px] animate-blob animation-delay-2000" />
+                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-multiply" />
+                        </div>
+                    </>
+                )}
+            </div>
+            {children}
+        </>
     )
 }
 

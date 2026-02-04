@@ -254,7 +254,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
     }, [])
 
     return (
-        <div className="flex flex-col h-full bg-background relative overflow-hidden">
+        <div className="flex flex-col h-full bg-background/50 backdrop-blur-2xl relative overflow-hidden ring-1 ring-border/50">
             <ConnectionStatus status={status} />
 
             <MessageList

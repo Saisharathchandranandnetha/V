@@ -1,25 +1,29 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Instrument_Sans } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider"
+import { BackgroundWrapper } from "@/components/background-wrapper"
+import { Toaster } from "@/components/ui/sonner"
+import { CustomCursor } from "@/components/ui/custom-cursor"
 import NextTopLoader from 'nextjs-toploader';
 import { SpeedInsights } from "@vercel/speed-insights/next";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
+import { SmoothScrollWrapper } from "@/components/ui/smooth-scroll-wrapper";
+import { InteractiveGrid } from "@/components/ui/interactive-grid";
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
 import { UAParser } from 'ua-parser-js'
-import { BackgroundWrapper } from "@/components/background-wrapper"
-import { Toaster } from "@/components/ui/sonner"
+
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
+  subsets: ["latin"],
+  display: 'swap',
+});
+
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
+  subsets: ["latin"],
+  display: 'swap',
+});
+
+import { ThemeProvider } from "@/components/theme-provider";
 
 export default async function RootLayout({
   children,
@@ -62,23 +66,25 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen overflow-x-hidden`}
-        suppressHydrationWarning
+        className={`antialiased ${jakarta.variable} ${instrument.variable} font-sans selection:bg-primary/30 relative min-h-screen overflow-x-hidden`}
       >
         <NextTopLoader showSpinner={false} />
-
-        <BackgroundWrapper deviceType={deviceType} customUrl={customBackground} />
-
+        <CustomCursor />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <SmoothScrollWrapper>
+            <InteractiveGrid />
+            <BackgroundWrapper deviceType={deviceType} customUrl={customBackground}>
+              {children}
+            </BackgroundWrapper>
+          </SmoothScrollWrapper>
         </ThemeProvider>
+        <Toaster position="top-right" richColors />
         <SpeedInsights />
-        <Toaster />
       </body>
     </html>
   );

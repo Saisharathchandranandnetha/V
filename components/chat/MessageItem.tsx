@@ -120,10 +120,10 @@ export function MessageItem({ message, isConsecutive, teamId, projectId, onDelet
                     <div className="relative group/msg">
                         <div
                             className={cn(
-                                "px-4 py-2 rounded-2xl text-sm shadow-sm relative",
+                                "px-4 py-2 rounded-2xl text-sm shadow-sm relative transition-all duration-300 group-hover/msg:shadow-md",
                                 isSender
-                                    ? "bg-primary text-primary-foreground rounded-tr-sm"
-                                    : "bg-card border border-border text-card-foreground rounded-tl-sm"
+                                    ? "bg-primary text-primary-foreground rounded-tr-sm border border-white/10 hover:scale-[1.01] shadow-indigo-500/10"
+                                    : "bg-card backdrop-blur-xl border border-border/50 text-card-foreground rounded-tl-sm hover:scale-[1.01]"
                             )}
                         >
                             {renderMessageWithMentions(message.message, message.metadata?.mentions, isSender || false)}

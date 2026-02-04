@@ -10,6 +10,7 @@ import { DateTimeDisplay } from '@/components/date-time-display'
 import { HoverEffect } from '@/components/ui/hover-effect'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { Entrance } from '@/components/ui/entrance'
+import { MagneticText } from '@/components/ui/magnetic-text'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
@@ -138,7 +139,9 @@ export default async function DashboardPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                    <MagneticText>
+                        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                    </MagneticText>
                     <p className="text-muted-foreground">Overview of your productivity & finances.</p>
                 </div>
                 <DateTimeDisplay />

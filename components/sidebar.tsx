@@ -40,6 +40,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { MagneticWrapper } from '@/components/ui/magnetic-wrapper'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 // Navigation items for the sidebar
 export const sidebarNavItems = [
@@ -157,31 +159,36 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                                 return (
                                     <Collapsible key={item.title} defaultOpen={isOpen} className="group/collapsible">
                                         <CollapsibleTrigger asChild>
-                                            <Button
-                                                variant="ghost"
-                                                className="w-full justify-between font-normal hover:bg-accent hover:text-accent-foreground"
-                                            >
-                                                <div className="flex items-center">
-                                                    <item.icon className="mr-2 h-4 w-4" />
-                                                    {item.title}
-                                                </div>
-                                                <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
-                                            </Button>
+                                            <div className="w-full">
+                                                <MagneticWrapper strength={0.3}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="w-full justify-between font-normal hover:bg-accent hover:text-accent-foreground"
+                                                    >
+                                                        <div className="flex items-center">
+                                                            <item.icon className="mr-2 h-4 w-4" />
+                                                            {item.title}
+                                                        </div>
+                                                        <ChevronDown className="h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-180" />
+                                                    </Button>
+                                                </MagneticWrapper>
+                                            </div>
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
                                             <div className="pl-6 space-y-1 mt-1">
                                                 {item.children.map((child) => (
-                                                    <Button
-                                                        key={child.href}
-                                                        variant={pathname === child.href ? 'secondary' : 'ghost'}
-                                                        className="w-full justify-start h-8 text-sm"
-                                                        asChild
-                                                    >
-                                                        <Link href={child.href}>
-                                                            <child.icon className="mr-2 h-3.5 w-3.5" />
-                                                            {child.title}
-                                                        </Link>
-                                                    </Button>
+                                                    <MagneticWrapper key={child.href} strength={0.25}>
+                                                        <Button
+                                                            variant={pathname === child.href ? 'secondary' : 'ghost'}
+                                                            className="w-full justify-start h-8 text-sm"
+                                                            asChild
+                                                        >
+                                                            <Link href={child.href}>
+                                                                <child.icon className="mr-2 h-3.5 w-3.5" />
+                                                                {child.title}
+                                                            </Link>
+                                                        </Button>
+                                                    </MagneticWrapper>
                                                 ))}
                                             </div>
                                         </CollapsibleContent>
@@ -189,17 +196,18 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                                 )
                             }
                             return (
-                                <Button
-                                    key={item.href}
-                                    variant={pathname === item.href ? 'secondary' : 'ghost'}
-                                    className="w-full justify-start"
-                                    asChild
-                                >
-                                    <Link href={item.href}>
-                                        <item.icon className="mr-2 h-4 w-4" />
-                                        {item.title}
-                                    </Link>
-                                </Button>
+                                <MagneticWrapper key={item.href} strength={0.25}>
+                                    <Button
+                                        variant={pathname === item.href ? 'secondary' : 'ghost'}
+                                        className="w-full justify-start"
+                                        asChild
+                                    >
+                                        <Link href={item.href}>
+                                            <item.icon className="mr-2 h-4 w-4" />
+                                            {item.title}
+                                        </Link>
+                                    </Button>
+                                </MagneticWrapper>
                             )
                         })}
                         {isAdmin && (
@@ -217,10 +225,11 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                     </div>
                 </div>
             </div>
-            <div className="p-4 border-t">
+            <div className="p-4 border-t flex items-center gap-2">
+                <ThemeToggle />
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="outline" className="w-full justify-start">
+                        <Button variant="outline" className="flex-1 justify-start">
                             <LogOut className="mr-2 h-4 w-4" />
                             Sign Out
                         </Button>

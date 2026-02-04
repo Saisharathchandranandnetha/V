@@ -33,6 +33,8 @@ const typeIcons: Record<string, React.ReactNode> = {
 }
 
 import { useState } from 'react'
+import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { cn } from '@/lib/utils'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { MoveToCollectionDialog } from '@/components/move-to-collection-dialog'
 import { FolderInput } from 'lucide-react'
@@ -41,6 +43,8 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
     const [isPending, startTransition] = useTransition()
     const [isDeleteOpen, setIsDeleteOpen] = useState(false)
     const [isMoveOpen, setIsMoveOpen] = useState(false)
+    const mouseX = useMotionValue(0)
+    const mouseY = useMotionValue(0)
 
     const handleDelete = () => {
         startTransition(async () => {
@@ -49,23 +53,52 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
         })
     }
 
+    function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent) {
+        const { left, top } = currentTarget.getBoundingClientRect()
+        mouseX.set(clientX - left)
+        mouseY.set(clientY - top)
+    }
+
     return (
         <>
-            <HoverEffect variant="lift" className="h-full">
-                <Card className={`flex flex-col h-full hover:shadow-md transition-shadow ${isPending ? 'opacity-50' : ''}`}>
-                    <CardHeader className="p-4 pb-2">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -5, scale: 1.02 }}
+                onMouseMove={handleMouseMove}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                className="h-full group/card relative"
+            >
+                <Card className={cn(
+                    "flex flex-col h-full transition-all duration-300 relative overflow-hidden",
+                    "bg-card/40 backdrop-blur-xl border-border/50 saturate-150 shadow-sm",
+                    "hover:shadow-xl hover:border-primary/40 hover:bg-card/60",
+                    isPending ? 'opacity-50' : ''
+                )}>
+                    {/* Glow Tracing Light */}
+                    <motion.div
+                        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover/card:opacity-100"
+                        style={{
+                            background: useTransform(
+                                [mouseX, mouseY],
+                                ([x, y]) => `radial-gradient(600px circle at ${x}px ${y}px, oklch(var(--primary) / 0.15), transparent 40%)`
+                            ),
+                        }}
+                    />
+
+                    <CardHeader className="p-4 pb-2 relative z-10">
                         <div className="flex justify-between items-start gap-2">
                             <div className="flex gap-2 items-center text-sm font-medium text-muted-foreground w-full">
-                                {typeIcons[resource.type] || <ExternalLink className="h-4 w-4" />}
-                                <span className="capitalize">{resource.type}</span>
+                                {typeIcons[resource.type] || <ExternalLink className="h-4 w-4 text-primary" />}
+                                <span className="capitalize tracking-wide">{resource.type}</span>
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <Button variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-white/10">
                                         <MoreVertical className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
+                                <DropdownMenuContent align="end" className="glass-dark border-white/10">
                                     <DropdownMenuItem asChild>
                                         <Link href={`/dashboard/resources/${resource.id}/edit`} className="w-full cursor-pointer">
                                             Edit
@@ -81,7 +114,7 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                                         Move to Collection
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                        className="text-red-600 focus:text-red-600"
+                                        className="text-red-500 focus:text-red-400 focus:bg-red-500/10"
                                         onClick={(e) => {
                                             e.stopPropagation()
                                             setIsDeleteOpen(true)
@@ -93,36 +126,36 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
-                        <CardTitle className="text-lg leading-tight line-clamp-2">
+                        <CardTitle className="text-lg leading-tight line-clamp-2 mt-1 font-sans">
                             {resource.url ? (
-                                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:underline group-hover:text-primary transition-colors flex items-center gap-2">
-                                    {resource.title}
-                                    <ExternalLink className="h-3 w-3 opacity-50" />
+                                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors flex items-center gap-2 group">
+                                    <span className="group-hover:underline">{resource.title}</span>
+                                    <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all -translate-y-1 group-hover:translate-y-0" />
                                 </a>
                             ) : (
-                                <Link href={`/dashboard/resources/${resource.id}`} className="hover:underline">
+                                <Link href={`/dashboard/resources/${resource.id}`} className="hover:text-primary transition-colors">
                                     {resource.title}
                                 </Link>
                             )}
                         </CardTitle>
-                        <CardDescription className="text-xs">
-                            {new Date(resource.date).toLocaleDateString('en-US')}
+                        <CardDescription className="text-[10px] uppercase tracking-widest opacity-60 font-medium">
+                            {new Date(resource.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="p-4 pt-2 flex-1">
-                        <p className="text-sm text-muted-foreground line-clamp-3">
+                    <CardContent className="p-4 pt-2 flex-1 relative z-10">
+                        <p className="text-sm text-foreground/70 line-clamp-3 font-body leading-relaxed">
                             {resource.summary || 'No summary available.'}
                         </p>
                     </CardContent>
-                    <CardFooter className="p-4 pt-0 gap-2 flex-wrap">
+                    <CardFooter className="p-4 pt-0 gap-2 flex-wrap relative z-10">
                         {resource.tags?.map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs font-normal">
+                            <Badge key={tag} variant="secondary" className="text-[10px] font-medium bg-white/5 border-white/5 px-2 py-0.5 rounded-md hover:bg-white/10 transition-colors">
                                 {tag}
                             </Badge>
                         ))}
                     </CardFooter>
                 </Card>
-            </HoverEffect>
+            </motion.div>
 
             <ConfirmDeleteDialog
                 open={isDeleteOpen}

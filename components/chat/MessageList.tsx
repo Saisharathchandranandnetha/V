@@ -11,6 +11,8 @@ function formatDateLabel(date: Date) {
     return format(date, 'MMMM d, yyyy')
 }
 
+import { motion, AnimatePresence } from 'framer-motion'
+
 // Simplified MessageList
 export function MessageList({ messages, teamId, projectId, onDelete, members }: {
     messages: Message[],
@@ -50,37 +52,56 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
             style={{ WebkitOverflowScrolling: 'touch' }}
         >
             <div className="flex flex-col gap-1 pb-4">
-                {groupedMessages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-50">
-                        <p>No messages yet.</p>
-                        <p className="text-sm">Start the conversation!</p>
-                    </div>
-                )}
+                <AnimatePresence initial={false}>
+                    {groupedMessages.length === 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 0.5, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="flex flex-col items-center justify-center py-20 text-muted-foreground"
+                        >
+                            <p>No messages yet.</p>
+                            <p className="text-sm">Start the conversation!</p>
+                        </motion.div>
+                    )}
 
-                {groupedMessages.map((msg, index) => {
-                    const prevMsg = groupedMessages[index - 1];
-                    const isNewDay = !prevMsg || !isSameDay(new Date(msg.created_at), new Date(prevMsg.created_at));
+                    {groupedMessages.map((msg, index) => {
+                        const prevMsg = groupedMessages[index - 1];
+                        const isNewDay = !prevMsg || !isSameDay(new Date(msg.created_at), new Date(prevMsg.created_at));
 
-                    return (
-                        <div key={msg.id + '-container'} className="flex flex-col">
-                            {isNewDay && (
-                                <div className="flex items-center justify-center my-4">
-                                    <div className="bg-muted/50 text-xs text-muted-foreground px-3 py-1 rounded-full">
-                                        {formatDateLabel(new Date(msg.created_at))}
+                        return (
+                            <motion.div
+                                key={msg.id + '-container'}
+                                layout
+                                initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 260,
+                                    damping: 20,
+                                    delay: Math.min(index * 0.05, 0.5) // Stagger for initial load
+                                }}
+                                className="flex flex-col"
+                            >
+                                {isNewDay && (
+                                    <div className="flex items-center justify-center my-4">
+                                        <div className="bg-muted/30 backdrop-blur-md text-[10px] uppercase tracking-widest text-muted-foreground px-4 py-1 rounded-full border border-border/50">
+                                            {formatDateLabel(new Date(msg.created_at))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                            <MessageItem
-                                message={msg}
-                                isConsecutive={msg.isConsecutive}
-                                teamId={teamId}
-                                projectId={projectId}
-                                onDelete={onDelete}
-                                members={members}
-                            />
-                        </div>
-                    );
-                })}
+                                )}
+                                <MessageItem
+                                    message={msg}
+                                    isConsecutive={msg.isConsecutive}
+                                    teamId={teamId}
+                                    projectId={projectId}
+                                    onDelete={onDelete}
+                                    members={members}
+                                />
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </div>
         </div>
     )
