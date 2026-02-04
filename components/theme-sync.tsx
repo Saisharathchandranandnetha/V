@@ -1,7 +1,7 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { createClient } from "@/lib/supabase/client"
 
 interface ThemeSyncProps {
@@ -19,6 +19,11 @@ export function ThemeSync({ userTheme, userId }: { userTheme?: string, userId?: 
     }, [userTheme, setTheme]) // Sync only when userTheme changes from props
 
     // Real-time sync
+    const themeRef = useRef(theme)
+    useEffect(() => {
+        themeRef.current = theme
+    }, [theme])
+
     useEffect(() => {
         if (!userId) return
 
@@ -37,7 +42,7 @@ export function ThemeSync({ userTheme, userId }: { userTheme?: string, userId?: 
                     const newSettings = payload.new.settings
                     const newTheme = newSettings?.theme
 
-                    if (newTheme && newTheme !== theme) {
+                    if (newTheme && newTheme !== themeRef.current) {
                         console.log('Syncing theme from remote:', newTheme)
                         setTheme(newTheme)
                     }
@@ -48,7 +53,7 @@ export function ThemeSync({ userTheme, userId }: { userTheme?: string, userId?: 
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [userId, theme, setTheme])
+    }, [userId, setTheme])
 
     return null
 }

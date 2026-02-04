@@ -116,6 +116,16 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
     }
 
     // Realtime Subscription
+    const currentUserRef = useRef(currentUser)
+    const membersRef = useRef(members)
+    const totalMembersRef = useRef(totalMembers)
+
+    useEffect(() => {
+        currentUserRef.current = currentUser
+        membersRef.current = members
+        totalMembersRef.current = totalMembers
+    }, [currentUser, members, totalMembers])
+
     useEffect(() => {
         const channel = supabase
             .channel(`chat:${teamId}:${projectId || 'team'}`)
@@ -144,7 +154,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                             return next
                         })
 
-                        if (newMessage.sender_id === currentUser.id) {
+                        if (newMessage.sender_id === currentUserRef.current.id) {
                             setMessages(prev => {
                                 // Find optimistic message
                                 const optimisticMatch = prev.find(m =>
@@ -154,9 +164,9 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                                 )
 
                                 if (optimisticMatch) {
-                                    return prev.map(m => m === optimisticMatch ? { ...newMessage, is_sender: true, sender: currentUser, message_reads: [] } : m)
+                                    return prev.map(m => m === optimisticMatch ? { ...newMessage, is_sender: true, sender: currentUserRef.current, message_reads: [] } : m)
                                 }
-                                return [...prev, { ...newMessage, is_sender: true, sender: currentUser, message_reads: [] }]
+                                return [...prev, { ...newMessage, is_sender: true, sender: currentUserRef.current, message_reads: [] }]
                             })
                         } else {
                             // Someone else
@@ -202,7 +212,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                             // Check for double tick condition
                             // Read by everyone excluding sender
                             // If I am sender, I need (totalMembers - 1) reads.
-                            const isReadByAll = updatedReads.length >= (totalMembers - 1)
+                            const isReadByAll = updatedReads.length >= (totalMembersRef.current - 1)
 
                             return {
                                 ...msg,
@@ -219,7 +229,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                 { event: 'typing' },
                 (payload) => {
                     const { userId, name } = payload.payload
-                    if (userId === currentUser.id) return
+                    if (userId === currentUserRef.current.id) return
 
                     setTypingUsers(prev => {
                         const next = new Map(prev)
@@ -236,7 +246,7 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [teamId, projectId, supabase, currentUser, totalMembers])
+    }, [teamId, projectId, supabase])
 
     // Optimistic Delete Handler
     const handleDeleteMessage = useCallback((messageId: string) => {
