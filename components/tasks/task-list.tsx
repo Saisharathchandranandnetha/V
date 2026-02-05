@@ -19,6 +19,7 @@ import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { CompleteTaskDialog } from '@/components/tasks/complete-task-dialog'
 import { cn } from '@/lib/utils'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 interface Task {
     id: string
@@ -78,8 +79,8 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                 {tasks.map((task) => (
                     <StaggerItem key={task.id} className="w-full">
                         <HoverEffect variant="lift">
-                            <div
-                                className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm bg-card"
+                            <SpotlightCard
+                                className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm bg-card h-full"
                             >
                                 <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-4">
                                     <div className="flex items-start md:items-center space-x-0 md:space-x-4 flex-col md:flex-row gap-2 md:gap-0 w-full md:w-auto">
@@ -135,7 +136,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                                         Assigned by {task.message.sender.name} in {task.team?.name || task.project?.name}
                                     </div>
                                 )}
-                            </div>
+                            </SpotlightCard>
                         </HoverEffect>
                     </StaggerItem>
                 ))}

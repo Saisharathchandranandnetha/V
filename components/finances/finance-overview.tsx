@@ -1,9 +1,10 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { BreakdownChart } from '@/components/finances/breakdown-chart'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 interface Transaction {
     id: string
@@ -55,34 +56,34 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
     return (
         <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
             <div className="col-span-1 md:col-span-2 lg:col-span-4 grid gap-4 grid-cols-1 md:grid-cols-3">
-                <Card>
+                <SpotlightCard>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Income</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-600">+{formatCurrency(totalIncome)}</div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">+{formatCurrency(totalIncome)}</div>
                     </CardContent>
-                </Card>
-                <Card>
+                </SpotlightCard>
+                <SpotlightCard>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-600">-{formatCurrency(Math.abs(totalExpenses))}</div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">-{formatCurrency(Math.abs(totalExpenses))}</div>
                     </CardContent>
-                </Card>
-                <Card>
+                </SpotlightCard>
+                <SpotlightCard>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Net Balance</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                        <div className={`text-2xl font-bold ${balance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400'}`}>
                             {formatCurrency(balance)}
                         </div>
                     </CardContent>
-                </Card>
+                </SpotlightCard>
 
-                <Card className="col-span-1 md:col-span-3">
+                <SpotlightCard className="col-span-1 md:col-span-3">
                     <CardHeader>
                         <CardTitle>Breakdown</CardTitle>
                     </CardHeader>
@@ -112,7 +113,7 @@ export function FinanceOverview({ transactions }: { transactions: Transaction[] 
                             </TabsContent>
                         </Tabs>
                     </CardContent>
-                </Card>
+                </SpotlightCard>
             </div>
 
             {/* Render simple list here in overview too? No, parent page handles layout. 

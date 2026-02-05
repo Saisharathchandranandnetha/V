@@ -10,7 +10,8 @@ import {
     Tooltip,
     ResponsiveContainer,
 } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import {
     Select,
     SelectContent,
@@ -61,7 +62,7 @@ export function HabitsAnalyticsGraph() {
     ]
 
     return (
-        <Card>
+        <SpotlightCard>
             <CardHeader>
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
@@ -163,6 +164,6 @@ export function HabitsAnalyticsGraph() {
                     )}
                 </div>
             </CardContent>
-        </Card>
+        </SpotlightCard>
     )
 }

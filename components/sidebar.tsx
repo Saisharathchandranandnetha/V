@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { MagneticWrapper } from '@/components/ui/magnetic-wrapper'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
 // Navigation items for the sidebar
 export const sidebarNavItems = [
@@ -137,20 +138,25 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
     const pathname = usePathname()
 
     return (
-        <div className={cn('flex flex-col h-screen border-r bg-sidebar/50 backdrop-blur-md', className)}>
-            <div className="flex-1 overflow-y-auto py-4">
+        <div className={cn(
+            'group flex flex-col h-[calc(100vh-2rem)] m-4 rounded-2xl border border-white/10 bg-sidebar/60 backdrop-blur-2xl shadow-2xl transition-all duration-500 ease-out hover:bg-sidebar/80 hover:shadow-primary/5 hover:border-sidebar-border/50',
+            className
+        )}>
+            <ScrollArea className="flex-1 pr-1">
                 <div className="px-3 py-2">
-                    <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-primary flex items-center gap-2">
-                        <div className="relative h-8 w-8 rounded-sm overflow-hidden">
-                            <Image
-                                src="/logo.png"
-                                alt="LifeOS Logo"
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
-                        LifeOS
-                    </h2>
+                    <Link href="/dashboard" className="block mb-6 px-4 hover:opacity-80 transition-opacity">
+                        <h2 className="text-xl font-bold tracking-tighter text-primary flex items-center gap-3">
+                            <div className="relative h-9 w-9 rounded-lg overflow-hidden shadow-sm">
+                                <Image
+                                    src="/logo.png"
+                                    alt="LifeOS Logo"
+                                    fill
+                                    className="object-cover"
+                                />
+                            </div>
+                            LifeOS
+                        </h2>
+                    </Link>
                     <div className="space-y-1">
                         {sidebarNavItems.map((item) => {
                             if (item.children) {
@@ -163,7 +169,7 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                                                 <MagneticWrapper strength={0.3}>
                                                     <Button
                                                         variant="ghost"
-                                                        className="w-full justify-between font-normal hover:bg-accent hover:text-accent-foreground"
+                                                        className="w-full justify-between font-normal hover:bg-accent/50 hover:text-accent-foreground"
                                                     >
                                                         <div className="flex items-center">
                                                             <item.icon className="mr-2 h-4 w-4" />
@@ -175,12 +181,15 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                                             </div>
                                         </CollapsibleTrigger>
                                         <CollapsibleContent>
-                                            <div className="pl-6 space-y-1 mt-1">
+                                            <div className="pl-6 space-y-1 mt-1 border-l ml-3 border-border/50">
                                                 {item.children.map((child) => (
                                                     <MagneticWrapper key={child.href} strength={0.25}>
                                                         <Button
                                                             variant={pathname === child.href ? 'secondary' : 'ghost'}
-                                                            className="w-full justify-start h-8 text-sm"
+                                                            className={cn(
+                                                                "w-full justify-start h-8 text-sm",
+                                                                pathname === child.href && "bg-primary/10 text-primary font-medium"
+                                                            )}
                                                             asChild
                                                         >
                                                             <Link href={child.href}>
@@ -199,7 +208,10 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                                 <MagneticWrapper key={item.href} strength={0.25}>
                                     <Button
                                         variant={pathname === item.href ? 'secondary' : 'ghost'}
-                                        className="w-full justify-start"
+                                        className={cn(
+                                            "w-full justify-start",
+                                            pathname === item.href && "bg-primary/10 text-primary font-medium shadow-sm"
+                                        )}
                                         asChild
                                     >
                                         <Link href={item.href}>
@@ -224,12 +236,12 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                         )}
                     </div>
                 </div>
-            </div>
-            <div className="p-4 border-t flex items-center gap-2">
+            </ScrollArea>
+            <div className="p-4 border-t/50 flex items-center gap-2 bg-background/20 backdrop-blur-md rounded-b-xl">
                 <ThemeToggle />
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="outline" className="flex-1 justify-start">
+                        <Button variant="outline" className="flex-1 justify-start border-red-200/20 hover:bg-red-500/10 hover:text-red-600">
                             <LogOut className="mr-2 h-4 w-4" />
                             Sign Out
                         </Button>

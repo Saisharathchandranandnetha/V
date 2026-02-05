@@ -12,6 +12,8 @@ import {
 import { Progress } from '@/components/ui/progress'
 import { createRoadmap } from './actions'
 import { DashboardSearch } from '@/components/dashboard-search'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
+import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 
 export default async function RoadmapsPage({
     searchParams
@@ -49,40 +51,42 @@ export default async function RoadmapsPage({
 
             <DashboardSearch placeholder="Search roadmaps..." className="mb-8" />
 
-            <div key={searchQuery} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <StaggerContainer key={searchQuery} className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {roadmaps?.filter((r: any) =>
                     !searchQuery ||
                     (r.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
                     (r.description && (r.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()))
                 ).map((roadmap: any) => (
-                    <Link key={roadmap.id} href={`/dashboard/roadmaps/${roadmap.id}`}>
-                        <Card className="h-full hover:border-primary/50 transition-colors cursor-pointer group">
-                            <CardHeader>
-                                <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{roadmap.title}</CardTitle>
-                                <CardDescription className="line-clamp-2 min-h-[40px]">
-                                    {roadmap.description || "No description"}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between text-xs text-muted-foreground">
-                                        <span>Progress</span>
-                                        <span>{roadmap.progress}%</span>
-                                    </div>
-                                    <Progress value={roadmap.progress} className="h-2" />
-                                    {roadmap.copied_from_chat && (
-                                        <div className="pt-4">
-                                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                                                Copied from Chat
-                                            </span>
+                    <StaggerItem key={roadmap.id} className="h-full">
+                        <Link href={`/dashboard/roadmaps/${roadmap.id}`}>
+                            <SpotlightCard className="h-full hover:border-primary/50 transition-colors cursor-pointer group">
+                                <CardHeader>
+                                    <CardTitle className="line-clamp-1 group-hover:text-primary transition-colors">{roadmap.title}</CardTitle>
+                                    <CardDescription className="line-clamp-2 min-h-[40px]">
+                                        {roadmap.description || "No description"}
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between text-xs text-muted-foreground">
+                                            <span>Progress</span>
+                                            <span>{roadmap.progress}%</span>
                                         </div>
-                                    )}
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </Link>
+                                        <Progress value={roadmap.progress} className="h-2" />
+                                        {roadmap.copied_from_chat && (
+                                            <div className="pt-4">
+                                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                                    Copied from Chat
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </SpotlightCard>
+                        </Link>
+                    </StaggerItem>
                 ))}
-            </div>
+            </StaggerContainer>
 
             {(!roadmaps || roadmaps.length === 0) && (
                 <div className="text-center py-20 border-2 border-dashed rounded-xl">

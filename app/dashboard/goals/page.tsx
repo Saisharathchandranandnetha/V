@@ -9,6 +9,7 @@ import { DeleteGoalButton } from '@/components/goals/delete-goal-button'
 import { UpdateProgressDialog } from '@/components/goals/update-progress-dialog'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { GoalSearch } from './goal-search'
 
 interface Goal {
@@ -113,7 +114,7 @@ export default async function GoalsPage({
                                             return (
                                                 <StaggerItem key={goal.id}>
                                                     <HoverEffect variant="lift">
-                                                        <Card className="h-full flex flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm">
+                                                        <SpotlightCard className="h-full flex flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm">
                                                             <CardHeader className="pb-0 space-y-0 relative">
                                                                 <div className="flex justify-between items-start w-full">
                                                                     <CardTitle className="text-base font-medium leading-tight pr-12 line-clamp-2 min-h-[2.5rem]" title={goal.title}>
@@ -140,7 +141,7 @@ export default async function GoalsPage({
                                                                 </div>
                                                                 <UpdateProgressDialog goal={goal} />
                                                             </CardContent>
-                                                        </Card>
+                                                        </SpotlightCard>
                                                     </HoverEffect>
                                                 </StaggerItem>
                                             )
@@ -160,7 +161,7 @@ export default async function GoalsPage({
                                     return (
                                         <StaggerItem key={goal.id}>
                                             <HoverEffect variant="lift">
-                                                <Card className="h-full flex flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm opacity-75">
+                                                <SpotlightCard className="h-full flex flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm opacity-75">
                                                     <CardHeader className="pb-0 space-y-0 relative">
                                                         <div className="flex justify-between items-start w-full">
                                                             <CardTitle className="text-base font-medium leading-tight pr-12 line-clamp-2 min-h-[2.5rem] line-through text-muted-foreground" title={goal.title}>
@@ -189,7 +190,7 @@ export default async function GoalsPage({
                                                             Goal Achieved
                                                         </Button>
                                                     </CardContent>
-                                                </Card>
+                                                </SpotlightCard>
                                             </HoverEffect>
                                         </StaggerItem>
                                     )

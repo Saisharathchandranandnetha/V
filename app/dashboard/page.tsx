@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Progress } from '@/components/ui/progress'
-import { PlusCircle, CalendarCheck, CheckSquare, Target, DollarSign, ArrowUpRight, ArrowDownLeft, Library, BookOpen, Route, BarChart3, Settings, StickyNote, FolderOpen, Layers } from 'lucide-react'
+import { PlusCircle, CalendarCheck, CheckSquare, Target, DollarSign, ArrowUpRight, ArrowDownLeft, Library, BookOpen, Route, BarChart3, Settings, StickyNote, FolderOpen, Layers, Users, MessageSquare, Map as MapIcon, Layout } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { formatCurrency } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -147,232 +148,218 @@ export default async function DashboardPage() {
                 <DateTimeDisplay />
             </div>
 
+            {/* Main Stats Bento Grid */}
             <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" delay={0.1}>
-                <StaggerItem>
-                    <HoverEffect variant="lift">
-                        <Card>
+                {/* Daily Habits - Large Feature Card */}
+                <StaggerItem className="lg:col-span-2">
+                    <HoverEffect variant="lift" className="h-full">
+                        <SpotlightCard className="h-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Daily Habits</CardTitle>
-                                <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-base font-semibold">Daily Habits</CardTitle>
+                                <CalendarCheck className="h-5 w-5 text-indigo-500" />
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{habitsCompleted} / {habitsCount || 0}</div>
-                                <p className="text-xs text-muted-foreground">completed today</p>
+                                <div className="text-4xl font-bold tracking-tighter text-indigo-500 dark:text-indigo-400">
+                                    {habitsCompleted || 0} <span className="text-muted-foreground text-2xl font-normal">/ {habitsCount || 0}</span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-2">Consistent action creates success.</p>
+                                <Progress value={((habitsCompleted || 0) / (habitsCount || 1)) * 100} className="h-2 mt-4 bg-indigo-100 dark:bg-indigo-900/30" />
                             </CardContent>
-                        </Card>
+                        </SpotlightCard>
                     </HoverEffect>
                 </StaggerItem>
+
                 <StaggerItem>
                     <HoverEffect variant="lift">
-                        <Card>
+                        <SpotlightCard>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Tasks</CardTitle>
                                 <CheckSquare className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{tasksPending}</div>
-                                <p className="text-xs text-muted-foreground">{tasksDone} completed</p>
+                                <p className="text-xs text-muted-foreground">{tasksDone} completed today</p>
                             </CardContent>
-                        </Card>
+                        </SpotlightCard>
                     </HoverEffect>
                 </StaggerItem>
+
                 <StaggerItem>
                     <HoverEffect variant="lift">
-                        <Card>
+                        <SpotlightCard>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Goal Progress</CardTitle>
                                 <Target className="h-4 w-4 text-muted-foreground" />
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-bold">{avgProgress.toFixed(0)}%</div>
-                                <Progress value={avgProgress} className="h-2 mt-2" />
-                                <p className="text-xs text-muted-foreground mt-1">{activeGoals} active goals</p>
+                                <Progress value={avgProgress} className="h-1.5 mt-2" />
                             </CardContent>
-                        </Card>
+                        </SpotlightCard>
                     </HoverEffect>
                 </StaggerItem>
-                <StaggerItem>
-                    <HoverEffect variant="lift">
-                        <Card>
+
+                <StaggerItem className="lg:col-span-2 md:col-span-2">
+                    <HoverEffect variant="lift" className="h-full">
+                        <SpotlightCard className="h-full">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Net Balance</CardTitle>
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                <CardTitle className="text-base font-medium">Net Balance</CardTitle>
+                                <DollarSign className="h-5 w-5 text-green-500" />
                             </CardHeader>
-                            <CardContent>
-                                <div className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                    {formatCurrency(balance)}
+                            <CardContent className="flex justify-between items-end">
+                                <div>
+                                    <div className={`text-3xl font-bold tracking-tighter ${balance >= 0 ? 'text-foreground' : 'text-red-600'}`}>
+                                        {formatCurrency(balance)}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1">Total liquid assets available</p>
                                 </div>
-                                <div className="flex text-xs text-muted-foreground mt-1 gap-2">
-                                    <span className="flex items-center text-green-600"><ArrowUpRight className="h-3 w-3 mr-1" />{formatCurrency(income)}</span>
-                                    <span className="flex items-center text-red-600"><ArrowDownLeft className="h-3 w-3 mr-1" />{formatCurrency(expense)}</span>
+                                <div className="flex flex-col gap-1 text-right">
+                                    <span className="flex items-center justify-end text-sm text-green-600 bg-green-500/10 px-2 py-1 rounded-md">
+                                        <ArrowUpRight className="h-3 w-3 mr-1" />{formatCurrency(income)}
+                                    </span>
+                                    <span className="flex items-center justify-end text-sm text-red-600 bg-red-500/10 px-2 py-1 rounded-md">
+                                        <ArrowDownLeft className="h-3 w-3 mr-1" />{formatCurrency(expense)}
+                                    </span>
                                 </div>
                             </CardContent>
-                        </Card>
+                        </SpotlightCard>
                     </HoverEffect>
+                </StaggerItem>
+
+                <StaggerItem className="lg:col-span-2">
+                    <div className="grid grid-cols-2 gap-4 h-full">
+                        <HoverEffect variant="lift" className="h-full">
+                            <SpotlightCard className="h-full flex flex-col justify-center items-center text-center p-4">
+                                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
+                                    <Library className="h-5 w-5 text-blue-500" />
+                                </div>
+                                <div className="text-2xl font-bold">{resourcesCount || 0}</div>
+                                <p className="text-xs text-muted-foreground">Resources</p>
+                            </SpotlightCard>
+                        </HoverEffect>
+                        <HoverEffect variant="lift" className="h-full">
+                            <SpotlightCard className="h-full flex flex-col justify-center items-center text-center p-4">
+                                <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center mb-2">
+                                    <StickyNote className="h-5 w-5 text-orange-500" />
+                                </div>
+                                <div className="text-2xl font-bold">{notesCount || 0}</div>
+                                <p className="text-xs text-muted-foreground">Notes</p>
+                            </SpotlightCard>
+                        </HoverEffect>
+                    </div>
                 </StaggerItem>
             </StaggerContainer>
 
-            {/* Content Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-                <HoverEffect variant="lift">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Resources</CardTitle>
-                            <Library className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{resourcesCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">saved items</p>
-                        </CardContent>
-                    </Card>
-                </HoverEffect>
-                <HoverEffect variant="lift">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Collections</CardTitle>
-                            <BookOpen className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{collectionsCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">organized folders</p>
-                        </CardContent>
-                    </Card>
-                </HoverEffect>
-                <HoverEffect variant="lift">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Categories</CardTitle>
-                            <Layers className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{categoriesCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">resource types</p>
-                        </CardContent>
-                    </Card>
-                </HoverEffect>
-                <HoverEffect variant="lift">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Notes</CardTitle>
-                            <StickyNote className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{notesCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">ideas captured</p>
-                        </CardContent>
-                    </Card>
-                </HoverEffect>
-                <HoverEffect variant="lift">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Learning Paths</CardTitle>
-                            <Route className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">{pathsCount || 0}</div>
-                            <p className="text-xs text-muted-foreground">active courses</p>
-                        </CardContent>
-                    </Card>
-                </HoverEffect>
-            </div>
+            {/* Quick Links Bento - Asymmetrical */}
+            <div className="space-y-2 mt-8">
+                <h3 className="text-xl font-bold tracking-tight">Quick Access</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    <HoverEffect variant="glow" className="col-span-2 md:col-span-2 lg:col-span-2 relative group overflow-hidden rounded-xl">
+                        <Link href="/dashboard/paths" className="block h-full w-full">
+                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-700 opacity-90 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative z-10 p-6 h-full flex flex-col justify-between text-white">
+                                <Route className="h-8 w-8 text-white/80" />
+                                <div>
+                                    <h4 className="font-bold text-lg">Learning Paths</h4>
+                                    <p className="text-sm text-white/70">{pathsCount || 0} active courses</p>
+                                </div>
+                            </div>
+                        </Link>
+                    </HoverEffect>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-7">
-                    <CardHeader>
-                        <CardTitle>Quick Links</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                        <HoverEffect variant="glow" key="habits">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/habits">
-                                    <CalendarCheck className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Habits</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="tasks">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/tasks">
-                                    <CheckSquare className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Tasks</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="goals">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/goals">
-                                    <Target className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Goals</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="finances">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/finances">
-                                    <DollarSign className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Finances</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="resources">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/resources">
-                                    <Library className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Resources</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="collections">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/collections">
-                                    <BookOpen className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Collections</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="paths">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/paths">
-                                    <Route className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Learning Paths</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="notes">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/notes">
-                                    <StickyNote className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Notes</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="categories">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/categories">
-                                    <Layers className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Categories</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="analytics">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/analytics">
-                                    <BarChart3 className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Analytics</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                        <HoverEffect variant="glow" key="settings">
-                            <Button variant="outline" className="h-24 w-full flex flex-col gap-2 items-center justify-center p-2 text-center whitespace-normal border-0" asChild>
-                                <Link href="/dashboard/settings">
-                                    <Settings className="h-6 w-6 mb-1" />
-                                    <span className="text-sm font-medium">Settings</span>
-                                </Link>
-                            </Button>
-                        </HoverEffect>
-                    </CardContent>
-                </Card>
-            </div>      {/* Placeholder for future detailed activity or calendar */}
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/habits" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <CalendarCheck className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Habits</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/tasks" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <CheckSquare className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Tasks</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/goals" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <Target className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Goals</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/finances" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <DollarSign className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Finances</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/resources" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <Library className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Resources</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/notes" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <StickyNote className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Notes</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/collections" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <BookOpen className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Collections</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/categories" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <Layers className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Categories</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/roadmaps" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <MapIcon className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Roadmaps</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/teams" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <Users className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Teams</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/chat" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <MessageSquare className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Chat</span>
+                        </Link>
+                    </HoverEffect>
+
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/analytics" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <BarChart3 className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Analytics</span>
+                        </Link>
+                    </HoverEffect>
+
+                    <HoverEffect variant="glow" className="col-span-1">
+                        <Link href="/dashboard/settings" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
+                            <Settings className="h-6 w-6 mb-2 text-primary" />
+                            <span className="text-sm font-medium">Settings</span>
+                        </Link>
+                    </HoverEffect>
+                </div>
+            </div>
         </div>
     )
 }

@@ -5,7 +5,8 @@ import { isBefore, startOfDay, format } from 'date-fns'
 import { MoreHorizontal, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -112,7 +113,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                                     </div>
                                 )}
                                 {colTasks.map((task) => (
-                                    <Card key={task.id} className="cursor-move hover:shadow-md transition-shadow">
+                                    <SpotlightCard key={task.id} className="cursor-move hover:shadow-md transition-shadow">
                                         <CardHeader className="p-4 pb-2 space-y-0 flex flex-row items-start justify-between">
                                             <Badge className={cn("text-[10px] px-1 py-0 h-5", priorityColor[task.priority as keyof typeof priorityColor])}>
                                                 {task.priority}
@@ -165,7 +166,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                                                 </div>
                                             )}
                                         </CardContent>
-                                    </Card>
+                                    </SpotlightCard>
                                 ))}
                             </div>
                         </div>

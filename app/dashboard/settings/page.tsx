@@ -52,7 +52,7 @@ export default async function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
                         <p className="text-muted-foreground">Manage your account, preferences, and content.</p>
@@ -115,18 +115,18 @@ export default async function SettingsPage() {
                                 <div className="space-y-4">
                                     {resources?.map((resource) => (
                                         <div key={resource.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
-                                            <div className="space-y-1">
-                                                <h3 className="font-medium flex items-center gap-2">
-                                                    {resource.title}
-                                                    <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
+                                            <div className="space-y-1 min-w-0">
+                                                <h3 className="font-medium flex items-center gap-2 truncate">
+                                                    <span className="truncate">{resource.title}</span>
+                                                    <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary flex-shrink-0">
                                                         <ExternalLink className="h-3 w-3" />
                                                     </a>
                                                 </h3>
                                                 <p className="text-sm text-muted-foreground">{resource.type}</p>
                                             </div>
-                                            <div className="flex items-center gap-2 self-end md:self-auto">
-                                                <Link href={`/dashboard/resources/${resource.id}/edit`}>
-                                                    <Button variant="outline" size="sm">
+                                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
+                                                <Link href={`/dashboard/resources/${resource.id}/edit`} className="flex-1 sm:flex-initial">
+                                                    <Button variant="outline" size="sm" className="w-full">
                                                         <Edit className="h-4 w-4 mr-2" />
                                                         Edit
                                                     </Button>
@@ -161,13 +161,13 @@ export default async function SettingsPage() {
                                 <div className="space-y-4">
                                     {paths?.map((path) => (
                                         <div key={path.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
-                                            <div className="space-y-1">
-                                                <h3 className="font-medium">{path.title}</h3>
-                                                <p className="text-sm text-muted-foreground truncate max-w-[300px]">{path.description}</p>
+                                            <div className="space-y-1 min-w-0">
+                                                <h3 className="font-medium truncate">{path.title}</h3>
+                                                <p className="text-sm text-muted-foreground truncate max-w-full sm:max-w-[300px]">{path.description}</p>
                                             </div>
-                                            <div className="flex items-center gap-2 self-end md:self-auto">
-                                                <Link href={`/dashboard/paths/${path.id}/edit`}>
-                                                    <Button variant="outline" size="sm">
+                                            <div className="flex items-center gap-2 w-full sm:w-auto justify-end sm:justify-start">
+                                                <Link href={`/dashboard/paths/${path.id}/edit`} className="flex-1 sm:flex-initial">
+                                                    <Button variant="outline" size="sm" className="w-full">
                                                         <Edit className="h-4 w-4 mr-2" />
                                                         Edit
                                                     </Button>

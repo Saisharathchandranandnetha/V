@@ -10,6 +10,7 @@ import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { cn, formatCurrency } from '@/lib/utils'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 interface Transaction {
     id: string
@@ -35,7 +36,7 @@ interface Project {
 
 export function TransactionList({ transactions, categories, projects }: { transactions: Transaction[], categories: Category[], projects: Project[] }) {
     return (
-        <Card className="col-span-3">
+        <SpotlightCard className="col-span-3">
             <CardHeader>
                 <CardTitle>Recent Transactions</CardTitle>
             </CardHeader>
@@ -65,7 +66,7 @@ export function TransactionList({ transactions, categories, projects }: { transa
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <div className={cn("font-medium", t.type === 'Income' ? "text-green-600" : "text-gray-900")}>
+                                            <div className={cn("font-medium", t.type === 'Income' ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
                                                 {t.type === 'Income' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
                                             </div>
                                             <EditTransactionDialog transaction={t} categories={categories} projects={projects} />
@@ -88,6 +89,6 @@ export function TransactionList({ transactions, categories, projects }: { transa
                     {transactions.length === 0 && <p className="text-muted-foreground text-sm">No transactions yet.</p>}
                 </div>
             </CardContent>
-        </Card>
+        </SpotlightCard>
     )
 }

@@ -30,15 +30,17 @@ export default async function LearningPathsPage(props: {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Learning Paths</h1>
                     <p className="text-muted-foreground">Follow structured paths to master new skills.</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <ViewSelector />
-                    <Link href="/dashboard/paths/new">
-                        <Button>
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                    <div className="w-full sm:w-auto">
+                        <ViewSelector />
+                    </div>
+                    <Link href="/dashboard/paths/new" className="w-full sm:w-auto">
+                        <Button className="w-full sm:w-auto">
                             <Plus className="mr-2 h-4 w-4" />
                             Add Path
                         </Button>

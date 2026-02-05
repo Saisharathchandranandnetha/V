@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from 'date-fns'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 interface NoteCardProps {
     note: {
@@ -15,8 +16,8 @@ interface NoteCardProps {
 export function NoteCard({ note, onClick }: NoteCardProps) {
     return (
         <HoverEffect variant="lift">
-            <Card
-                className="cursor-pointer hover:bg-accent/50 transition-colors"
+            <SpotlightCard
+                className="cursor-pointer hover:bg-accent/50 transition-colors h-full"
                 onClick={onClick}
             >
                 <CardHeader>
@@ -25,7 +26,7 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
                         {formatDistanceToNow(new Date(note.updated_at || note.created_at), { addSuffix: true })}
                     </CardDescription>
                 </CardHeader>
-            </Card>
+            </SpotlightCard>
         </HoverEffect>
     )
 }

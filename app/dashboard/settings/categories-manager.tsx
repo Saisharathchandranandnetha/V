@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Trash2, Plus, Pencil, Save, X } from 'lucide-react'
@@ -73,7 +74,7 @@ export default function CategoriesManager({ categories }: { categories: Category
     }
 
     return (
-        <Card>
+        <SpotlightCard>
             <CardHeader>
                 <CardTitle>Manage Categories</CardTitle>
                 <CardDescription>Create, edit, or delete categories to organize your resources.</CardDescription>
@@ -156,6 +157,6 @@ export default function CategoriesManager({ categories }: { categories: Category
                 description="This will permanently delete this category."
                 trigger={null}
             />
-        </Card>
+        </SpotlightCard>
     )
 }

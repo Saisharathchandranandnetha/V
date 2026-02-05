@@ -9,6 +9,7 @@ import { deleteHabit, toggleHabit } from '@/app/dashboard/habits/actions'
 import { EditHabitDialog } from '@/components/habits/edit-habit-dialog'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { cn } from '@/lib/utils'
 
 interface Habit {
@@ -64,7 +65,7 @@ export function HabitItem({ habit }: { habit: Habit }) {
 
     return (
         <HoverEffect variant="lift" className="h-full">
-            <Card className="h-full transition-colors hover:border-primary/50">
+            <SpotlightCard className="h-full transition-colors hover:border-primary/50">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
                         {habit.name}
@@ -109,7 +110,7 @@ export function HabitItem({ habit }: { habit: Habit }) {
                         </p>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
         </HoverEffect>
     )
 }

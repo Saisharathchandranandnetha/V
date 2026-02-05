@@ -5,6 +5,7 @@ import CategoriesManager from '../settings/categories-manager'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Folder } from 'lucide-react'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { Button } from '@/components/ui/button'
 import { CreateCategoryDialog } from './create-category-dialog'
@@ -47,7 +48,7 @@ export default async function CategoriesPage({
                     <StaggerItem key={category.id} className="h-full">
                         <HoverEffect variant="lift">
                             <Link href={`/dashboard/categories/${category.id}`}>
-                                <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+                                <SpotlightCard className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
                                     <CardHeader>
                                         <CardTitle className="flex items-center gap-2">
                                             <Folder className="h-5 w-5 text-blue-500" />
@@ -57,7 +58,7 @@ export default async function CategoriesPage({
                                             {category.resources?.[0]?.count || 0} resources
                                         </CardDescription>
                                     </CardHeader>
-                                </Card>
+                                </SpotlightCard>
                             </Link>
                         </HoverEffect>
                     </StaggerItem>

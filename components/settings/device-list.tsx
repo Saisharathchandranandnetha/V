@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Button } from '@/components/ui/button'
 import { Laptop, Smartphone, AlertCircle, Loader2, LogOut } from 'lucide-react'
 import { getActiveSessions, revokeSession, type SessionInfo } from '@/app/dashboard/settings/device-actions'
@@ -68,7 +69,7 @@ export default function DeviceList() {
 
     if (loading) {
         return (
-            <Card>
+            <SpotlightCard>
                 <CardHeader>
                     <CardTitle>Logged in Devices</CardTitle>
                     <CardDescription>Manage your active sessions.</CardDescription>
@@ -76,13 +77,13 @@ export default function DeviceList() {
                 <CardContent className="flex justify-center py-6">
                     <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </CardContent>
-            </Card>
+            </SpotlightCard>
         )
     }
 
     return (
         <>
-            <Card>
+            <SpotlightCard>
                 <CardHeader>
                     <CardTitle>Logged in Devices</CardTitle>
                     <CardDescription>
@@ -149,7 +150,7 @@ export default function DeviceList() {
                         ))}
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             <AlertDialog open={!!confirmId} onOpenChange={(open) => !open && setConfirmId(null)}>
                 <AlertDialogContent>

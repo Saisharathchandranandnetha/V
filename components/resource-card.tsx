@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { deleteResource } from '@/app/dashboard/actions'
 import { useTransition } from 'react'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 export type ResourceType = 'url' | 'pdf' | 'youtube' | 'gltf' | 'lottie' | 'image' | 'spline'
 
@@ -69,22 +70,11 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className="h-full group/card relative"
             >
-                <Card className={cn(
-                    "flex flex-col h-full transition-all duration-300 relative overflow-hidden",
-                    "bg-card/40 backdrop-blur-xl border-border/50 saturate-150 shadow-sm",
-                    "hover:shadow-xl hover:border-primary/40 hover:bg-card/60",
-                    isPending ? 'opacity-50' : ''
-                )}>
-                    {/* Glow Tracing Light */}
-                    <motion.div
-                        className="pointer-events-none absolute -inset-px rounded-xl opacity-0 transition duration-300 group-hover/card:opacity-100"
-                        style={{
-                            background: useTransform(
-                                [mouseX, mouseY],
-                                ([x, y]) => `radial-gradient(600px circle at ${x}px ${y}px, oklch(var(--primary) / 0.15), transparent 40%)`
-                            ),
-                        }}
-                    />
+                <SpotlightCard className="h-full bg-card/40 backdrop-blur-xl border-border/50 saturate-150 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:bg-card/60" spotlightColor="rgba(255, 255, 255, 0.15)">
+                    {/* Glow Tracing Light moved inside SpotlightCard logic but we keep custom if needed, 
+                        actually SpotlightCard handles the spotlight. 
+                        We can remove the custom motion div for glow and just use SpotlightCard.
+                    */}
 
                     <CardHeader className="p-4 pb-2 relative z-10">
                         <div className="flex justify-between items-start gap-2">
@@ -154,7 +144,7 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                             </Badge>
                         ))}
                     </CardFooter>
-                </Card>
+                </SpotlightCard>
             </motion.div>
 
             <ConfirmDeleteDialog

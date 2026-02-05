@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Button } from '@/components/ui/button'
 import { Users, Plus, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -46,7 +47,7 @@ export default async function TeamsPage() {
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {teams.map((team: any) => (
-                    <Card key={team.id} className="flex flex-col">
+                    <SpotlightCard key={team.id} className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Users className="h-5 w-5 text-primary" />
@@ -70,11 +71,11 @@ export default async function TeamsPage() {
                                 </Link>
                             </Button>
                         </CardFooter>
-                    </Card>
+                    </SpotlightCard>
                 ))}
 
                 {teams.length === 0 && (
-                    <Card className="col-span-full border-dashed p-8 text-center flex flex-col items-center justify-center gap-4 text-muted-foreground bg-muted/10">
+                    <SpotlightCard className="col-span-full border-dashed p-8 text-center flex flex-col items-center justify-center gap-4 text-muted-foreground bg-muted/10">
                         <div className="p-4 rounded-full bg-muted">
                             <Users className="h-8 w-8" />
                         </div>
@@ -83,7 +84,7 @@ export default async function TeamsPage() {
                             <p>Create a team to start collaborating with others.</p>
                         </div>
                         <CreateTeamDialog />
-                    </Card>
+                    </SpotlightCard>
                 )}
             </div>
         </div>

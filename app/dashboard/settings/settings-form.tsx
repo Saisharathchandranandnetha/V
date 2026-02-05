@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
@@ -155,26 +156,28 @@ export default function SettingsForm({ user }: { user: any }) {
     return (
         <div className="space-y-8">
             {/* SECTION 1: Account & Profile */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <SpotlightCard>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                     <div className="space-y-1">
                         <CardTitle>Account & Profile</CardTitle>
                         <CardDescription>Manage your personal information.</CardDescription>
                     </div>
-                    <SavedBadge section="profile" />
+                    <div className="flex justify-end">
+                        <SavedBadge section="profile" />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <form action={handleProfileUpdate} className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-16 w-16">
+                        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                            <Avatar className="h-20 w-20">
                                 <AvatarImage src={user.avatar} alt={user.name} className="object-cover" />
-                                <AvatarFallback className="text-lg bg-primary/10 font-bold">
+                                <AvatarFallback className="text-2xl bg-primary/10 font-bold">
                                     {(user.name?.[0] || user.email?.[0] || '?').toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="flex flex-col gap-2">
-                                <Label htmlFor="avatar-upload" className="cursor-pointer">
-                                    <div className="flex items-center gap-2 h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium shadow-sm transition-colors">
+                            <div className="flex flex-col items-center sm:items-start gap-2 w-full">
+                                <Label htmlFor="avatar-upload" className="cursor-pointer w-full sm:w-auto">
+                                    <div className="flex items-center justify-center sm:justify-start gap-2 h-9 px-4 py-2 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium shadow-sm transition-colors w-full">
                                         <Upload className="h-4 w-4" />
                                         Upload New Picture
                                     </div>
@@ -206,37 +209,40 @@ export default function SettingsForm({ user }: { user: any }) {
                             <Label htmlFor="bio">Short Bio / Goal</Label>
                             <Textarea id="bio" name="bio" defaultValue={settings.profileBio} placeholder="I want to learn..." />
                         </div>
-                        <div className="flex justify-end">
-                            <Button type="submit" disabled={loading}>
+                        <div className="flex flex-col sm:flex-row justify-end gap-2">
+                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin hidden" />
                                 Save Profile
                             </Button>
                         </div>
                     </form>
-                    <div className="mt-6 pt-6 border-t flex flex-wrap gap-4">
+                    <div className="mt-6 pt-6 border-t flex flex-col sm:flex-row gap-4">
                         <Button
                             variant="outline"
-                            className="text-destructive border-destructive hover:bg-destructive/10"
+                            className="text-destructive border-destructive hover:bg-destructive/10 w-full sm:w-auto"
                             onClick={handleDeleteAccount}
                             type="button"
                         >
                             Delete Account
                         </Button>
-                        <form action={signout}>
-                            <Button variant="outline" type="submit">Log Out</Button>
+                        <form action={signout} className="w-full sm:w-auto">
+                            <Button variant="outline" type="submit" className="w-full">Log Out</Button>
                         </form>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION: Security */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <SpotlightCard>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                     <div className="space-y-1">
                         <CardTitle>Security</CardTitle>
                         <CardDescription>Update your password.</CardDescription>
                     </div>
-                    <SavedBadge section="security" />
+                    <div className="flex justify-end">
+                        <SavedBadge section="security" />
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <form
@@ -267,18 +273,18 @@ export default function SettingsForm({ user }: { user: any }) {
                                 <Input id="confirmPassword" name="confirmPassword" type="password" required minLength={6} placeholder="••••••••" />
                             </div>
                         </div>
-                        <div className="flex justify-end">
-                            <Button type="submit" disabled={loading}>
+                        <div className="flex flex-col sm:flex-row justify-end gap-2">
+                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Change Password
                             </Button>
                         </div>
                     </form>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 2: Learning Preferences */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div className="space-y-1">
                         <CardTitle>Learning Preferences</CardTitle>
@@ -352,16 +358,18 @@ export default function SettingsForm({ user }: { user: any }) {
                         </div>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 3: AI Settings */}
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <SpotlightCard>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
                     <div className="space-y-1">
                         <CardTitle>AI Settings</CardTitle>
                         <CardDescription>Configure AI assistant behavior.</CardDescription>
                     </div>
-                    <SavedBadge section="ai" />
+                    <div className="flex justify-end">
+                        <SavedBadge section="ai" />
+                    </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex items-center justify-between">
@@ -413,10 +421,10 @@ export default function SettingsForm({ user }: { user: any }) {
                         </>
                     )}
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 4: Resource & Content */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Resource Settings</CardTitle>
                     <SavedBadge section="resources" />
@@ -427,7 +435,7 @@ export default function SettingsForm({ user }: { user: any }) {
                         <RadioGroup
                             defaultValue={settings.defaultPrivacy || 'private'}
                             onValueChange={(val) => handleSettingChange('defaultPrivacy', val, 'resources')}
-                            className="flex space-x-4"
+                            className="flex flex-col sm:flex-row gap-4"
                         >
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="private" id="priv" />
@@ -448,10 +456,10 @@ export default function SettingsForm({ user }: { user: any }) {
                         />
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 5: 3D & Animation */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>3D & Animation</CardTitle>
                     <SavedBadge section="3d" />
@@ -489,10 +497,10 @@ export default function SettingsForm({ user }: { user: any }) {
                         </Select>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 6: Notifications */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Notifications</CardTitle>
                     <SavedBadge section="notifications" />
@@ -523,10 +531,10 @@ export default function SettingsForm({ user }: { user: any }) {
                         />
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 9: Appearance */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Appearance</CardTitle>
                     <SavedBadge section="appearance" />
@@ -540,7 +548,7 @@ export default function SettingsForm({ user }: { user: any }) {
                                 handleSettingChange('theme', val, 'appearance')
                                 setTheme(val)
                             }}
-                            className="flex space-x-4"
+                            className="flex flex-col sm:flex-row gap-4"
                         >
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="light" id="light" />
@@ -605,10 +613,10 @@ export default function SettingsForm({ user }: { user: any }) {
                         />
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 8: Privacy & Data */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Privacy & Data</CardTitle>
                 </CardHeader>
@@ -628,10 +636,10 @@ export default function SettingsForm({ user }: { user: any }) {
                         <Button variant="outline">Clear History</Button>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
 
             {/* SECTION 7: Planner & Productivity */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Planner & Productivity</CardTitle>
                     <SavedBadge section="planner" />
@@ -670,7 +678,7 @@ export default function SettingsForm({ user }: { user: any }) {
                         <RadioGroup
                             defaultValue={settings.weekStart || 'mon'}
                             onValueChange={(val) => handleSettingChange('weekStart', val, 'planner')}
-                            className="flex space-x-4"
+                            className="flex flex-col sm:flex-row gap-4"
                         >
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="mon" id="mon" />
@@ -683,10 +691,28 @@ export default function SettingsForm({ user }: { user: any }) {
                         </RadioGroup>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
+
+            {/* SECTION: Data Management */}
+            <SpotlightCard>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle>Data Management</CardTitle>
+                    <SavedBadge section="data" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Button variant="outline" className="w-full sm:w-auto" onClick={() => alert('Exporting data... (Mock)')}>
+                            Export All Data
+                        </Button>
+                        <Button variant="outline" className="text-destructive w-full sm:w-auto hover:bg-destructive/10" onClick={() => alert('Data cleared! (Mock)')}>
+                            Clear Local Cache
+                        </Button>
+                    </div>
+                </CardContent>
+            </SpotlightCard>
 
             {/* SECTION 10: Help & About */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle>Help & About</CardTitle>
                 </CardHeader>
@@ -702,7 +728,7 @@ export default function SettingsForm({ user }: { user: any }) {
                         <p>Changelog</p>
                     </div>
                 </CardContent>
-            </Card>
+            </SpotlightCard>
         </div>
     )
 }

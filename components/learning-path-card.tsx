@@ -12,6 +12,7 @@ import { MoveToCollectionDialog } from '@/components/move-to-collection-dialog'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import { HoverEffect } from '@/components/ui/hover-effect'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 export interface LearningPathProps {
     id: string
@@ -43,13 +44,15 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
     return (
         <>
             <HoverEffect variant="lift" className="h-full">
-                <Card className={cn("flex flex-col h-full hover:shadow-md transition-shadow", isPending && "opacity-50", path.is_completed && "border-green-500/50 bg-green-50/10 dark:bg-green-900/10")}>
+                <SpotlightCard className={cn("flex flex-col h-full hover:shadow-md transition-shadow", isPending && "opacity-50", path.is_completed && "border-green-500/50 bg-green-50/10 dark:bg-green-900/10")}>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start gap-2">
-                            <div className="flex gap-2 items-center text-sm font-medium text-muted-foreground w-full">
-                                <Map className="h-4 w-4" />
-                                <span>Learning Path</span>
-                                {path.is_completed && <span className="text-green-600 dark:text-green-400 text-xs flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Completed</span>}
+                            <div className="flex flex-wrap gap-2 items-center text-sm font-medium text-muted-foreground w-full min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <Map className="h-4 w-4 flex-shrink-0" />
+                                    <span>Learning Path</span>
+                                </div>
+                                {path.is_completed && <span className="text-green-600 dark:text-green-400 text-xs flex items-center gap-1 whitespace-nowrap"><CheckCircle2 className="h-3 w-3" /> Completed</span>}
                             </div>
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -122,8 +125,8 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
                             </div>
                         )}
                     </CardContent>
-                    <CardFooter className="p-4 pt-0 gap-2">
-                        <Button variant="outline" className="flex-1 text-xs" asChild>
+                    <CardFooter className="p-4 pt-0 flex flex-col sm:flex-row gap-2">
+                        <Button variant="outline" className="w-full sm:flex-1 text-xs" asChild>
                             <a href={path.links?.[0] || '#'} target="_blank" rel="noopener noreferrer">
                                 Start Learning <BookOpen className="ml-2 h-3 w-3" />
                             </a>
@@ -131,15 +134,16 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
                         <Button
                             variant={path.is_completed ? "secondary" : "default"}
                             size="icon"
-                            className={cn("h-9 w-9", path.is_completed && "text-green-600")}
+                            className={cn("h-9 w-full sm:w-9", path.is_completed && "text-green-600")}
                             onClick={handleToggleCompletion}
                             title={path.is_completed ? "Mark as Incomplete" : "Mark as Completed"}
                         >
                             {path.is_completed ? <CheckCircle2 className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                            <span className="sm:hidden ml-2">{path.is_completed ? "Completed" : "Mark Done"}</span>
                         </Button>
                     </CardFooter>
-                </Card>
-            </HoverEffect>
+                </SpotlightCard>
+            </HoverEffect >
 
             <ConfirmDeleteDialog
                 open={isDeleteOpen}

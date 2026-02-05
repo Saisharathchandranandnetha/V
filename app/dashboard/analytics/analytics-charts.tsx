@@ -15,7 +15,8 @@ import {
     Pie,
     Cell,
 } from 'recharts'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { formatCurrency } from '@/lib/utils'
 import { HoverEffect } from '@/components/ui/hover-effect'
 
@@ -63,7 +64,7 @@ export default function AnalyticsCharts({ data }: { data: any }) {
     return (
         <div className="space-y-6">
             {/* Filter Toolbar */}
-            <Card>
+            <SpotlightCard>
                 <CardHeader className="py-4">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <CardTitle className="text-lg font-medium">Dashboard Filters</CardTitle>
@@ -98,12 +99,12 @@ export default function AnalyticsCharts({ data }: { data: any }) {
                         </div>
                     </div>
                 </CardHeader>
-            </Card>
+            </SpotlightCard>
 
             <div className="grid gap-4 md:grid-cols-2">
                 {/* 1. Habit Consistency */}
                 <HoverEffect variant="lift" className="col-span-1">
-                    <Card className="h-full">
+                    <SpotlightCard className="h-full">
                         <CardHeader>
                             <CardTitle>Habit Consistency</CardTitle>
                             <CardDescription>Daily completion rate (Last 7 Days)</CardDescription>
@@ -130,12 +131,12 @@ export default function AnalyticsCharts({ data }: { data: any }) {
                                 </ResponsiveContainer>
                             </div>
                         </CardContent>
-                    </Card>
+                    </SpotlightCard>
                 </HoverEffect>
 
                 {/* 2. Task Status */}
                 <HoverEffect variant="lift" className="col-span-1">
-                    <Card className="h-full">
+                    <SpotlightCard className="h-full">
                         <CardHeader>
                             <CardTitle>Task Distribution</CardTitle>
                             <CardDescription>Tasks by current status</CardDescription>
@@ -169,12 +170,12 @@ export default function AnalyticsCharts({ data }: { data: any }) {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </SpotlightCard>
                 </HoverEffect>
 
                 {/* 3. Goal Progress */}
                 <HoverEffect variant="lift" className="col-span-1">
-                    <Card className="h-full">
+                    <SpotlightCard className="h-full">
                         <CardHeader>
                             <CardTitle>Top Goals</CardTitle>
                             <CardDescription>Progress towards targets</CardDescription>
@@ -198,12 +199,12 @@ export default function AnalyticsCharts({ data }: { data: any }) {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </SpotlightCard>
                 </HoverEffect>
 
                 {/* 4. Financial Overview */}
                 <HoverEffect variant="lift" className="col-span-1">
-                    <Card className="h-full">
+                    <SpotlightCard className="h-full">
                         <CardHeader>
                             <CardTitle>Financial Health</CardTitle>
                             <CardDescription>Total Income vs Expenses</CardDescription>
@@ -231,7 +232,7 @@ export default function AnalyticsCharts({ data }: { data: any }) {
                                 )}
                             </div>
                         </CardContent>
-                    </Card>
+                    </SpotlightCard>
                 </HoverEffect>
             </div>
         </div>
