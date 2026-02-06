@@ -80,7 +80,7 @@ export function CreateGoalDialog({ onAdd }: { onAdd?: (goal: any) => void }) {
                         <Label htmlFor="title">Goal Title</Label>
                         <Input id="title" name="title" placeholder="e.g. Save $10k" required />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="type">Type</Label>
                             <Select name="type" defaultValue="Short Term">
@@ -99,7 +99,7 @@ export function CreateGoalDialog({ onAdd }: { onAdd?: (goal: any) => void }) {
                             <Input type="date" name="deadline" id="deadline" />
                         </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="current_value">Current</Label>
                             <Input type="number" name="current_value" defaultValue="0" step="0.1" />

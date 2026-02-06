@@ -136,7 +136,7 @@ export function AddResourceDialog({ categories: initialCategories, onAdd }: { ca
                         <Input id="title" name="title" placeholder="Resource Title" required />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="type">Type</Label>
                             <Select name="type" defaultValue="url" onValueChange={(val) => setResourceType(val)}>

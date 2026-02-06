@@ -125,7 +125,7 @@ export function AddTransactionDialog({ categories, projects, onAdd }: { categori
                     <DialogTitle>Add Transaction</DialogTitle>
                 </DialogHeader>
                 <form action={onSubmit} className="grid gap-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="type">Type</Label>
                             <Select name="type" value={type} onValueChange={(v: 'Income' | 'Expense') => setType(v)}>
