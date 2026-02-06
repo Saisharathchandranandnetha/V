@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Plus, MoreVertical, Trash2, FolderInput, Search } from 'lucide-react'
+import { useState, useEffect, useOptimistic, useTransition } from 'react'
+import { Plus, MoreVertical, Trash2, FolderInput, Search, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { MoveToCollectionDialog } from '@/components/move-to-collection-dialog'
+import { toast } from 'sonner'
 
 interface Note {
     id: string
@@ -31,10 +32,12 @@ interface NotesLayoutProps {
     initialNotes: Note[]
 }
 
-export function NotesLayout({ initialNotes }: NotesLayoutProps) {
-    const [serverNotes, setServerNotes] = useState<Note[]>(initialNotes)
-    const [localNotes, setLocalNotes] = useState<Note[]>([])
+type OptimisticAction =
+    | { type: 'ADD'; payload: Note }
+    | { type: 'UPDATE'; payload: Note }
+    | { type: 'DELETE'; payload: string }
 
+export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     const [selectedNote, setSelectedNote] = useState<Note | null>(null)
     const [isCreating, setIsCreating] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -42,25 +45,33 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     // Action States
     const [noteToDelete, setNoteToDelete] = useState<string | null>(null)
     const [noteToMove, setNoteToMove] = useState<string | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const router = useRouter()
-
     const searchParams = useSearchParams()
 
-    // Merge notes
-    const allNotes = [...localNotes, ...serverNotes.filter(sn => !localNotes.find(ln => ln.id === sn.id))]
+    const [optimisticNotes, dispatchOptimistic] = useOptimistic(
+        initialNotes,
+        (state: Note[], action: OptimisticAction) => {
+            switch (action.type) {
+                case 'ADD':
+                    return [action.payload, ...state]
+                case 'UPDATE':
+                    return state.map(n => n.id === action.payload.id ? action.payload : n).sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+                case 'DELETE':
+                    return state.filter(n => n.id !== action.payload)
+                default:
+                    return state
+            }
+        }
+    )
 
-    const notes = allNotes.filter(note =>
+    const notes = optimisticNotes.filter(note =>
         (note.title?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
         (note.content?.toLowerCase() || '').includes(searchQuery.toLowerCase())
     )
 
     useEffect(() => {
-        setServerNotes(initialNotes)
-        if (initialNotes.length > 0) {
-            setLocalNotes(prev => prev.filter(local => !initialNotes.find(server => server.id === local.id)))
-        }
-
         const noteId = searchParams.get('id')
         if (noteId) {
             const note = initialNotes.find(n => n.id === noteId)
@@ -76,21 +87,38 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     }
 
     const handleSelectNote = (note: Note) => {
-        setSelectedNote(note)
+        // If we select a note, we probably want to see the latest version from optimistic state
+        const freshNote = optimisticNotes.find(n => n.id === note.id) || note
+        setSelectedNote(freshNote)
         setIsCreating(false)
     }
 
     const confirmDelete = async () => {
         if (!noteToDelete) return
+        setIsDeleting(true)
+
+        // Optimistic Delete
+        dispatchOptimistic({ type: 'DELETE', payload: noteToDelete })
+
+        if (selectedNote?.id === noteToDelete) {
+            setSelectedNote(null)
+            setIsCreating(false)
+        }
+
+        const idToDelete = noteToDelete
+        setNoteToDelete(null) // Close dialog immediately
+
         try {
-            await deleteNote(noteToDelete)
-            if (selectedNote?.id === noteToDelete) {
-                setSelectedNote(null)
-                setIsCreating(false)
-            }
-            setNoteToDelete(null)
+            await deleteNote(idToDelete)
+            toast.success("Note deleted")
         } catch (error) {
             console.error(error)
+            toast.error("Failed to delete note")
+            // Revert would be nice here, but useOptimistic automatically reverts on next render if we don't refresh.
+            // But we can't easily trigger a revert manually without server revalidation.
+            router.refresh()
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -101,26 +129,22 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     }
 
     const handleNoteSaved = (updatedNote: Partial<Note>) => {
-        // Update local state immediately for responsiveness
-        if (selectedNote && notes.some(n => n.id === updatedNote.id)) {
-            setLocalNotes(prev => {
-                const filtered = prev.filter(n => n.id !== updatedNote.id)
-                const existing = notes.find(n => n.id === updatedNote.id)
-                const merged = existing ? { ...existing, ...updatedNote } as Note : { ...updatedNote } as Note
-                return [merged, ...filtered]
-            })
-            // Also update the selected note so the editor reflects current state
-            setSelectedNote(prev => prev ? { ...prev, ...updatedNote } as Note : null)
+        if (selectedNote && optimisticNotes.some(n => n.id === updatedNote.id)) {
+            // Update
+            const existing = optimisticNotes.find(n => n.id === updatedNote.id)
+            const merged = existing ? { ...existing, ...updatedNote } as Note : { ...updatedNote } as Note
+
+            dispatchOptimistic({ type: 'UPDATE', payload: merged })
+            setSelectedNote(merged)
         } else {
-            // New note - prepend to the list
+            // Create
             const newNote = updatedNote as Note
             if (newNote.id && newNote.title) {
-                setLocalNotes(prev => [newNote, ...prev])
+                dispatchOptimistic({ type: 'ADD', payload: newNote })
                 setSelectedNote(newNote)
             }
-            // Router refresh to ensure server sync
-            router.refresh()
         }
+        router.refresh()
     }
 
     return (

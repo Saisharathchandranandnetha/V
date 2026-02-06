@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import { createTask } from '@/app/dashboard/tasks/actions'
 
-export function CreateTaskDialog({ defaultDate, onTaskCreated }: { defaultDate?: Date, onTaskCreated?: (task: any) => void }) {
+export function CreateTaskDialog({ defaultDate, onAdd }: { defaultDate?: Date, onAdd?: (task: any) => void }) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const effectiveDate = defaultDate || new Date()
@@ -34,17 +34,28 @@ export function CreateTaskDialog({ defaultDate, onTaskCreated }: { defaultDate?:
 
     async function onSubmit(formData: FormData) {
         setLoading(true)
-        // Append the formatted date to formData manually since the input is hidden/removed
-        if (defaultDate) {
-            // We can rely on a hidden input or append to formData
-            // Hidden input is easiest for native form action
-        }
-        try {
-            const result = await createTask(formData)
-            if (result?.task && onTaskCreated) {
-                onTaskCreated(result.task)
+
+        // Optimistic Update
+        if (onAdd) {
+            const title = formData.get('title') as string
+            const priority = (formData.get('priority') as string) || 'Medium'
+            const description = formData.get('description') as string
+            const newTask = {
+                id: crypto.randomUUID(),
+                title,
+                priority,
+                status: 'Todo',
+                due_date: defaultDate ? format(defaultDate, 'yyyy-MM-dd') : new Date().toISOString(), // Match server format if possible, or ISO
+                description,
+                created_at: new Date().toISOString()
             }
+            onAdd(newTask)
             setOpen(false)
+        }
+
+        try {
+            await createTask(formData)
+            if (!onAdd) setOpen(false)
         } catch (error) {
             console.error(error)
         } finally {

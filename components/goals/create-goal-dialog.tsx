@@ -21,15 +21,41 @@ import {
 } from '@/components/ui/select'
 import { createGoal } from '@/app/dashboard/goals/actions'
 
-export function CreateGoalDialog() {
+export function CreateGoalDialog({ onAdd }: { onAdd?: (goal: any) => void }) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
 
     async function onSubmit(formData: FormData) {
         setLoading(true)
+
+        // Optimistic Update
+        if (onAdd) {
+            const title = formData.get('title') as string
+            const type = formData.get('type') as string
+            const deadline = formData.get('deadline') as string
+            const current_value = parseFloat(formData.get('current_value') as string)
+            const target_value = parseFloat(formData.get('target_value') as string)
+            const unit = formData.get('unit') as string
+
+            const newGoal = {
+                id: crypto.randomUUID(),
+                title,
+                type,
+                deadline: deadline || null,
+                current_value,
+                target_value,
+                unit,
+                priority: 'Medium', // Default
+                created_at: new Date().toISOString(),
+                user_id: 'temp', // Not used in display usually
+            }
+            onAdd(newGoal)
+            setOpen(false)
+        }
+
         try {
             await createGoal(formData)
-            setOpen(false)
+            if (!onAdd) setOpen(false)
         } catch (error) {
             console.error('Failed to create goal', error)
         } finally {

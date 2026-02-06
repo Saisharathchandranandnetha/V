@@ -21,17 +21,35 @@ import {
 } from '@/components/ui/select'
 import { createHabit } from '@/app/dashboard/habits/actions'
 
-export function CreateHabitDialog() {
+export function CreateHabitDialog({ onAdd }: { onAdd?: (habit: any) => void }) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
 
     async function onSubmit(formData: FormData) {
         setLoading(true)
+
+        // Optimistic Update
+        if (onAdd) {
+            const name = formData.get('name') as string
+            const frequency = formData.get('frequency') as string
+
+            const tempHabit = {
+                id: crypto.randomUUID(),
+                name,
+                frequency,
+                created_at: new Date().toISOString(),
+                habit_logs: []
+            }
+            onAdd(tempHabit)
+            setOpen(false) // Close dialog immediately
+        }
+
         try {
             await createHabit(formData)
-            setOpen(false)
+            if (!onAdd) setOpen(false) // Fallback close if no optimistic handler
         } catch (error) {
             console.error(error)
+            // Ideally revert optimistic update here, but for now we rely on revalidation
         } finally {
             setLoading(false)
         }
