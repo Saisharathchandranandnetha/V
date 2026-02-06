@@ -13,7 +13,7 @@ import {
     SheetTitle,
 } from "@/components/ui/sheet"
 import { Menu, LogOut, Shield, ChevronDown } from 'lucide-react'
-import { sidebarNavItems } from '@/components/sidebar'
+import { sidebarNavItems } from '@/lib/nav-config'
 import { signout } from '@/app/login/actions'
 import { SubmitButton } from '@/components/submit-button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'

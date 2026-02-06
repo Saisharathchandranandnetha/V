@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import { createPortal } from 'react-dom';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface QuickActionsMenuProps {
     open: boolean;
@@ -16,16 +17,16 @@ interface QuickActionsMenuProps {
 }
 
 const actions = [
-    { label: 'Add Resource', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { label: 'Task', icon: CheckSquare, color: 'text-green-400', bg: 'bg-green-500/10' },
-    { label: 'Habit', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { label: 'Transaction', icon: CreditCard, color: 'text-rose-400', bg: 'bg-rose-500/10' },
-    { label: 'Goal', icon: Target, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { label: 'Category', icon: Folder, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-    { label: 'Collection', icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-    { label: 'Learning Path', icon: Map, color: 'text-teal-400', bg: 'bg-teal-500/10' },
-    { label: 'Roadmap', icon: GraduationCap, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-    { label: 'Note', icon: StickyNote, color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+    { label: 'Add Resource', icon: FileText, color: 'text-blue-400', bg: 'bg-blue-500/10', href: '/dashboard/resources?add=true' },
+    { label: 'Add Task', icon: CheckSquare, color: 'text-green-400', bg: 'bg-green-500/10', href: '/dashboard/tasks?add=true' },
+    { label: 'Add Habit', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-500/10', href: '/dashboard/habits?add=true' },
+    { label: 'Add Transaction', icon: CreditCard, color: 'text-rose-400', bg: 'bg-rose-500/10', href: '/dashboard/finances?add=true' },
+    { label: 'Add Goal', icon: Target, color: 'text-purple-400', bg: 'bg-purple-500/10', href: '/dashboard/goals?add=true' },
+    { label: 'Add Category', icon: Folder, color: 'text-indigo-400', bg: 'bg-indigo-500/10', href: '/dashboard/categories?add=true' },
+    { label: 'Add Collection', icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-500/10', href: '/dashboard/collections?add=true' },
+    { label: 'Add Learning Path', icon: Map, color: 'text-teal-400', bg: 'bg-teal-500/10', href: '/dashboard/paths?add=true' },
+    { label: 'Add Roadmap', icon: GraduationCap, color: 'text-orange-400', bg: 'bg-orange-500/10', href: '/dashboard/roadmaps?add=true' },
+    { label: 'Add Note', icon: StickyNote, color: 'text-yellow-400', bg: 'bg-yellow-500/10', href: '/dashboard/notes?add=true' },
 ];
 
 export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
@@ -78,21 +79,22 @@ export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
 
                         <div className="grid grid-cols-2 gap-4">
                             {actions.map((action, i) => (
-                                <motion.button
-                                    key={action.label}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.03 }}
-                                    className="flex flex-col items-center p-4 rounded-xl bg-muted/30 hover:bg-muted/50 border border-white/5 active:scale-95 transition-all text-center gap-3 relative overflow-hidden group"
-                                >
-                                    <div className={cn("p-3 rounded-full mb-1 transition-colors", action.bg, action.color)}>
-                                        <action.icon className="h-6 w-6" />
-                                    </div>
-                                    <span className="font-medium text-sm text-foreground/90">{action.label}</span>
+                                <Link key={action.label} href={action.href} onClick={onClose}>
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.03 }}
+                                        className="flex flex-col items-center p-4 rounded-xl bg-muted/30 hover:bg-muted/50 border border-white/5 active:scale-95 transition-all text-center gap-3 relative overflow-hidden group cursor-pointer"
+                                    >
+                                        <div className={cn("p-3 rounded-full mb-1 transition-colors", action.bg, action.color)}>
+                                            <action.icon className="h-6 w-6" />
+                                        </div>
+                                        <span className="font-medium text-sm text-foreground/90">{action.label}</span>
 
-                                    {/* Hover Glow */}
-                                    <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity bg-gradient-to-tr from-transparent to-white/5 pointer-events-none")} />
-                                </motion.button>
+                                        {/* Hover Glow */}
+                                        <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity bg-gradient-to-tr from-transparent to-white/5 pointer-events-none")} />
+                                    </motion.div>
+                                </Link>
                             ))}
                         </div>
                     </motion.div>

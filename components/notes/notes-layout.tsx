@@ -81,6 +81,16 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
         }
     }, [initialNotes, searchParams])
 
+    // Auto-open new note editor if ?add=true is in URL
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            handleCreateNew()
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('add')
+            router.replace(`?${params.toString()}`, { scroll: false })
+        }
+    }, [searchParams, router])
+
     const handleCreateNew = () => {
         setSelectedNote(null)
         setIsCreating(true)

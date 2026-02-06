@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
     Dialog,
@@ -15,11 +15,24 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Plus, Loader2 } from 'lucide-react'
 import { createCategory } from '@/app/dashboard/settings/actions'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 export function CreateCategoryDialog() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [name, setName] = useState('')
     const [loading, setLoading] = useState(false)
+
+    // Auto-open dialog if ?add=true is in URL
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            setOpen(true)
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('add')
+            router.replace(`?${params.toString()}`, { scroll: false })
+        }
+    }, [searchParams, router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

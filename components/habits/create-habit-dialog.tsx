@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,10 +20,23 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { createHabit } from '@/app/dashboard/habits/actions'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 export function CreateHabitDialog({ onAdd }: { onAdd?: (habit: any) => void }) {
+    const searchParams = useSearchParams()
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    // Auto-open dialog if ?add=true is in URL
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            setOpen(true)
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('add')
+            router.replace(`?${params.toString()}`, { scroll: false })
+        }
+    }, [searchParams, router])
 
     async function onSubmit(formData: FormData) {
         setLoading(true)

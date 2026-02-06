@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,8 +12,11 @@ import { createResource, createCategoryAndReturn } from '@/app/dashboard/actions
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 export function AddResourceDialog({ categories: initialCategories, onAdd }: { categories: any[], onAdd?: (r: any) => void }) {
+    const searchParams = useSearchParams()
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [categories, setCategories] = useState(initialCategories || [])
     const [selectedCategory, setSelectedCategory] = useState<string>('none')
@@ -22,6 +25,17 @@ export function AddResourceDialog({ categories: initialCategories, onAdd }: { ca
     const [loading, setLoading] = useState(false)
     const [resourceType, setResourceType] = useState('url')
     const [uploadType, setUploadType] = useState('url')
+
+    // Auto-open dialog if ?add=true is in URL
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            setOpen(true)
+            // Clean up URL parameter
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('add')
+            router.replace(`?${params.toString()}`, { scroll: false })
+        }
+    }, [searchParams, router])
 
     const handleCreateCategory = async (e: React.FormEvent) => {
         e.preventDefault()
