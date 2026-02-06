@@ -1,5 +1,6 @@
 
 import { Sidebar } from '@/components/sidebar'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
@@ -39,9 +40,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
                 {/* Mobile Header - Cinematic Redesign */}
                 <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50">
-                    <span className="font-syne font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm">
+                    <Link href="/dashboard" className="font-syne font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm">
                         LifeOS
-                    </span>
+                    </Link>
                     <div className="backdrop-blur-md bg-background/30 rounded-full p-1 border border-white/5 shadow-sm">
                         <ThemeToggle />
                     </div>

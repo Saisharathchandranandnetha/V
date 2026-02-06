@@ -15,6 +15,7 @@ import { DashboardSearch } from '@/components/dashboard-search'
 import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { RoadmapsAutoCreate } from './roadmaps-auto-create'
+import { format } from 'date-fns'
 
 export default async function RoadmapsPage({
     searchParams
@@ -75,8 +76,13 @@ export default async function RoadmapsPage({
                                             <span>{roadmap.progress}%</span>
                                         </div>
                                         <Progress value={roadmap.progress} className="h-2" />
+                                        <div className="flex items-center justify-between pt-2">
+                                            <span className="text-xs text-muted-foreground">
+                                                Created {format(new Date(roadmap.created_at), 'MMM d, yyyy • h:mm a')}
+                                            </span>
+                                        </div>
                                         {roadmap.copied_from_chat && (
-                                            <div className="pt-4">
+                                            <div className="pt-2">
                                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                                                     Copied from Chat
                                                 </span>
