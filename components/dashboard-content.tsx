@@ -48,7 +48,7 @@ export function DashboardContent({ children, deviceType }: DashboardContentProps
     return (
         <div className="flex-1 min-h-0 relative">
             <GridBreakingOverlay />
-            <main className="p-6 md:p-8 relative z-10 w-full max-w-[1600px] mx-auto">
+            <main className="p-4 md:p-8 relative z-10 w-full max-w-[1600px] mx-auto">
                 <div className="mb-4 text-xs text-muted-foreground md:hidden select-none">
                     Detected Device: {deviceType}
                 </div>

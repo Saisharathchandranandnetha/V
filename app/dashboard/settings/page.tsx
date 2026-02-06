@@ -50,7 +50,7 @@ export default async function SettingsPage() {
         .order('name', { ascending: true })
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 w-full max-w-full overflow-x-hidden">
             <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>

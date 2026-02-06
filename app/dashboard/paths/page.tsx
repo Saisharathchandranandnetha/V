@@ -58,7 +58,7 @@ export default async function LearningPathsPage(props: {
                     }
                 </div>
             ) : (
-                <StaggerContainer key={view + searchQuery} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <StaggerContainer key={view + searchQuery} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 w-full min-w-0">
                     {paths.filter((p: LearningPathProps) =>
                         !searchQuery ||
                         (p.title?.toLowerCase() || '').includes(searchQuery.toLowerCase())

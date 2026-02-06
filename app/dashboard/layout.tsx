@@ -1,6 +1,5 @@
 
 import { Sidebar } from '@/components/sidebar'
-import { MobileNav } from '@/components/mobile-nav'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
@@ -9,6 +8,7 @@ import { ThemeSync } from '@/components/theme-sync'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardContent } from '@/components/dashboard-content'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { FloatingDock } from '@/components/mobile/floating-dock'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -34,17 +34,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </aside>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-h-screen relative z-10">
+            <div className="flex-1 flex flex-col min-h-screen relative z-10 min-w-0">
                 <ThemeSync userTheme={userSettings?.settings?.theme} userId={user.id} />
 
-                {/* Mobile Header */}
-                <div className="md:hidden border-b p-4 flex items-center justify-between bg-background/80 backdrop-blur-xl sticky top-0 z-50">
-                    <span className="font-semibold text-primary">LifeOS ({deviceType})</span>
-                    <div className="flex items-center gap-2">
+                {/* Mobile Header - Cinematic Redesign */}
+                <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50">
+                    <span className="font-syne font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm">
+                        LifeOS
+                    </span>
+                    <div className="backdrop-blur-md bg-background/30 rounded-full p-1 border border-white/5 shadow-sm">
                         <ThemeToggle />
-                        <MobileNav isAdmin={user.email === process.env.ADMIN_EMAIL} />
                     </div>
                 </div>
+
+                {/* New Floating Dock for Mobile */}
+                <FloatingDock user={user} isAdmin={user.email === process.env.ADMIN_EMAIL} />
 
                 <DashboardContent deviceType={deviceType}>
                     {children}

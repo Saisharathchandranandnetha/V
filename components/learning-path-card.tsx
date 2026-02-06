@@ -43,7 +43,7 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
 
     return (
         <>
-            <HoverEffect variant="lift" className="h-full">
+            <HoverEffect variant="lift" className="h-full w-full">
                 <SpotlightCard className={cn("flex flex-col h-full hover:shadow-md transition-shadow", isPending && "opacity-50", path.is_completed && "border-green-500/50 bg-green-50/10 dark:bg-green-900/10")}>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start gap-2">
@@ -109,7 +109,7 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
                                 <p className="text-xs font-semibold text-muted-foreground uppercase">Resources:</p>
                                 <ul className="text-sm space-y-1">
                                     {path.links.slice(0, 3).map((link, i) => (
-                                        <li key={i} className="flex items-center gap-2 truncate">
+                                        <li key={i} className="flex items-center gap-2 truncate min-w-0">
                                             <ExternalLink className="h-3 w-3 flex-shrink-0" />
                                             <a href={link} target="_blank" rel="noopener noreferrer" className="hover:underline truncate text-blue-600">
                                                 {link}
