@@ -9,7 +9,7 @@ export async function createRoadmap(data: {
     description?: string
     teamId?: string
     projectId?: string
-}) {
+}, shouldRedirect = true) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) throw new Error('Not authenticated')
@@ -33,7 +33,12 @@ export async function createRoadmap(data: {
     }
 
     revalidatePath('/dashboard/roadmaps')
-    redirect(`/dashboard/roadmaps/${roadmap.id}`)
+
+    if (shouldRedirect) {
+        redirect(`/dashboard/roadmaps/${roadmap.id}`)
+    }
+
+    return roadmap
 }
 
 export async function updateRoadmap(id: string, data: {

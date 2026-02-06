@@ -124,6 +124,9 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                                                         <span>{Math.round(progress)}% Complete</span>
                                                                         <span>Due {goal.deadline ? format(new Date(goal.deadline), 'MMM d, yyyy') : 'N/A'}</span>
                                                                     </div>
+                                                                    <div className="text-xs text-muted-foreground pt-1">
+                                                                        Created {format(new Date(goal.created_at), 'MMM d, yyyy • h:mm a')}
+                                                                    </div>
                                                                 </div>
                                                                 <UpdateProgressDialog goal={goal} />
                                                             </CardContent>
@@ -170,6 +173,9 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                                             <div className="flex justify-between text-xs text-muted-foreground font-medium">
                                                                 <span className="text-green-600 font-bold">Completed</span>
                                                                 <span>Finished {goal.updated_at ? format(new Date(goal.updated_at), 'MMM d, yyyy') : 'N/A'}</span>
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground pt-1">
+                                                                Created {format(new Date(goal.created_at), 'MMM d, yyyy • h:mm a')}
                                                             </div>
                                                         </div>
                                                         <Button variant="outline" className="w-full" disabled>

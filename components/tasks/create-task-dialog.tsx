@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { Plus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -22,10 +22,23 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { createTask } from '@/app/dashboard/tasks/actions'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 export function CreateTaskDialog({ defaultDate, onAdd }: { defaultDate?: Date, onAdd?: (task: any) => void }) {
+    const searchParams = useSearchParams()
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
+
+    // Auto-open dialog if ?add=true is in URL
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            setOpen(true)
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('add')
+            router.replace(`?${params.toString()}`, { scroll: false })
+        }
+    }, [searchParams, router])
     const effectiveDate = defaultDate || new Date()
     // Format date as YYYY-MM-DD for input value if we wanted to show it, 
     // but the requirement is to "select date ... and task ... added before" - implies hidden or read-only context.
