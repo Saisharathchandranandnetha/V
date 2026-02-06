@@ -5,6 +5,7 @@ import { format, isBefore, startOfDay } from 'date-fns'
 import { Calendar as CalendarIcon, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
     Select,
     SelectContent,
@@ -40,19 +41,16 @@ interface Task {
 export function TaskList({ tasks }: { tasks: Task[] }) {
     const [completingTask, setCompletingTask] = useState<Task | null>(null)
     const priorityColor = {
-        Low: 'bg-blue-100 text-blue-800',
-        Medium: 'bg-gray-100 text-gray-800',
-        High: 'bg-orange-100 text-orange-800',
-        Urgent: 'bg-red-100 text-red-800',
+        Low: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+        Medium: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+        High: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+        Urgent: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
     }
 
     const handleStatusChange = (task: Task, newStatus: string) => {
         if (newStatus === 'Done' && task.due_date && isBefore(new Date(task.due_date), startOfDay(new Date()))) {
             setCompletingTask(task)
         } else {
-            // For simple completion (on time) or other status changes
-            // If marking as Done, we must set completed_at to now.
-            // If changing to Todo/In Progress, the action handles clearing it.
             updateTaskStatus(task.id, newStatus, newStatus === 'Done' ? new Date().toISOString() : undefined)
         }
     }
@@ -79,44 +77,23 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                 {tasks.map((task) => (
                     <StaggerItem key={task.id} className="w-full">
                         <HoverEffect variant="lift">
-                            <SpotlightCard
-                                className="flex flex-col gap-2 rounded-lg border p-4 shadow-sm bg-card h-full"
-                            >
-                                <div className="flex items-start md:items-center justify-between flex-col md:flex-row gap-4">
-                                    <div className="flex items-start md:items-center space-x-0 md:space-x-4 flex-col md:flex-row gap-2 md:gap-0 w-full md:w-auto">
-                                        <Select
-                                            defaultValue={task.status}
-                                            onValueChange={(val) => handleStatusChange(task, val)}
-                                        >
-                                            <SelectTrigger className="w-[140px]">
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Todo">Todo</SelectItem>
-                                                <SelectItem value="In Progress">In Progress</SelectItem>
-                                                <SelectItem value="Done">Done</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <div>
-                                            <h3 className={cn("font-medium", task.status === 'Done' && "line-through text-muted-foreground")}>{task.title}</h3>
-                                            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                                                <Badge variant="secondary" className={cn("rounded-sm px-1 font-normal", priorityColor[task.priority as keyof typeof priorityColor])}>
-                                                    {task.priority}
-                                                </Badge>
-                                                {task.due_date && (
-                                                    <span className="flex items-center">
-                                                        <CalendarIcon className="mr-1 h-3 w-3" />
-                                                        {format(new Date(task.due_date), 'MMM d')}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+                            <SpotlightCard className="transition-colors hover:border-primary/50">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <div className="space-y-1">
+                                        <CardTitle className={cn("text-sm font-medium", task.status === 'Done' && "line-through text-muted-foreground")}>
+                                            {task.title}
+                                        </CardTitle>
+                                        {(task.team || task.project) && task.message?.sender && (
+                                            <p className="text-xs text-muted-foreground">
+                                                By {task.message.sender.name} in {task.team?.name || task.project?.name}
+                                            </p>
+                                        )}
                                     </div>
-                                    <div className="flex items-center gap-1 self-end md:self-auto">
+                                    <div className="flex items-center gap-1">
                                         <EditTaskDialog task={task} />
                                         <ConfirmDeleteDialog
                                             trigger={
-                                                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
+                                                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-destructive">
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
                                             }
@@ -125,17 +102,43 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                                             description="Are you sure you want to delete this task? This action cannot be undone."
                                         />
                                     </div>
-                                </div>
-                                {task.status === 'Done' && task.completed_at && task.completion_reason && (
-                                    <div className="text-xs bg-muted/50 p-2 rounded border mt-2 ml-0 md:ml-[156px]">
-                                        <p className="font-semibold text-green-600">Completed on {format(new Date(task.completed_at), 'MMM d')} <span className="text-muted-foreground font-normal italic">- "{task.completion_reason}"</span></p>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <Badge variant="secondary" className={cn("rounded-sm px-1 font-normal", priorityColor[task.priority as keyof typeof priorityColor])}>
+                                                    {task.priority}
+                                                </Badge>
+                                                {task.due_date && (
+                                                    <span className="flex items-center text-xs text-muted-foreground">
+                                                        <CalendarIcon className="mr-1 h-3 w-3" />
+                                                        {format(new Date(task.due_date), 'MMM d')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {task.status === 'Done' && task.completed_at && task.completion_reason && (
+                                                <p className="text-xs text-green-600 dark:text-green-400">
+                                                    Completed: <span className="text-muted-foreground italic">{task.completion_reason}</span>
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        <Select
+                                            defaultValue={task.status}
+                                            onValueChange={(val) => handleStatusChange(task, val)}
+                                        >
+                                            <SelectTrigger className="w-[130px] h-9">
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Todo">Todo</SelectItem>
+                                                <SelectItem value="In Progress">In Progress</SelectItem>
+                                                <SelectItem value="Done">Done</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
-                                )}
-                                {(task.team || task.project) && task.message?.sender && (
-                                    <div className="text-xs text-muted-foreground mt-2 md:ml-[156px]">
-                                        Assigned by {task.message.sender.name} in {task.team?.name || task.project?.name}
-                                    </div>
-                                )}
+                                </CardContent>
                             </SpotlightCard>
                         </HoverEffect>
                     </StaggerItem>

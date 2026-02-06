@@ -153,98 +153,113 @@ export default async function DashboardPage() {
                 {/* Daily Habits - Large Feature Card */}
                 <StaggerItem className="lg:col-span-2">
                     <HoverEffect variant="lift" className="h-full">
-                        <SpotlightCard className="h-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-base font-semibold">Daily Habits</CardTitle>
-                                <CalendarCheck className="h-5 w-5 text-indigo-500" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-4xl font-bold tracking-tighter text-indigo-500 dark:text-indigo-400">
-                                    {habitsCompleted || 0} <span className="text-muted-foreground text-2xl font-normal">/ {habitsCount || 0}</span>
-                                </div>
-                                <p className="text-sm text-muted-foreground mt-2">Consistent action creates success.</p>
-                                <Progress value={((habitsCompleted || 0) / (habitsCount || 1)) * 100} className="h-2 mt-4 bg-indigo-100 dark:bg-indigo-900/30" />
-                            </CardContent>
-                        </SpotlightCard>
+                        <Link href="/dashboard/habits" className="block h-full">
+                            <SpotlightCard className="h-full bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-base font-semibold">Daily Habits</CardTitle>
+                                    <CalendarCheck className="h-5 w-5 text-indigo-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-4xl font-bold tracking-tighter text-indigo-500 dark:text-indigo-400">
+                                        {habitsCompleted || 0} <span className="text-muted-foreground text-2xl font-normal">/ {habitsCount || 0}</span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-2">Consistent action creates success.</p>
+                                    <Progress value={((habitsCompleted || 0) / (habitsCount || 1)) * 100} className="h-2 mt-4 bg-indigo-100 dark:bg-indigo-900/30" />
+                                </CardContent>
+                            </SpotlightCard>
+                        </Link>
+                    </HoverEffect>
+                </StaggerItem>
+
+                <StaggerItem className="lg:col-span-2">
+                    <HoverEffect variant="lift" className="h-full">
+                        <Link href="/dashboard/tasks" className="block h-full">
+                            <SpotlightCard className="h-full bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-base font-semibold">Tasks</CardTitle>
+                                    <CheckSquare className="h-5 w-5 text-blue-500" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-4xl font-bold tracking-tighter text-blue-500 dark:text-blue-400">
+                                        {tasksDone || 0} <span className="text-muted-foreground text-2xl font-normal">/ {(tasksDone || 0) + (tasksPending || 0)}</span>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mt-2">Stay focused and get things done.</p>
+                                    <Progress value={tasksDone && (tasksDone + (tasksPending || 0)) > 0 ? (tasksDone / (tasksDone + (tasksPending || 0))) * 100 : 0} className="h-2 mt-4 bg-blue-100 dark:bg-blue-900/30" />
+                                </CardContent>
+                            </SpotlightCard>
+                        </Link>
                     </HoverEffect>
                 </StaggerItem>
 
                 <StaggerItem>
                     <HoverEffect variant="lift">
-                        <SpotlightCard>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Tasks</CardTitle>
-                                <CheckSquare className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{tasksPending}</div>
-                                <p className="text-xs text-muted-foreground">{tasksDone} completed today</p>
-                            </CardContent>
-                        </SpotlightCard>
-                    </HoverEffect>
-                </StaggerItem>
-
-                <StaggerItem>
-                    <HoverEffect variant="lift">
-                        <SpotlightCard>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Goal Progress</CardTitle>
-                                <Target className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{avgProgress.toFixed(0)}%</div>
-                                <Progress value={avgProgress} className="h-1.5 mt-2" />
-                            </CardContent>
-                        </SpotlightCard>
+                        <Link href="/dashboard/goals" className="block h-full">
+                            <SpotlightCard className="h-full">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Goal Progress</CardTitle>
+                                    <Target className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{avgProgress.toFixed(0)}%</div>
+                                    <Progress value={avgProgress} className="h-1.5 mt-2" />
+                                </CardContent>
+                            </SpotlightCard>
+                        </Link>
                     </HoverEffect>
                 </StaggerItem>
 
                 <StaggerItem className="lg:col-span-2 md:col-span-2">
                     <HoverEffect variant="lift" className="h-full">
-                        <SpotlightCard className="h-full">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-base font-medium">Net Balance</CardTitle>
-                                <DollarSign className="h-5 w-5 text-green-500" />
-                            </CardHeader>
-                            <CardContent className="flex justify-between items-end">
-                                <div>
-                                    <div className={`text-3xl font-bold tracking-tighter ${balance >= 0 ? 'text-foreground' : 'text-red-600'}`}>
-                                        {formatCurrency(balance)}
+                        <Link href="/dashboard/finances" className="block h-full">
+                            <SpotlightCard className="h-full">
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-base font-medium">Net Balance</CardTitle>
+                                    <DollarSign className="h-5 w-5 text-green-500" />
+                                </CardHeader>
+                                <CardContent className="flex justify-between items-end">
+                                    <div>
+                                        <div className={`text-3xl font-bold tracking-tighter ${balance >= 0 ? 'text-foreground' : 'text-red-600'}`}>
+                                            {formatCurrency(balance)}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">Total liquid assets available</p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground mt-1">Total liquid assets available</p>
-                                </div>
-                                <div className="flex flex-col gap-1 text-right">
-                                    <span className="flex items-center justify-end text-sm text-green-600 bg-green-500/10 px-2 py-1 rounded-md">
-                                        <ArrowUpRight className="h-3 w-3 mr-1" />{formatCurrency(income)}
-                                    </span>
-                                    <span className="flex items-center justify-end text-sm text-red-600 bg-red-500/10 px-2 py-1 rounded-md">
-                                        <ArrowDownLeft className="h-3 w-3 mr-1" />{formatCurrency(expense)}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </SpotlightCard>
+                                    <div className="flex flex-col gap-1 text-right">
+                                        <span className="flex items-center justify-end text-sm text-green-600 bg-green-500/10 px-2 py-1 rounded-md">
+                                            <ArrowUpRight className="h-3 w-3 mr-1" />{formatCurrency(income)}
+                                        </span>
+                                        <span className="flex items-center justify-end text-sm text-red-600 bg-red-500/10 px-2 py-1 rounded-md">
+                                            <ArrowDownLeft className="h-3 w-3 mr-1" />{formatCurrency(expense)}
+                                        </span>
+                                    </div>
+                                </CardContent>
+                            </SpotlightCard>
+                        </Link>
                     </HoverEffect>
                 </StaggerItem>
 
                 <StaggerItem className="lg:col-span-2">
                     <div className="grid grid-cols-2 gap-4 h-full">
                         <HoverEffect variant="lift" className="h-full">
-                            <SpotlightCard className="h-full flex flex-col justify-center items-center text-center p-4">
-                                <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
-                                    <Library className="h-5 w-5 text-blue-500" />
-                                </div>
-                                <div className="text-2xl font-bold">{resourcesCount || 0}</div>
-                                <p className="text-xs text-muted-foreground">Resources</p>
-                            </SpotlightCard>
+                            <Link href="/dashboard/resources" className="block h-full">
+                                <SpotlightCard className="h-full flex flex-col justify-center items-center text-center p-4">
+                                    <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
+                                        <Library className="h-5 w-5 text-blue-500" />
+                                    </div>
+                                    <div className="text-2xl font-bold">{resourcesCount || 0}</div>
+                                    <p className="text-xs text-muted-foreground">Resources</p>
+                                </SpotlightCard>
+                            </Link>
                         </HoverEffect>
                         <HoverEffect variant="lift" className="h-full">
-                            <SpotlightCard className="h-full flex flex-col justify-center items-center text-center p-4">
-                                <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center mb-2">
-                                    <StickyNote className="h-5 w-5 text-orange-500" />
-                                </div>
-                                <div className="text-2xl font-bold">{notesCount || 0}</div>
-                                <p className="text-xs text-muted-foreground">Notes</p>
-                            </SpotlightCard>
+                            <Link href="/dashboard/notes" className="block h-full">
+                                <SpotlightCard className="h-full flex flex-col justify-center items-center text-center p-4">
+                                    <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center mb-2">
+                                        <StickyNote className="h-5 w-5 text-orange-500" />
+                                    </div>
+                                    <div className="text-2xl font-bold">{notesCount || 0}</div>
+                                    <p className="text-xs text-muted-foreground">Notes</p>
+                                </SpotlightCard>
+                            </Link>
                         </HoverEffect>
                     </div>
                 </StaggerItem>
@@ -267,47 +282,6 @@ export default async function DashboardPage() {
                         </Link>
                     </HoverEffect>
 
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/habits" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
-                            <CalendarCheck className="h-6 w-6 mb-2 text-primary" />
-                            <span className="text-sm font-medium">Habits</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/tasks" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
-                            <CheckSquare className="h-6 w-6 mb-2 text-primary" />
-                            <span className="text-sm font-medium">Tasks</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/goals" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
-                            <Target className="h-6 w-6 mb-2 text-primary" />
-                            <span className="text-sm font-medium">Goals</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/finances" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
-                            <DollarSign className="h-6 w-6 mb-2 text-primary" />
-                            <span className="text-sm font-medium">Finances</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/resources" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
-                            <Library className="h-6 w-6 mb-2 text-primary" />
-                            <span className="text-sm font-medium">Resources</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/notes" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
-                            <StickyNote className="h-6 w-6 mb-2 text-primary" />
-                            <span className="text-sm font-medium">Notes</span>
-                        </Link>
-                    </HoverEffect>
 
                     <HoverEffect variant="glow" className="col-span-1">
                         <Link href="/dashboard/collections" className="flex flex-col items-center justify-center h-32 bg-card/50 backdrop-blur-sm border rounded-xl hover:bg-card/80 transition-colors p-4 text-center">
