@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { addTransaction } from '@/app/dashboard/finances/actions'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 interface Category {
     id: string
@@ -40,10 +41,22 @@ const DEFAULT_CATEGORIES = {
 }
 
 export function AddTransactionDialog({ categories, projects, onAdd }: { categories: Category[], projects?: Project[], onAdd?: (t: any) => void }) {
+    const searchParams = useSearchParams()
+    const router = useRouter()
     const [open, setOpen] = useState(false)
     const [type, setType] = useState<'Income' | 'Expense'>('Expense')
     const [category, setCategory] = useState<string>('')
     const [loading, setLoading] = useState(false)
+
+    // Auto-open dialog if ?add=true is in URL
+    useEffect(() => {
+        if (searchParams.get('add') === 'true') {
+            setOpen(true)
+            const params = new URLSearchParams(searchParams.toString())
+            params.delete('add')
+            router.replace(`?${params.toString()}`, { scroll: false })
+        }
+    }, [searchParams, router])
 
     // Merge default categories with custom categories from DB
     const availableCategories = [

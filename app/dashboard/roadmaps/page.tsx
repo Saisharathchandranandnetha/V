@@ -14,11 +14,12 @@ import { createRoadmap } from './actions'
 import { DashboardSearch } from '@/components/dashboard-search'
 import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
+import { RoadmapsAutoCreate } from './roadmaps-auto-create'
 
 export default async function RoadmapsPage({
     searchParams
 }: {
-    searchParams: Promise<{ q?: string }>
+    searchParams: Promise<{ q?: string, add?: string }>
 }) {
     const { q: searchQuery } = await searchParams
     const supabase = await createClient()
@@ -32,6 +33,7 @@ export default async function RoadmapsPage({
 
     return (
         <div className="container py-8 max-w-5xl">
+            <RoadmapsAutoCreate />
             <div className="flex justify-between items-center mb-8">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">My Roadmaps</h1>

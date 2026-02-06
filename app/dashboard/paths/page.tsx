@@ -7,11 +7,12 @@ import { LearningPathCard, LearningPathProps } from '@/components/learning-path-
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { ViewSelector } from './view-selector'
 import { DashboardSearch } from '@/components/dashboard-search'
+import { PathsAutoRedirect } from './paths-auto-redirect'
 
 export const dynamic = 'force-dynamic'
 
 export default async function LearningPathsPage(props: {
-    searchParams: Promise<{ view?: string, q?: string }>
+    searchParams: Promise<{ view?: string, q?: string, add?: string }>
 }) {
     const searchParams = await props.searchParams
     const view = searchParams.view || 'active'
@@ -30,6 +31,7 @@ export default async function LearningPathsPage(props: {
 
     return (
         <div className="space-y-6">
+            <PathsAutoRedirect />
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Learning Paths</h1>
