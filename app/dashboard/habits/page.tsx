@@ -1,7 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { CreateHabitDialog } from '@/components/habits/create-habit-dialog'
-import { HabitList } from '@/components/habits/habit-list'
-import { HabitsAnalyticsGraph } from '@/components/habits/habits-analytics-graph'
+import { HabitsManager } from '@/components/habits/habits-manager'
 
 export default async function HabitsPage() {
     const supabase = await createClient()
@@ -27,18 +25,6 @@ export default async function HabitsPage() {
         .order('created_at', { ascending: false })
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-3xl font-bold tracking-tight">Habits</h2>
-                    <p className="text-muted-foreground">Build better habits, one day at a time.</p>
-                </div>
-                <CreateHabitDialog />
-            </div>
-
-            <HabitsAnalyticsGraph />
-
-            <HabitList habits={habits || []} />
-        </div>
+        <HabitsManager initialHabits={habits || []} />
     )
 }

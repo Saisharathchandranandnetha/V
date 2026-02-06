@@ -39,7 +39,7 @@ const DEFAULT_CATEGORIES = {
     Expense: ['Food', 'Rent', 'Transport', 'Utilities', 'Entertainment', 'Shopping', 'Health', 'Other']
 }
 
-export function AddTransactionDialog({ categories, projects }: { categories: Category[], projects?: Project[] }) {
+export function AddTransactionDialog({ categories, projects, onAdd }: { categories: Category[], projects?: Project[], onAdd?: (t: any) => void }) {
     const [open, setOpen] = useState(false)
     const [type, setType] = useState<'Income' | 'Expense'>('Expense')
     const [category, setCategory] = useState<string>('')
@@ -60,14 +60,50 @@ export function AddTransactionDialog({ categories, projects }: { categories: Cat
 
     async function onSubmit(formData: FormData) {
         setLoading(true)
+
+        // Optimistic Update
+        if (onAdd) {
+            const type = formData.get('type') as 'Income' | 'Expense'
+            const amount = parseFloat(formData.get('amount') as string)
+            const dateStr = formData.get('date') as string
+            const projectId = formData.get('projectId') as string
+            const description = formData.get('description') as string
+            const categoryName = formData.get('category') as string
+            const customCategory = formData.get('custom_category') as string
+
+            let finalCategoryName = categoryName
+            if (categoryName === 'Other' && customCategory && customCategory.trim()) {
+                finalCategoryName = customCategory.trim()
+            }
+
+            const newTransaction = {
+                id: crypto.randomUUID(),
+                type,
+                amount,
+                date: dateStr ? new Date(dateStr).toISOString() : new Date().toISOString(),
+                category_id: 'temp',
+                category_name: finalCategoryName,
+                description,
+                user_id: 'temp',
+                project_id: projectId !== 'undefined' ? projectId : undefined
+            }
+            onAdd(newTransaction)
+            setOpen(false)
+        }
+
         try {
             const result = await addTransaction(formData)
             if (result?.error) {
                 toast.error(result.error)
+                // In a perfect world we would revert optimistic here
                 return
             }
-            toast.success("Transaction added successfully")
-            setOpen(false)
+            if (!onAdd) {
+                toast.success("Transaction added successfully")
+                setOpen(false)
+            } else {
+                toast.success("Transaction added successfully")
+            }
         } catch (error) {
             console.error('Failed to add transaction', error)
             toast.error("An unexpected error occurred")

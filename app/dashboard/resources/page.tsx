@@ -1,13 +1,6 @@
 
-import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus } from 'lucide-react'
-import Link from 'next/link'
-import { ResourceCard, ResourceType } from '@/components/resource-card'
-import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
+import { ResourcesManager } from '@/components/resources/resources-manager'
 import { createClient } from '@/lib/supabase/server'
-import { ResourceSearch } from './resource-search'
-import { MagneticText } from '@/components/ui/magnetic-text'
 
 export default async function ResourcesPage({
     searchParams
@@ -20,96 +13,17 @@ export default async function ResourcesPage({
         .select('id, title, type, summary, tags, url, created_at')
         .order('created_at', { ascending: false })
 
-    const filteredResources = (resources || []).filter(r =>
-        !searchQuery ||
-        (r.title?.toLowerCase() || '').includes(searchQuery.toLowerCase())
-    )
-
-    const typedResources = filteredResources.map(r => ({
-        ...r,
-        date: r.created_at
-    }))
-
-    const linkResources = typedResources.filter(r => r.type === 'url' || r.type === 'youtube')
-    const docResources = typedResources.filter(r => r.type === 'pdf')
-    const modelResources = typedResources.filter(r => r.type === 'gltf' || r.type === 'spline')
+    // Fetch categories for dropdown (ResourcesManager -> AddResourceDialog needs them)
+    const { data: categories } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true })
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <MagneticText>
-                        <h1 className="text-3xl font-bold tracking-tight">Resources</h1>
-                    </MagneticText>
-                    <p className="text-muted-foreground">Manage your learning materials.</p>
-                </div>
-                <Link href="/dashboard/resources/new">
-                    <Button>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Resource
-                    </Button>
-                </Link>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                <ResourceSearch />
-            </div>
-
-            <Tabs defaultValue="all" className="space-y-4">
-                <div className="w-full overflow-x-auto pb-2">
-                    <TabsList>
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="links">Links</TabsTrigger>
-                        <TabsTrigger value="documents">Documents</TabsTrigger>
-                        <TabsTrigger value="3d">3D Models</TabsTrigger>
-                    </TabsList>
-                </div>
-                <TabsContent value="all" className="space-y-4">
-                    {typedResources.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-lg text-muted-foreground">
-                            No resources found. Add one to get started!
-                        </div>
-                    ) : (
-                        <StaggerContainer key={`all-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {typedResources.map(r => (
-                                <StaggerItem key={r.id} className="h-full">
-                                    <ResourceCard resource={r as any} />
-                                </StaggerItem>
-                            ))}
-                        </StaggerContainer>
-                    )}
-                </TabsContent>
-                <TabsContent value="links" className="space-y-4">
-                    <StaggerContainer key={`links-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {linkResources.map(r => (
-                            <StaggerItem key={r.id} className="h-full">
-                                <ResourceCard resource={r as any} />
-                            </StaggerItem>
-                        ))}
-                    </StaggerContainer>
-                    {linkResources.length === 0 && <div className="text-center text-muted-foreground p-8">No links found.</div>}
-                </TabsContent>
-                <TabsContent value="documents" className="space-y-4">
-                    <StaggerContainer key={`docs-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {docResources.map(r => (
-                            <StaggerItem key={r.id} className="h-full">
-                                <ResourceCard resource={r as any} />
-                            </StaggerItem>
-                        ))}
-                    </StaggerContainer>
-                    {docResources.length === 0 && <div className="text-center text-muted-foreground p-8">No documents found.</div>}
-                </TabsContent>
-                <TabsContent value="3d" className="space-y-4">
-                    <StaggerContainer key={`3d-${searchQuery}`} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        {modelResources.map(r => (
-                            <StaggerItem key={r.id} className="h-full">
-                                <ResourceCard resource={r as any} />
-                            </StaggerItem>
-                        ))}
-                    </StaggerContainer>
-                    {modelResources.length === 0 && <div className="text-center text-muted-foreground p-8">No 3D models found.</div>}
-                </TabsContent>
-            </Tabs>
-        </div>
+        <ResourcesManager
+            initialResources={resources || []}
+            searchQuery={searchQuery}
+            categories={categories || []}
+        />
     )
 }

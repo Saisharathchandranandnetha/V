@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useOptimistic } from 'react'
 import { isSameDay, isBefore, startOfDay, format } from 'date-fns'
 import { ActivitiesCalendar } from './activities-calendar'
 import { CreateTaskDialog } from './create-task-dialog'
@@ -30,25 +30,30 @@ interface Task {
 import { useRouter } from 'next/navigation'
 
 export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
-    const [serverTasks, setServerTasks] = useState<Task[]>(initialTasks)
-    const [localTasks, setLocalTasks] = useState<Task[]>([])
+    // Optimistic UI State
+    const [optimisticTasks, addOptimisticTask] = useOptimistic(
+        initialTasks,
+        (state: Task[], newTask: Task) => [newTask, ...state]
+    )
+
+    const [localTasks, setLocalTasks] = useState<Task[]>([]) // CreateTaskDialog might still use this if we don't fully switch? 
+    // Actually, create-task-dialog calls router.refresh(). 
+    // We should replace localTasks/router.refresh logic with useOptimistic.
+
+    // However, TasksWrapper logic currently merges localTasks + serverTasks.
+    // If we use useOptimistic, the `initialTasks` (serverTasks) will be the base state.
+    // When server revalidates, `initialTasks` updates, and useOptimistic resets (unless we have persistent optimistic state, but typically it flushes).
+
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
     const router = useRouter()
 
-    // Sync state with server/prop updates
-    useEffect(() => {
-        setServerTasks(initialTasks)
-        // Cleanup local tasks that are now present in server tasks
-        if (initialTasks.length > 0) {
-            setLocalTasks(prev => prev.filter(local => !initialTasks.find(server => server.id === local.id)))
-        }
-    }, [initialTasks])
+    // Sync state: We don't need manual sync if we use optimisticTasks as the source of truth for rendering 
+    // BUT TasksWrapper has complex filtering logic.
 
-    // Merge tasks: Local tasks first (assuming they are newer), then server tasks, deduplicated
-    const tasks = [...localTasks, ...serverTasks.filter(st => !localTasks.find(lt => lt.id === st.id))]
+    // Let's use `optimisticTasks` instead of `tasks` (which was local+server).
 
     // Filter Logic
-    const filteredTasks = tasks.filter((task) => {
+    const filteredTasks = optimisticTasks.filter((task: Task) => {
         const taskDate = task.due_date ? new Date(task.due_date) : new Date(task.created_at) // Fallback to created_at if no due date? Or just ignore?
         // Actually, let's assume due_date is the source of truth for "scheduled" day.
 
@@ -93,14 +98,8 @@ export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
                     </div>
                     <CreateTaskDialog
                         defaultDate={selectedDate}
-                        onTaskCreated={(newTask) => {
-                            // Since tasks prop is immutable from server, we can't mutate it directly?
-                            // Actually, we can use useState to hold the tasks, init with initialTasks
-                            // But wait, TasksWrapper already takes tasks as prop.
-                            // We need to change TasksWrapper to use state for tasks.
-                            // We add to localTasks to show it immediately
-                            setLocalTasks(prev => [newTask, ...prev])
-                            router.refresh()
+                        onAdd={(newTask) => {
+                            addOptimisticTask(newTask)
                         }}
                     />
                 </div>
