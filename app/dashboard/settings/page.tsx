@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Edit, Trash2, ExternalLink, ShieldCheck } from 'lucide-react'
 import { deleteResource, deleteLearningPath } from '@/app/dashboard/actions'
-import { getUserSettings } from './actions'
+import { getUserSettings, isAdmin } from './actions'
 import SettingsForm from './settings-form'
 import CollectionsManager from './collections-manager'
 import CategoriesManager from './categories-manager'
@@ -59,8 +59,8 @@ export default async function SettingsPage() {
                     </div>
                     {/* Admin Access Button */}
                     {await (async () => {
-                        const { data: { user: authUser } } = await supabase.auth.getUser()
-                        if (authUser?.email === process.env.ADMIN_EMAIL) {
+                        const adminUser = await isAdmin()
+                        if (adminUser) {
                             return (
                                 <Link href="/dashboard/admin">
                                     <Button variant="outline" className="gap-2 border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20">

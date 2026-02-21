@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
-import { getUserSettings } from '@/app/dashboard/settings/actions'
+import { getUserSettings, isAdmin } from '@/app/dashboard/settings/actions'
 import { ThemeSync } from '@/components/theme-sync'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardContent } from '@/components/dashboard-content'
@@ -25,6 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
     const userSettings = await getUserSettings()
     const isTeamOnly = userSettings?.role === 'team_only'
+    const adminUser = await isAdmin()
 
     if (isTeamOnly) {
     }
@@ -37,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="flex min-h-screen relative">
             {/* Desktop Sidebar - Sticky for root scroll */}
             <aside className="hidden md:block w-64 shrink-0 sticky top-0 h-screen z-40 bg-background/50 backdrop-blur-md">
-                <Sidebar isAdmin={user.email === process.env.ADMIN_EMAIL} isTeamOnly={isTeamOnly} className="h-full border-r" />
+                <Sidebar isAdmin={adminUser} isTeamOnly={isTeamOnly} className="h-full border-r" />
             </aside>
 
             {/* Main Content Area */}
@@ -55,7 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 </div>
 
                 {/* New Floating Dock for Mobile */}
-                <FloatingDock user={user} isAdmin={user.email === process.env.ADMIN_EMAIL} isTeamOnly={isTeamOnly} />
+                <FloatingDock user={user} isAdmin={adminUser} isTeamOnly={isTeamOnly} />
 
                 <DashboardContent deviceType={deviceType} isTeamOnly={isTeamOnly}>
                     {children}

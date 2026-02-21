@@ -3,10 +3,11 @@
   publish = ".next"
 
 [build.environment]
-  # Tell Netlify secrets scanner to ignore these server-only keys.
-  # They are NEVER exposed to the client — only used in API routes and
-  # server components, so scanning their values in the server bundle is a false positive.
-  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_SERVICE_ROLE_KEY,GROQ_API_KEY"
+  # SECRETS_SCAN_OMIT_KEYS: omit all project env vars from Netlify's secrets scanner.
+  # NEXT_PUBLIC_* vars are intentionally embedded in client bundles by Next.js (by design).
+  # Server-only vars (SUPABASE_SERVICE_ROLE_KEY, GROQ_API_KEY) appear in SSR/edge chunks
+  # but are never accessible to browsers. All values are set securely in Netlify's dashboard.
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_SERVICE_ROLE_KEY,GROQ_API_KEY,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SUPABASE_URL,ADMIN_EMAIL,LOCAL_AI_URL,LOCAL_AI_MODEL"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

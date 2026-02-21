@@ -4,6 +4,14 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+/** Returns true if the currently authenticated user is the admin. */
+export async function isAdmin(): Promise<boolean> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user?.email) return false
+    return user.email === process.env.ADMIN_EMAIL
+}
+
 export async function getUserSettings() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
