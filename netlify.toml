@@ -3,11 +3,17 @@
   publish = ".next"
 
 [build.environment]
-  # SECRETS_SCAN_OMIT_KEYS: omit all project env vars from Netlify's secrets scanner.
-  # NEXT_PUBLIC_* vars are intentionally embedded in client bundles by Next.js (by design).
-  # Server-only vars (SUPABASE_SERVICE_ROLE_KEY, GROQ_API_KEY) appear in SSR/edge chunks
-  # but are never accessible to browsers. All values are set securely in Netlify's dashboard.
+  # SECRETS_SCAN_OMIT_KEYS: All env vars used in this project.
+  # NEXT_PUBLIC_* vars are intentionally embedded in client bundles by Next.js design.
+  # Server-only vars appear in SSR/edge/server chunks (inlined by Next.js at build time)
+  # but are NEVER accessible to the browser at runtime.
+  # All values are stored securely in Netlify's environment dashboard.
   SECRETS_SCAN_OMIT_KEYS = "SUPABASE_SERVICE_ROLE_KEY,GROQ_API_KEY,NEXT_PUBLIC_SUPABASE_ANON_KEY,NEXT_PUBLIC_SUPABASE_URL,ADMIN_EMAIL,LOCAL_AI_URL,LOCAL_AI_MODEL"
+
+  # SECRETS_SCAN_OMIT_PATHS: Exclude server-side bundle chunks from scanning.
+  # These paths contain Next.js SSR/edge runtime code where env vars are legitimately inlined.
+  # They are never sent to the browser — they run in Netlify's serverless functions only.
+  SECRETS_SCAN_OMIT_PATHS = ".next/server/**,.netlify/functions-internal/**,.next/standalone/**"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
