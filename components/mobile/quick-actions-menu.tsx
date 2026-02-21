@@ -71,7 +71,7 @@ export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
                         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-8 opacity-50" />
 
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold font-syne">Quick Add</h2>
+                            <h2 className="text-2xl font-bold font-display">Quick Add</h2>
                             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
                                 <X className="h-5 w-5" />
                             </Button>

@@ -48,9 +48,10 @@ import { sidebarNavItems } from '@/lib/nav-config'
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
     isAdmin?: boolean
+    isTeamOnly?: boolean
 }
 
-export function Sidebar({ className, isAdmin }: SidebarProps) {
+export function Sidebar({ className, isAdmin, isTeamOnly }: SidebarProps) {
     const pathname = usePathname()
 
     return (
@@ -65,16 +66,21 @@ export function Sidebar({ className, isAdmin }: SidebarProps) {
                             <div className="relative h-9 w-9 rounded-lg overflow-hidden shadow-sm">
                                 <Image
                                     src="/logo.png"
-                                    alt="LifeOS Logo"
+                                    alt="V Logo"
                                     fill
                                     className="object-cover"
                                 />
                             </div>
-                            LifeOS
+                            V
                         </h2>
                     </Link>
                     <div className="space-y-1">
-                        {sidebarNavItems.map((item) => {
+                        {sidebarNavItems.filter(item => {
+                            if (isTeamOnly) {
+                                return ['Teams', 'Settings'].includes(item.title)
+                            }
+                            return true
+                        }).map((item) => {
                             if (item.children) {
                                 // Check if any child is active to open properly (optional, but good UX)
                                 const isOpen = item.children.some(child => pathname.startsWith(child.href))

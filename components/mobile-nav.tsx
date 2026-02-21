@@ -38,12 +38,12 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
                                 <div className="relative h-8 w-8 rounded-sm overflow-hidden">
                                     <Image
                                         src="/logo.png"
-                                        alt="LifeOS Logo"
+                                        alt="V Logo"
                                         fill
                                         className="object-cover"
                                     />
                                 </div>
-                                LifeOS
+                                V
                             </SheetTitle>
                             <div className="space-y-1">
                                 {sidebarNavItems.map((item) => {

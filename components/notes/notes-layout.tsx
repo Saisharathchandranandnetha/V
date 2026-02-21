@@ -50,6 +50,7 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
     const router = useRouter()
     const searchParams = useSearchParams()
 
+    const [isPending, startTransition] = useTransition()
     const [optimisticNotes, dispatchOptimistic] = useOptimistic(
         initialNotes,
         (state: Note[], action: OptimisticAction) => {
@@ -108,7 +109,9 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
         setIsDeleting(true)
 
         // Optimistic Delete
-        dispatchOptimistic({ type: 'DELETE', payload: noteToDelete })
+        startTransition(() => {
+            dispatchOptimistic({ type: 'DELETE', payload: noteToDelete })
+        })
 
         if (selectedNote?.id === noteToDelete) {
             setSelectedNote(null)
@@ -144,13 +147,17 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
             const existing = optimisticNotes.find(n => n.id === updatedNote.id)
             const merged = existing ? { ...existing, ...updatedNote } as Note : { ...updatedNote } as Note
 
-            dispatchOptimistic({ type: 'UPDATE', payload: merged })
+            startTransition(() => {
+                dispatchOptimistic({ type: 'UPDATE', payload: merged })
+            })
             setSelectedNote(merged)
         } else {
             // Create
             const newNote = updatedNote as Note
             if (newNote.id && newNote.title) {
-                dispatchOptimistic({ type: 'ADD', payload: newNote })
+                startTransition(() => {
+                    dispatchOptimistic({ type: 'ADD', payload: newNote })
+                })
                 setSelectedNote(newNote)
             }
         }

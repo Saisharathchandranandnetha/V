@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic } from 'react'
+import { useOptimistic, useTransition } from 'react'
 import { AddTransactionDialog } from './add-transaction-dialog'
 import { TransactionList } from './transaction-list'
 import { FinanceOverview } from './finance-overview'
@@ -37,6 +37,7 @@ interface FinancesManagerProps {
 }
 
 export function FinancesManager({ initialTransactions, categories, projects }: FinancesManagerProps) {
+    const [isPending, startTransition] = useTransition()
     const [optimisticTransactions, addOptimisticTransaction] = useOptimistic(
         initialTransactions,
         (state, newTransaction: Transaction) => [newTransaction, ...state].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -52,7 +53,11 @@ export function FinancesManager({ initialTransactions, categories, projects }: F
                 <AddTransactionDialog
                     categories={categories}
                     projects={projects}
-                    onAdd={addOptimisticTransaction}
+                    onAdd={(newTransaction) => {
+                        startTransition(() => {
+                            addOptimisticTransaction(newTransaction)
+                        })
+                    }}
                 />
             </div>
 

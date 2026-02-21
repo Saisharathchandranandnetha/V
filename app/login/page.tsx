@@ -18,14 +18,14 @@ export default async function LoginPage(props: { searchParams: Promise<{ message
                 <CardHeader className="space-y-3 pb-8">
                     <div className="flex justify-center mb-2">
                         <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <span className="text-xl font-bold text-white">L</span>
+                            <span className="text-xl font-bold text-white">V</span>
                         </div>
                     </div>
                     <CardTitle className="text-3xl font-bold tracking-tight text-center bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
                         Welcome Back
                     </CardTitle>
                     <CardDescription className="text-center text-zinc-400 text-base">
-                        Sign in to your LifeOS account
+                        Sign in to your V account
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

@@ -20,9 +20,10 @@ interface CinematicMenuProps {
     onClose: () => void;
     user?: any;
     isAdmin?: boolean;
+    isTeamOnly?: boolean;
 }
 
-export function CinematicMenu({ open, onClose, user, isAdmin }: CinematicMenuProps) {
+export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: CinematicMenuProps) {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
 
@@ -54,7 +55,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin }: CinematicMenuPro
         <Drawer open={open} onOpenChange={(val) => !val && onClose()}>
             <DrawerContent className="h-[90vh] flex flex-col rounded-t-[10px] bg-background">
                 <DrawerHeader className="px-6 flex flex-row items-center justify-between space-y-0 shrink-0 mb-2 pt-8">
-                    <DrawerTitle className="text-xl font-syne font-bold tracking-tight">Menu</DrawerTitle>
+                    <DrawerTitle className="text-xl font-display font-bold tracking-tight">Menu</DrawerTitle>
                     <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-black/5 -mr-2">
                         <X className="h-5 w-5 opacity-70" />
                     </Button>
@@ -66,7 +67,12 @@ export function CinematicMenu({ open, onClose, user, isAdmin }: CinematicMenuPro
                     style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                     <div className="space-y-1">
-                        {sidebarNavItems.map((item, i) => (
+                        {sidebarNavItems.filter(item => {
+                            if (isTeamOnly) {
+                                return ['Teams', 'Settings'].includes(item.title)
+                            }
+                            return true
+                        }).map((item, i) => (
                             <MenuItem key={item.href} item={item} pathname={pathname} />
                         ))}
 

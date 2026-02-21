@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic } from 'react'
+import { useOptimistic, useTransition } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ResourceCard } from '@/components/resource-card'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
@@ -25,6 +25,7 @@ interface ResourcesManagerProps {
 }
 
 export function ResourcesManager({ initialResources, searchQuery, categories }: ResourcesManagerProps) {
+    const [isPending, startTransition] = useTransition()
     const [optimisticResources, addOptimisticResource] = useOptimistic(
         initialResources,
         (state, newResource: Resource) => [newResource, ...state].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -55,7 +56,11 @@ export function ResourcesManager({ initialResources, searchQuery, categories }: 
                 </div>
                 <AddResourceDialog
                     categories={categories}
-                    onAdd={addOptimisticResource}
+                    onAdd={(newResource) => {
+                        startTransition(() => {
+                            addOptimisticResource(newResource)
+                        })
+                    }}
                 />
             </div>
 

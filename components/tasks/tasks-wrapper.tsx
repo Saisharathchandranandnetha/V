@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useOptimistic } from 'react'
+import { useState, useOptimistic, useTransition } from 'react'
 import { isSameDay, isBefore, startOfDay, format } from 'date-fns'
 import { ActivitiesCalendar } from './activities-calendar'
 import { CreateTaskDialog } from './create-task-dialog'
@@ -45,6 +45,7 @@ export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
     // When server revalidates, `initialTasks` updates, and useOptimistic resets (unless we have persistent optimistic state, but typically it flushes).
 
     const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+    const [isPending, startTransition] = useTransition()
     const router = useRouter()
 
     // Sync state: We don't need manual sync if we use optimisticTasks as the source of truth for rendering 
@@ -99,7 +100,9 @@ export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
                     <CreateTaskDialog
                         defaultDate={selectedDate}
                         onAdd={(newTask) => {
-                            addOptimisticTask(newTask)
+                            startTransition(() => {
+                                addOptimisticTask(newTask)
+                            })
                         }}
                     />
                 </div>

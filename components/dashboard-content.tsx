@@ -6,14 +6,31 @@ import { cn } from '@/lib/utils'
 interface DashboardContentProps {
     children: React.ReactNode
     deviceType?: string | null
+    isTeamOnly?: boolean
 }
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { GridBreakingOverlay } from './ui/grid-breaking-overlay'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
-export function DashboardContent({ children, deviceType }: DashboardContentProps) {
+export function DashboardContent({ children, deviceType, isTeamOnly }: DashboardContentProps) {
     const pathname = usePathname()
+    const router = useRouter()
     const isChat = pathname?.startsWith('/dashboard/chat')
+
+    useEffect(() => {
+        if (isTeamOnly) {
+            const allowedPaths = ['/dashboard/teams', '/dashboard/chat', '/dashboard/settings']
+            // Check if current path starts with any allowed path.
+            // Also allow /dashboard/teams/* etc.
+            const isAllowed = allowedPaths.some(path => pathname?.startsWith(path))
+
+            if (!isAllowed && pathname !== '/dashboard/teams') {
+                router.replace('/dashboard/teams')
+            }
+        }
+    }, [isTeamOnly, pathname, router])
 
     const transitionProps = {
         initial: { opacity: 0, y: 10, scale: 0.99 },
