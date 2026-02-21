@@ -1,10 +1,11 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 export async function createTeam(formData: FormData) {
+    // We need normal client for auth check
     const supabase = await createClient()
     const name = formData.get('name') as string
 
@@ -17,20 +18,43 @@ export async function createTeam(formData: FormData) {
         throw new Error('Unauthorized')
     }
 
-    // Use RPC for atomic team creation
-    const { data: teamId, error } = await supabase
-        .rpc('create_new_team', { team_name: name })
+    // Use Admin Client to bypass RLS for team creation if RPC is missing
+    const adminClient = await createAdminClient()
 
-    if (error) {
-        console.error('Error creating team (RPC):', error)
+    // 1. Create Team
+    const { data: team, error: teamError } = await adminClient
+        .from('teams')
+        .insert({
+            name,
+            created_by: user.id
+        })
+        .select()
+        .single()
+
+    if (teamError) {
+        console.error('Error creating team (Admin):', teamError)
         throw new Error('Failed to create team')
     }
 
-    // Update created_by field
-    await supabase.from('teams').update({ created_by: user.id }).eq('id', teamId)
+    // 2. Add Member as Owner
+    const { error: memberError } = await adminClient
+        .from('team_members')
+        .insert({
+            team_id: team.id,
+            user_id: user.id,
+            role: 'owner'
+        })
+
+    if (memberError) {
+        console.error('Error adding team member (Admin):', memberError)
+        // Cleanup? If member add fails, we have an orphan team. 
+        // Ideally we delete the team.
+        await adminClient.from('teams').delete().eq('id', team.id)
+        throw new Error('Failed to join team')
+    }
 
     revalidatePath('/dashboard/chat')
-    return teamId
+    return team.id
 }
 
 export async function createProject(formData: FormData) {

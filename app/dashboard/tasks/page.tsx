@@ -15,19 +15,33 @@ export default async function TasksPage() {
 
     if (!user) return <div>Please log in</div>
 
-    const { data: tasks } = await supabase
+    const { data: tasks, error: tasksError } = await supabase
         .from('tasks')
         .select(`
             *,
             team:teams(name),
-            project:projects(name),
-            message:team_messages!created_from_message_id(
-                sender:users!sender_id(name)
-            )
+            project:projects(name)
         `)
         .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
         .order('created_at', { ascending: false })
         .limit(100)
+
+    // If the or() query fails (e.g. assigned_to column missing on existing DB),
+    // fall back to a simple user_id filter so the board still shows tasks.
+    let finalTasks = tasks
+    if (tasksError) {
+        console.error('Tasks query error (or filter):', tasksError.message)
+        const { data: fallbackTasks, error: fallbackError } = await supabase
+            .from('tasks')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(100)
+        if (fallbackError) {
+            console.error('Tasks fallback query error:', fallbackError.message)
+        }
+        finalTasks = fallbackTasks
+    }
 
     return (
         <div className="space-y-6">
@@ -38,7 +52,7 @@ export default async function TasksPage() {
                 </div>
             </div>
 
-            <TasksWrapper tasks={tasks || []} />
+            <TasksWrapper tasks={finalTasks || []} />
         </div>
     )
 }

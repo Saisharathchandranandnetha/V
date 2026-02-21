@@ -28,7 +28,7 @@ export default function VerifiedPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="text-sm text-center text-zinc-500">
-                        You can now access your LifeOS dashboard.
+                        You can now access your V dashboard.
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4 border-t border-white/5 pt-6">

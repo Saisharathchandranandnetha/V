@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic } from 'react'
+import { useOptimistic, useTransition } from 'react'
 import { HabitList } from './habit-list'
 import { CreateHabitDialog } from './create-habit-dialog'
 import { HabitsAnalyticsGraph } from './habits-analytics-graph'
@@ -21,6 +21,7 @@ interface HabitsManagerProps {
 }
 
 export function HabitsManager({ initialHabits }: HabitsManagerProps) {
+    const [isPending, startTransition] = useTransition()
     const [optimisticHabits, addOptimisticHabit] = useOptimistic(
         initialHabits,
         (state, newHabit: Habit) => [newHabit, ...state]
@@ -33,7 +34,11 @@ export function HabitsManager({ initialHabits }: HabitsManagerProps) {
                     <h2 className="text-3xl font-bold tracking-tight">Habits</h2>
                     <p className="text-muted-foreground">Build better habits, one day at a time.</p>
                 </div>
-                <CreateHabitDialog onAdd={(habit) => addOptimisticHabit(habit)} />
+                <CreateHabitDialog onAdd={(habit) => {
+                    startTransition(() => {
+                        addOptimisticHabit(habit)
+                    })
+                }} />
             </div>
 
             <HabitsAnalyticsGraph />

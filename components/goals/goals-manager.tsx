@@ -1,6 +1,6 @@
 'use client'
 
-import { useOptimistic } from 'react'
+import { useOptimistic, useTransition } from 'react'
 import { format } from 'date-fns'
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -36,6 +36,7 @@ interface GoalsManagerProps {
 }
 
 export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
+    const [isPending, startTransition] = useTransition()
     const [optimisticGoals, addOptimisticGoal] = useOptimistic(
         initialGoals,
         (state, newGoal: Goal) => [newGoal, ...state]
@@ -74,7 +75,11 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                     <h2 className="text-3xl font-bold tracking-tight">Goals</h2>
                     <p className="text-muted-foreground">Track your progress and achieve your dreams.</p>
                 </div>
-                <CreateGoalDialog onAdd={addOptimisticGoal} />
+                <CreateGoalDialog onAdd={(goal) => {
+                    startTransition(() => {
+                        addOptimisticGoal(goal)
+                    })
+                }} />
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">

@@ -10,7 +10,7 @@ import { signupSchema, loginSchema } from '@/lib/auth-schemas'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function login(formData: FormData) {
-    const rateLimit = await checkRateLimit()
+    const rateLimit = await checkRateLimit(20) // Increased to 20 for better DevEx
     if (!rateLimit.success) {
         return redirect('/login?error=Too many requests. Please try again later.')
     }
@@ -45,19 +45,25 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-    const rateLimit = await checkRateLimit()
+    const rateLimit = await checkRateLimit(20)
     if (!rateLimit.success) {
         return redirect('/signup?error=Too many requests. Please try again later.')
     }
 
     const supabase = await createClient()
-    const origin = (await headers()).get('origin')
+    const headersList = await headers()
+
+    // Robust origin detection
+    const host = headersList.get('host')
+    const protocol = host?.includes('localhost') || host?.includes('127.0.0.1') ? 'http' : 'https'
+    const origin = headersList.get('origin') || `${protocol}://${host}`
 
     const rawData = {
         full_name: formData.get('full_name'),
         email: formData.get('email'),
         password: formData.get('password'),
         confirm_password: formData.get('confirm_password'),
+        role: formData.get('role'),
     }
 
     const validation = signupSchema.safeParse(rawData)
@@ -66,7 +72,7 @@ export async function signup(formData: FormData) {
         return redirect(`/signup?error=${encodeURIComponent(validation.error.issues[0].message)}`)
     }
 
-    const { email, password, full_name } = validation.data
+    const { email, password, full_name, role } = validation.data
 
     const { error } = await supabase.auth.signUp({
         email,
@@ -75,6 +81,7 @@ export async function signup(formData: FormData) {
             emailRedirectTo: `${origin}/auth/callback?next=/signup/verified`,
             data: {
                 full_name: full_name,
+                role: role || 'user',
             },
         },
     })

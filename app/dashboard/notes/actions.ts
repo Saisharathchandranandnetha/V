@@ -28,9 +28,12 @@ export async function createNote(formData: FormData) {
         return { error: 'Title is required' }
     }
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { error: 'Unauthorized' }
+
     const { data: note, error } = await supabase
         .from('notes')
-        .insert([{ title, content }])
+        .insert([{ title, content, user_id: user.id }])
         .select()
         .single()
 
