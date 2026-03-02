@@ -18,11 +18,11 @@ interface NoteEditorProps {
     note?: {
         id: string
         title: string
-        content: string
-        created_at?: string
+        content: string | null
+        createdAt?: Date
     }
     onClose?: () => void
-    onSave?: (note: { id: string, title: string, content: string, created_at?: string, updated_at?: string }) => void
+    onSave?: (note: { id: string, title: string, content: string | null, createdAt?: Date, updatedAt?: Date }) => void
 }
 
 export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
@@ -60,8 +60,8 @@ export function NoteEditor({ note, onClose, onSave }: NoteEditorProps) {
                 id: note?.id || createdNote?.id,
                 title,
                 content,
-                created_at: note?.created_at || createdNote?.created_at || new Date().toISOString(),
-                updated_at: new Date().toISOString() // Always set updated time on save
+                createdAt: note?.createdAt || createdNote?.createdAt || new Date(),
+                updatedAt: new Date() // Always set updated time on save
             })
             router.refresh()
         } else {

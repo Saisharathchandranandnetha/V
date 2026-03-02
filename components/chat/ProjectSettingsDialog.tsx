@@ -72,7 +72,7 @@ export function ProjectSettingsDialog({ teamId, projectId, currentName, currentU
         setIsLoadingMembers(true)
         try {
             const data = await getTeamMembers(teamId)
-            // @ts-ignore
+            // @ts-expect-error - getTeamMembers returns a type incompatible with Member[]
             setMembers(data)
         } catch (error) {
             console.error(error)

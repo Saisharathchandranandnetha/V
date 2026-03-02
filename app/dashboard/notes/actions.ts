@@ -1,88 +1,63 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { notes } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 
 export async function getNotes() {
-    const supabase = await createClient()
-    const { data: notes, error } = await supabase
-        .from('notes')
-        .select('*')
-        .order('created_at', { ascending: false })
+    const session = await auth()
+    if (!session?.user?.id) return []
 
-    if (error) {
-        console.error('Error fetching notes:', error)
-        return []
-    }
-
-    return notes
+    return await db.select().from(notes)
+        .where(eq(notes.userId, session.user.id))
+        .orderBy(desc(notes.createdAt))
 }
 
 export async function createNote(formData: FormData) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) return { error: 'Unauthorized' }
+
     const title = formData.get('title') as string
     const content = formData.get('content') as string
 
-    if (!title) {
-        return { error: 'Title is required' }
-    }
+    if (!title) return { error: 'Title is required' }
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return { error: 'Unauthorized' }
-
-    const { data: note, error } = await supabase
-        .from('notes')
-        .insert([{ title, content, user_id: user.id }])
-        .select()
-        .single()
-
-    if (error) {
-        console.error('Error creating note:', error)
-        return { error: error.message }
-    }
+    const [note] = await db.insert(notes).values({
+        userId: session.user.id,
+        title,
+        content,
+    }).returning()
 
     revalidatePath('/dashboard/notes')
     return { success: true, note }
 }
 
 export async function updateNote(formData: FormData) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) return { error: 'Unauthorized' }
+
     const id = formData.get('id') as string
     const title = formData.get('title') as string
     const content = formData.get('content') as string
 
-    if (!id || !title) {
-        return { error: 'ID and Title are required' }
-    }
+    if (!id || !title) return { error: 'ID and Title are required' }
 
-    const { error } = await supabase
-        .from('notes')
-        .update({ title, content, updated_at: new Date().toISOString() })
-        .eq('id', id)
-
-    if (error) {
-        console.error('Error updating note:', error)
-        return { error: error.message }
-    }
-
+    await db.update(notes)
+        .set({ title, content, updatedAt: new Date() })
+        .where(and(eq(notes.id, id), eq(notes.userId, session.user.id)))
 
     revalidatePath('/dashboard/notes')
     return { success: true }
 }
 
 export async function deleteNote(id: string) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) return { error: 'Unauthorized' }
 
-    const { error } = await supabase
-        .from('notes')
-        .delete()
-        .eq('id', id)
-
-    if (error) {
-        console.error('Error deleting note:', error)
-        return { error: 'Failed to delete note' }
-    }
+    await db.delete(notes)
+        .where(and(eq(notes.id, id), eq(notes.userId, session.user.id)))
 
     revalidatePath('/dashboard/notes')
     return { success: true }

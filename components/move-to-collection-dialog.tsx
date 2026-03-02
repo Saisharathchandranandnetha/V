@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { moveItemToCollection, createCollectionAndReturn } from '@/app/dashboard/actions'
-import { createClient } from '@/lib/supabase/client'
+import { moveItemToCollection, createCollectionAndReturn, getCollections } from '@/app/dashboard/actions'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Plus } from 'lucide-react'
@@ -34,9 +33,8 @@ export function MoveToCollectionDialog({ itemId, itemType, open, onOpenChange, c
     useEffect(() => {
         if (open) {
             const fetchCollections = async () => {
-                const supabase = createClient()
-                const { data } = await supabase.from('collections').select('id, name').order('name')
-                if (data) setCollections(data)
+                const data = await getCollections()
+                setCollections(data)
             }
             fetchCollections()
             setIsCreating(false)

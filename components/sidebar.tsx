@@ -26,7 +26,7 @@ import {
     Layout,
     Map as MapIcon
 } from 'lucide-react'
-import { signout } from '@/app/login/actions'
+import { signout } from '@/app/dashboard/signout/actions'
 import { SubmitButton } from '@/components/submit-button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -62,16 +62,12 @@ export function Sidebar({ className, isAdmin, isTeamOnly }: SidebarProps) {
             <ScrollArea className="flex-1 pr-1">
                 <div className="px-3 py-2">
                     <Link href="/dashboard" className="block mb-6 px-4 hover:opacity-80 transition-opacity">
-                        <h2 className="text-xl font-bold tracking-tighter text-primary flex items-center gap-3">
-                            <div className="relative h-9 w-9 rounded-lg overflow-hidden shadow-sm">
-                                <Image
-                                    src="/logo.png"
-                                    alt="V Logo"
-                                    fill
-                                    className="object-cover"
-                                />
+                        <h2 className="text-xl font-bold tracking-tighter flex items-center gap-3">
+                            <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-bl from-violet-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden">
+                                <span className="absolute inset-0 bg-white/10" />
+                                <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">L</span>
                             </div>
-                            V
+                            <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-primary font-black tracking-tight">LifeOS</span>
                         </h2>
                     </Link>
                     <div className="space-y-1">

@@ -21,6 +21,7 @@ export function LottiePlayer({ src, loop = true, autoplay = true, className }: L
                 .then(data => setAnimationData(data))
                 .catch(err => console.error("Failed to load Lottie JSON", err))
         } else {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setAnimationData(src)
         }
     }, [src])

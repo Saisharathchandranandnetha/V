@@ -4,9 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Progress } from '@/components/ui/progress'
 import { PlusCircle, CalendarCheck, CheckSquare, Target, DollarSign, ArrowUpRight, ArrowDownLeft, Library, BookOpen, Route, BarChart3, Settings, StickyNote, FolderOpen, Layers, Users, MessageSquare, Map as MapIcon, Layout } from 'lucide-react'
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { habits, habitLogs, tasks, goals, transactions, resources, notes, collections, categories, learningPaths } from '@/lib/db/schema'
+import { eq, and, or, isNull, lte, count } from 'drizzle-orm'
+import { redirect } from 'next/navigation'
 import { formatCurrency } from '@/lib/utils'
-import { format } from 'date-fns'
 import { DateTimeDisplay } from '@/components/date-time-display'
 import { HoverEffect } from '@/components/ui/hover-effect'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
@@ -14,126 +17,62 @@ import { Entrance } from '@/components/ui/entrance'
 import { MagneticText } from '@/components/ui/magnetic-text'
 
 export default async function DashboardPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return <div>Please log in</div>
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
+    const userId = session.user.id
 
     const now = new Date()
     const formatter = new Intl.DateTimeFormat('en-CA', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
+        timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit'
     })
     const today = formatter.format(now)
 
-
-
-    // Calculate start and end of day in UTC for comparison
-    // Since we want "Today" based on user's locale (Asia/Kolkata), we should construct the range accordingly.
-    // However, DB stores in UTC. 
-    // Simplified approach: Match the date string if stored as date, or range if timestamp.
-    // tasks.due_date is timestamptz. 
-    // Let's create a range for "Today in Kolkata" converted to UTC.
-
-    // Actually, simpler: Use the local date string 'YYYY-MM-DD' and let Supabase/Postgres handle comparison if we cast?
-    // BETTER: Construct ISO strings for the range.
-
-    const startOfDay = new Date(now.toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' }))
-    startOfDay.setHours(0, 0, 0, 0)
-    const endOfDay = new Date(startOfDay)
-    endOfDay.setHours(23, 59, 59, 999)
-
-    const startOfDayISO = startOfDay.toISOString()
-    const endOfDayISO = endOfDay.toISOString()
-
-    // 1. Start fetching all metrics in parallel
-    // Combined habits query: Get logs directly by filtering on joined habits
-    const habitLogsPromise = supabase
-        .from('habit_logs')
-        .select('id, habits!inner(id)', { count: 'exact', head: true })
-        .eq('habits.user_id', user.id)
-        .eq('date', today)
-        .eq('status', true)
-
-    // Also need total habits count for denominator
-    const totalHabitsPromise = supabase
-        .from('habits')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-
-    const tasksPendingPromise = supabase.from('tasks')
-        .select('*', { count: 'exact', head: true })
-        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
-        .neq('status', 'Done')
-        .or(`due_date.lte.${endOfDayISO},due_date.is.null`)
-
-    const tasksDonePromise = supabase.from('tasks')
-        .select('*', { count: 'exact', head: true })
-        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
-        .eq('status', 'Done')
-        .gte('completed_at', startOfDayISO)
-        .lte('completed_at', endOfDayISO)
-
-    const goalsPromise = supabase.from('goals').select('current_value, target_value').eq('user_id', user.id)
-    const transactionsPromise = supabase.from('transactions').select('amount, type').eq('user_id', user.id)
-    const resourcesCountPromise = supabase.from('resources').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-    const pathsCountPromise = supabase.from('learning_paths').select('*', { count: 'exact', head: true }).neq('is_completed', true)
-    const notesCountPromise = supabase.from('notes').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-    const collectionsCountPromise = supabase.from('collections').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-    const categoriesCountPromise = supabase.from('categories').select('*', { count: 'exact', head: true }).eq('user_id', user.id)
-
-    // 2. Await all results
+    // Fetch all counts in parallel
     const [
-        { count: dailyHabitsCompleted },
-        { count: totalHabitsCount },
-        { count: tasksPendingCount },
-        { count: tasksDoneCount },
-        { data: goalsData },
-        { data: transactionsData },
-        { count: resourcesCountData },
-        { count: pathsCountData },
-        { count: notesCountData },
-        { count: collectionsCountData },
-        { count: categoriesCountData }
+        habitsData,
+        habitLogsData,
+        activeTasksData,
+        goalsData,
+        transactionsData,
+        resourcesData,
+        notesData,
+        collectionsData,
     ] = await Promise.all([
-        habitLogsPromise,
-        totalHabitsPromise,
-        tasksPendingPromise,
-        tasksDonePromise,
-        goalsPromise,
-        transactionsPromise,
-        resourcesCountPromise,
-        pathsCountPromise,
-        notesCountPromise,
-        collectionsCountPromise,
-        categoriesCountPromise
+        db.select({ id: habits.id }).from(habits).where(eq(habits.userId, userId)),
+        db.select({ id: habitLogs.id }).from(habitLogs)
+            .innerJoin(habits, eq(habitLogs.habitId, habits.id))
+            .where(and(eq(habits.userId, userId), eq(habitLogs.date, today), eq(habitLogs.status, true))),
+        db.select({ id: tasks.id, status: tasks.status }).from(tasks)
+            .where(and(or(eq(tasks.userId, userId), eq(tasks.assignedTo, userId)))),
+        db.select({ currentValue: goals.currentValue, targetValue: goals.targetValue }).from(goals)
+            .where(eq(goals.userId, userId)),
+        db.select({ amount: transactions.amount, type: transactions.type }).from(transactions)
+            .where(eq(transactions.userId, userId)),
+        db.select({ id: resources.id }).from(resources).where(eq(resources.userId, userId)),
+        db.select({ id: notes.id }).from(notes).where(eq(notes.userId, userId)),
+        db.select({ id: collections.id }).from(collections).where(eq(collections.userId, userId)),
     ])
 
-    // Remap variables to match original logic
-    const habitsCompleted = dailyHabitsCompleted
-    const habitsCount = totalHabitsCount
-    const tasksPending = tasksPendingCount
-    const tasksDone = tasksDoneCount
-    const goalsVector = goalsData
-    const transactions = transactionsData
-    const resourcesCount = resourcesCountData
-    const pathsCount = pathsCountData
-    const notesCount = notesCountData
-    const collectionsCount = collectionsCountData
-    const categoriesCount = categoriesCountData
+    const habitsCount = habitsData.length
+    const habitsCompleted = habitLogsData.length
+    const tasksDone = activeTasksData.filter(t => t.status === 'Done').length
+    const tasksPending = activeTasksData.filter(t => t.status !== 'Done').length
+    const resourcesCount = resourcesData.length
+    const notesCount = notesData.length
+    const collectionsCount = collectionsData.length
 
-    const activeGoals = goalsVector?.length || 0
-    // Simple average progress
     let avgProgress = 0
-    if (goalsVector && goalsVector.length > 0) {
-        const totalProgress = goalsVector.reduce((acc, g) => acc + Math.min((g.current_value / g.target_value) * 100, 100), 0)
-        avgProgress = totalProgress / goalsVector.length
+    if (goalsData.length > 0) {
+        const total = goalsData.reduce((acc, g) => {
+            const cur = parseFloat(g.currentValue || '0')
+            const tar = parseFloat(g.targetValue || '1')
+            return acc + Math.min((cur / tar) * 100, 100)
+        }, 0)
+        avgProgress = total / goalsData.length
     }
 
-    const income = transactions?.filter(t => t.type === 'Income').reduce((acc, t) => acc + t.amount, 0) || 0
-    const expense = transactions?.filter(t => t.type === 'Expense').reduce((acc, t) => acc + t.amount, 0) || 0
+    const income = transactionsData.filter(t => t.type === 'Income').reduce((a, t) => a + parseFloat(t.amount || '0'), 0)
+    const expense = transactionsData.filter(t => t.type === 'Expense').reduce((a, t) => a + parseFloat(t.amount || '0'), 0)
     const balance = income - expense
 
     return (
@@ -160,7 +99,7 @@ export default async function DashboardPage() {
 
             {/* Main Stats Bento Grid */}
             <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" delay={0.1}>
-                {/* Daily Habits - Large Feature Card */}
+                {/* Daily Habits */}
                 <StaggerItem className="lg:col-span-2">
                     <HoverEffect variant="lift" className="h-full">
                         <Link href="/dashboard/habits" className="block h-full">
@@ -173,16 +112,17 @@ export default async function DashboardPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-5xl font-bold tracking-tighter text-glow">
-                                        {habitsCompleted || 0} <span className="text-muted-foreground/40 text-2xl font-normal tracking-tight">/ {habitsCount || 0}</span>
+                                        {habitsCompleted} <span className="text-muted-foreground/40 text-2xl font-normal tracking-tight">/ {habitsCount}</span>
                                     </div>
                                     <p className="text-xs font-semibold text-muted-foreground/60 tracking-widest uppercase mt-3">Action Protocol</p>
-                                    <Progress value={((habitsCompleted || 0) / (habitsCount || 1)) * 100} className="h-1.5 mt-6 bg-white/5" />
+                                    <Progress value={(habitsCompleted / (habitsCount || 1)) * 100} className="h-1.5 mt-6 bg-white/5" />
                                 </CardContent>
                             </SpotlightCard>
                         </Link>
                     </HoverEffect>
                 </StaggerItem>
 
+                {/* Tasks */}
                 <StaggerItem className="lg:col-span-2">
                     <HoverEffect variant="lift" className="h-full">
                         <Link href="/dashboard/tasks" className="block h-full">
@@ -195,16 +135,17 @@ export default async function DashboardPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-5xl font-bold tracking-tighter text-glow" style={{ textShadow: '0 0 20px oklch(var(--accent) / 0.25)' }}>
-                                        {tasksDone || 0} <span className="text-muted-foreground/30 text-2xl font-normal tracking-tight">/ {(tasksDone || 0) + (tasksPending || 0)}</span>
+                                        {tasksDone} <span className="text-muted-foreground/30 text-2xl font-normal tracking-tight">/ {tasksDone + tasksPending}</span>
                                     </div>
                                     <p className="text-xs font-semibold text-muted-foreground/60 tracking-widest uppercase mt-3">Execution Logic</p>
-                                    <Progress value={tasksDone && (tasksDone + (tasksPending || 0)) > 0 ? (tasksDone / (tasksDone + (tasksPending || 0))) * 100 : 0} className="h-1.5 mt-6 bg-white/5" />
+                                    <Progress value={tasksDone && (tasksDone + tasksPending) > 0 ? (tasksDone / (tasksDone + tasksPending)) * 100 : 0} className="h-1.5 mt-6 bg-white/5" />
                                 </CardContent>
                             </SpotlightCard>
                         </Link>
                     </HoverEffect>
                 </StaggerItem>
 
+                {/* Goal Progress */}
                 <StaggerItem>
                     <HoverEffect variant="lift">
                         <Link href="/dashboard/goals" className="block h-full">
@@ -222,6 +163,7 @@ export default async function DashboardPage() {
                     </HoverEffect>
                 </StaggerItem>
 
+                {/* Net Balance */}
                 <StaggerItem className="lg:col-span-2 md:col-span-2">
                     <HoverEffect variant="lift" className="h-full">
                         <Link href="/dashboard/finances" className="block h-full">
@@ -253,15 +195,16 @@ export default async function DashboardPage() {
                     </HoverEffect>
                 </StaggerItem>
 
+                {/* Resources + Notes */}
                 <StaggerItem className="lg:col-span-2">
                     <div className="grid grid-cols-2 gap-4 h-full">
                         <HoverEffect variant="lift" className="h-full">
                             <Link href="/dashboard/resources" className="block h-full">
                                 <SpotlightCard className="h-full glass-dark border-white/5 flex flex-col justify-center items-center text-center p-6 duration-500">
-                                    <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center mb-3 shadow-xl border border-white/10 group-hover:scale-110 transition-transform">
+                                    <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center mb-3 shadow-xl border border-white/10">
                                         <Library className="h-6 w-6 text-primary" />
                                     </div>
-                                    <div className="text-3xl font-bold tracking-tighter text-foreground/90">{resourcesCount || 0}</div>
+                                    <div className="text-3xl font-bold tracking-tighter text-foreground/90">{resourcesCount}</div>
                                     <p className="text-[10px] font-bold text-muted-foreground/50 tracking-widest uppercase mt-1">Resources</p>
                                 </SpotlightCard>
                             </Link>
@@ -269,10 +212,10 @@ export default async function DashboardPage() {
                         <HoverEffect variant="lift" className="h-full">
                             <Link href="/dashboard/notes" className="block h-full">
                                 <SpotlightCard className="h-full glass-dark border-white/5 flex flex-col justify-center items-center text-center p-6 duration-500">
-                                    <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center mb-3 shadow-xl border border-white/10 group-hover:scale-110 transition-transform">
+                                    <div className="h-12 w-12 rounded-2xl glass flex items-center justify-center mb-3 shadow-xl border border-white/10">
                                         <StickyNote className="h-6 w-6 text-orange-400" />
                                     </div>
-                                    <div className="text-3xl font-bold tracking-tighter text-foreground/90">{notesCount || 0}</div>
+                                    <div className="text-3xl font-bold tracking-tighter text-foreground/90">{notesCount}</div>
                                     <p className="text-[10px] font-bold text-muted-foreground/50 tracking-widest uppercase mt-1">Personal Notes</p>
                                 </SpotlightCard>
                             </Link>
@@ -281,7 +224,7 @@ export default async function DashboardPage() {
                 </StaggerItem>
             </StaggerContainer>
 
-            {/* Quick Links Bento - Asymmetrical */}
+            {/* Quick Links */}
             <div className="space-y-4 mt-12 pb-12">
                 <h3 className="text-2xl font-bold tracking-tight text-foreground/80 mb-6">Quick Access</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -299,35 +242,19 @@ export default async function DashboardPage() {
                             </div>
                         </Link>
                     </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/collections" className="flex flex-col items-center justify-center h-40 glass-dark border border-white/5 rounded-[24px] hover:bg-white/5 transition-all duration-500 p-6 group">
-                            <BookOpen className="h-7 w-7 mb-3 text-primary group-hover:scale-110 transition-transform" />
-                            <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground/60">Library</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/categories" className="flex flex-col items-center justify-center h-40 glass-dark border border-white/5 rounded-[24px] hover:bg-white/5 transition-all duration-500 p-6 group">
-                            <Layers className="h-7 w-7 mb-3 text-primary group-hover:scale-110 transition-transform" />
-                            <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground/60">Logic</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/teams" className="flex flex-col items-center justify-center h-40 glass-dark border border-white/5 rounded-[24px] hover:bg-white/5 transition-all duration-500 p-6 group">
-                            <Users className="h-7 w-7 mb-3 text-primary group-hover:scale-110 transition-transform" />
-                            <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground/60">Network</span>
-                        </Link>
-                    </HoverEffect>
-
-                    <HoverEffect variant="glow" className="col-span-1">
-                        <Link href="/dashboard/chat" className="flex flex-col items-center justify-center h-40 glass-dark border border-white/5 rounded-[24px] hover:bg-white/5 transition-all duration-500 p-6 group">
-                            <MessageSquare className="h-7 w-7 mb-3 text-primary group-hover:scale-110 transition-transform" />
-                            <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground/60">Comm</span>
-                        </Link>
-                    </HoverEffect>
-
+                    {[
+                        { href: '/dashboard/collections', icon: BookOpen, label: 'Library' },
+                        { href: '/dashboard/categories', icon: Layers, label: 'Logic' },
+                        { href: '/dashboard/teams', icon: Users, label: 'Network' },
+                        { href: '/dashboard/chat', icon: MessageSquare, label: 'Comm' },
+                    ].map(({ href, icon: Icon, label }) => (
+                        <HoverEffect key={href} variant="glow" className="col-span-1">
+                            <Link href={href} className="flex flex-col items-center justify-center h-40 glass-dark border border-white/5 rounded-[24px] hover:bg-white/5 transition-all duration-500 p-6 group">
+                                <Icon className="h-7 w-7 mb-3 text-primary group-hover:scale-110 transition-transform" />
+                                <span className="text-xs font-bold tracking-widest uppercase text-muted-foreground/60">{label}</span>
+                            </Link>
+                        </HoverEffect>
+                    ))}
                     <HoverEffect variant="glow" className="col-span-2 relative group overflow-hidden rounded-[24px] border border-white/5">
                         <Link href="/dashboard/analytics" className="block h-full w-full">
                             <div className="absolute inset-0 bg-gradient-to-tr from-slate-700/30 to-black opacity-40 group-hover:opacity-60 transition-opacity duration-700" />
@@ -340,7 +267,6 @@ export default async function DashboardPage() {
                             </div>
                         </Link>
                     </HoverEffect>
-
                     <HoverEffect variant="glow" className="col-span-1">
                         <Link href="/dashboard/settings" className="flex flex-col items-center justify-center h-40 glass-dark border border-white/5 rounded-[24px] hover:bg-white/5 transition-all duration-500 p-6 group">
                             <Settings className="h-7 w-7 mb-3 text-muted-foreground/40 group-hover:scale-110 transition-transform" />
@@ -352,4 +278,3 @@ export default async function DashboardPage() {
         </div>
     )
 }
-

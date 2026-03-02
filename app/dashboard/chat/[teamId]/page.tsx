@@ -1,31 +1,27 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { teams, teamMessages, messageReads, users } from '@/lib/db/schema'
+import { eq, inArray, asc, and, isNull } from 'drizzle-orm'
 import { ChatContainer } from '@/components/chat/ChatContainer'
-import { Separator } from '@/components/ui/separator'
 import { Hash, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-
-interface TeamChatPageProps {
-    params: Promise<{
-        teamId: string
-    }>
-}
-
 import { getTeamMembers } from '@/app/dashboard/teams/actions'
+import { redirect } from 'next/navigation'
 
-export default async function TeamChatPage(props: TeamChatPageProps) {
+export default async function TeamChatPage(props: { params: Promise<{ teamId: string }> }) {
     const params = await props.params;
     const { teamId } = params;
-    const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+    const session = await auth()
+    if (!session?.user?.id) return redirect('/login')
+
+    const user = session.user
 
     // Fetch Team Details
-    const { data: team } = await supabase
-        .from('teams')
-        .select('name')
-        .eq('id', teamId)
-        .single()
+    const [team] = await db.select({ name: teams.name })
+        .from(teams)
+        .where(eq(teams.id, teamId))
+        .limit(1)
 
     if (!team) {
         return <div>Team not found</div>
@@ -33,31 +29,44 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
 
     // Fetch Members for Quick Task
     const members = await getTeamMembers(teamId)
-
-    // Fetch Initial Messages
-    const { data: messages } = await supabase
-        .from('team_messages')
-        .select(`
-        *,
-        sender:users(name, avatar, email),
-        message_reads(user_id)
-    `)
-        .eq('team_id', teamId)
-        .is('project_id', null) // Team only chat
-        .order('created_at', { ascending: true })
-
     const totalMembers = members.length
 
-    // Transform messages to add is_sender
-    const formattedMessages = messages?.map(msg => {
-        const reads = msg.message_reads || []
-        // Read if read by (total - 1) others. 
-        // Note: Assuming logic where I don't read my own messages in explicit table, or if I do, simpler threshold is just N-1.
-        // Actually unique readers excluding sender is safer.
+    // Fetch Initial Messages
+    const rawMessages = await db.select({
+        id: teamMessages.id,
+        teamId: teamMessages.teamId,
+        projectId: teamMessages.projectId,
+        senderId: teamMessages.senderId,
+        message: teamMessages.message,
+        type: teamMessages.type,
+        metadata: teamMessages.metadata,
+        createdAt: teamMessages.createdAt,
+        senderName: users.name,
+        senderEmail: users.email,
+        senderAvatar: users.image
+    })
+        .from(teamMessages)
+        .leftJoin(users, eq(teamMessages.senderId, users.id))
+        .where(and(eq(teamMessages.teamId, teamId), isNull(teamMessages.projectId)))
+        .orderBy(asc(teamMessages.createdAt))
+
+    // Fetch Read Receipts
+    const messageIds = rawMessages.map(m => m.id)
+    const readsData = messageIds.length > 0
+        ? await db.select().from(messageReads).where(inArray(messageReads.messageId, messageIds))
+        : []
+
+    // Map Reads
+    const readsMap = new Map()
+    readsData.forEach((r: any) => {
+        if (!readsMap.has(r.messageId)) readsMap.set(r.messageId, [])
+        readsMap.get(r.messageId).push({ user_id: r.userId })
+    })
+
+    // Transform messages to add is_sender and reader states
+    const formattedMessages = rawMessages.map(msg => {
+        const reads = readsMap.get(msg.id) || []
         const uniqueReaders = new Set(reads.map((r: any) => r.user_id))
-        // If I am sender, I want to know if everyone else read it.
-        // If I am NOT sender, I just see if I read it (usually).
-        // But requested feature is double tick for SENDER.
 
         let readStatus: 'sent' | 'delivered' | 'read' = 'sent'
         if (uniqueReaders.size >= totalMembers - 1) {
@@ -68,12 +77,20 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
 
         return {
             ...msg,
-            is_sender: msg.sender_id === user.id,
-            sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+            team_id: msg.teamId,
+            project_id: msg.projectId,
+            sender_id: msg.senderId,
+            created_at: msg.createdAt,
+            is_sender: msg.senderId === user.id,
+            sender: {
+                name: msg.senderName,
+                avatar: msg.senderAvatar,
+                email: msg.senderEmail
+            },
             read_status: readStatus,
             message_reads: reads
         }
-    }) || []
+    })
 
     return (
         <div className="flex-1 flex flex-col min-h-0 w-full">
@@ -92,12 +109,12 @@ export default async function TeamChatPage(props: TeamChatPageProps) {
 
             <div className="flex-1 min-h-0 relative w-full flex flex-col">
                 <ChatContainer
-                    initialMessages={formattedMessages}
+                    initialMessages={formattedMessages as any}
                     teamId={teamId}
                     currentUser={{
-                        id: user.id,
-                        name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
-                        avatar: user.user_metadata.avatar_url || '',
+                        id: user.id || '',
+                        name: user.name || user.email?.split('@')[0] || 'User',
+                        avatar: user.image || '',
                         email: user.email!
                     }}
                     members={members}

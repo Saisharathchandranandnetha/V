@@ -1,71 +1,89 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { projects, teamMessages, messageReads, users } from '@/lib/db/schema'
+import { eq, inArray, desc, and } from 'drizzle-orm'
 import { ChatContainer } from '@/components/chat/ChatContainer'
 import { Folder, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-
-interface ProjectChatPageProps {
-    params: Promise<{
-        teamId: string
-        projectId: string
-    }>
-}
-
 import { getTeamMembers } from '@/app/dashboard/teams/actions'
 import { ProjectSettingsDialog } from '@/components/chat/ProjectSettingsDialog'
+import { redirect } from 'next/navigation'
 
-export default async function ProjectChatPage(props: ProjectChatPageProps) {
+export default async function ProjectChatPage(props: { params: Promise<{ teamId: string, projectId: string }> }) {
     const params = await props.params;
     const { teamId, projectId } = params;
-    const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+    const session = await auth()
+    if (!session?.user?.id) return redirect('/login')
 
-    // Parallelize independent fetches
-    const projectPromise = supabase
-        .from('projects')
-        .select('name')
-        .eq('id', projectId)
-        .single()
+    const user = session.user
+
+    // Fetch Project Details
+    const projectPromise = db.select({ name: projects.name })
+        .from(projects)
+        .where(eq(projects.id, projectId))
+        .limit(1)
 
     const membersPromise = getTeamMembers(teamId)
 
-    // Fetch latest 50 messages (reverse order for limit)
-    const messagesPromise = supabase
-        .from('team_messages')
-        .select(`
-        *,
-        sender:users(name, avatar, email),
-        message_reads(user_id)
-    `)
-        .eq('team_id', teamId)
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false })
+    // Fetch Initial Messages
+    const messagesPromise = db.select({
+        id: teamMessages.id,
+        teamId: teamMessages.teamId,
+        projectId: teamMessages.projectId,
+        senderId: teamMessages.senderId,
+        message: teamMessages.message,
+        type: teamMessages.type,
+        metadata: teamMessages.metadata,
+        createdAt: teamMessages.createdAt,
+        senderName: users.name,
+        senderEmail: users.email,
+        senderAvatar: users.image
+    })
+        .from(teamMessages)
+        .leftJoin(users, eq(teamMessages.senderId, users.id))
+        .where(and(eq(teamMessages.teamId, teamId), eq(teamMessages.projectId, projectId)))
+        .orderBy(desc(teamMessages.createdAt))
         .limit(50)
 
     const [
-        { data: project },
+        projectResults,
         members,
-        { data: rawMessages }
+        rawMessages
     ] = await Promise.all([
         projectPromise,
         membersPromise,
         messagesPromise
     ])
 
+    const project = projectResults[0]
+
     if (!project) {
         return <div>Project not found</div>
     }
 
-    // Sort messages back to chronological order
-    const messages = rawMessages?.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) || []
-
+    const totalMembers = members.length
     const currentUserRole = members.find(m => m.id === user.id)?.role || 'member'
 
-    const totalMembers = members.length
+    // Sort descending messages back ascending for view
+    const sortedMessages = rawMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
-    const formattedMessages = messages?.map(msg => {
-        const reads = msg.message_reads || []
+    // Fetch Read Receipts
+    const messageIds = sortedMessages.map(m => m.id)
+    const readsData = messageIds.length > 0
+        ? await db.select().from(messageReads).where(inArray(messageReads.messageId, messageIds))
+        : []
+
+    // Map Reads
+    const readsMap = new Map()
+    readsData.forEach((r: any) => {
+        if (!readsMap.has(r.messageId)) readsMap.set(r.messageId, [])
+        readsMap.get(r.messageId).push({ user_id: r.userId })
+    })
+
+    // Transform messages
+    const formattedMessages = sortedMessages.map(msg => {
+        const reads = readsMap.get(msg.id) || []
         const uniqueReaders = new Set(reads.map((r: any) => r.user_id))
 
         let readStatus: 'sent' | 'delivered' | 'read' = 'sent'
@@ -77,12 +95,20 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
 
         return {
             ...msg,
-            is_sender: msg.sender_id === user.id,
-            sender: Array.isArray(msg.sender) ? msg.sender[0] : msg.sender,
+            team_id: msg.teamId,
+            project_id: msg.projectId,
+            sender_id: msg.senderId,
+            created_at: msg.createdAt,
+            is_sender: msg.senderId === user.id,
+            sender: {
+                name: msg.senderName,
+                avatar: msg.senderAvatar,
+                email: msg.senderEmail
+            },
             read_status: readStatus,
             message_reads: reads
         }
-    }) || []
+    })
 
     return (
         <div className="flex-1 flex flex-col min-h-0 w-full">
@@ -106,13 +132,13 @@ export default async function ProjectChatPage(props: ProjectChatPageProps) {
 
             <div className="flex-1 min-h-0 relative w-full flex flex-col">
                 <ChatContainer
-                    initialMessages={formattedMessages}
+                    initialMessages={formattedMessages as any}
                     teamId={teamId}
                     projectId={projectId}
                     currentUser={{
-                        id: user.id,
-                        name: user.user_metadata.name || user.email?.split('@')[0] || 'User',
-                        avatar: user.user_metadata.avatar_url || '',
+                        id: user.id || '',
+                        name: user.name || user.email?.split('@')[0] || 'User',
+                        avatar: user.image || '',
                         email: user.email!
                     }}
                     members={members}

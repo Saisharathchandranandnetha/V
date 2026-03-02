@@ -1,15 +1,17 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { tasks, goals, transactions } from '@/lib/db/schema'
+import { eq, or, gte, lte, and } from 'drizzle-orm'
 import { fetchHabitStats } from '../habits/actions'
 
 export async function getAnalyticsData(period: string = '7d', startDate?: string, endDate?: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const session = await auth()
+    if (!session?.user?.id) return null
 
-    if (!user) return null
+    const userId = session.user.id
 
-    // Determine Date Range
     // Determine Date Range (Force IST)
     const now = new Date()
     const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -36,10 +38,8 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
     if (startDate && endDate) {
         start = parseLocalDate(startDate)
         end = parseLocalDate(endDate)
-        // Ensure end captures the full day
         end.setHours(23, 59, 59, 999)
     } else {
-        // Defaults based on period if no explicit dates provided
         if (period === 'month') {
             start.setDate(1) // Start of current month
         } else if (period === 'year') {
@@ -57,70 +57,66 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
     const startStr = toLocalISOString(start)
     const endStr = toLocalISOString(end)
 
-
-    // 1. Habit Stats using shared logic
-    // Determine aggregation type based on period
+    // 1. Habit Stats
     const aggregation = period === 'year' ? 'month' : 'day'
-    const rawHabitData = await fetchHabitStats(user.id, start, end, aggregation)
-
-    // Map to structure compatible with charts (if needed, or just return rawHabitData)
-    // AnalyticsCharts currently expects: 
-    // - BarChart with dataKey="percentage" (and "date" param for axis)
-    // New fetchHabitStats returns: { name, date, value } where value is percentage.
+    const rawHabitData = await fetchHabitStats(userId, start, end, aggregation)
 
     const habitData = rawHabitData.map((d: any) => ({
-        date: d.name, // Display label (Jan 01 or Jan)
-        fullDate: d.date, // ISO Date
+        date: d.name,
+        fullDate: d.date,
         percentage: d.value
     }))
 
-
-    // 2. Task Stats (Created in range)
-    const { data: tasks } = await supabase
-        .from('tasks')
-        .select('status')
-        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
-        .gte('due_date', start.toISOString())
-        .lte('due_date', end.toISOString())
+    // 2. Task Stats
+    const tasksData = await db.select().from(tasks)
+        .where(
+            and(
+                or(eq(tasks.userId, userId), eq(tasks.assignedTo, userId)),
+                gte(tasks.dueDate, start),
+                lte(tasks.dueDate, end)
+            )
+        )
 
     const taskData = [
-        { name: 'Todo', value: tasks?.filter(t => t.status === 'Todo').length || 0, fill: '#8884d8' },
-        { name: 'In Progress', value: tasks?.filter(t => t.status === 'In Progress').length || 0, fill: '#ffc658' },
-        { name: 'Done', value: tasks?.filter(t => t.status === 'Done').length || 0, fill: '#00C49F' },
+        { name: 'Todo', value: tasksData.filter(t => t.status === 'Todo').length, fill: '#8884d8' },
+        { name: 'In Progress', value: tasksData.filter(t => t.status === 'In Progress').length, fill: '#ffc658' },
+        { name: 'Done', value: tasksData.filter(t => t.status === 'Done').length, fill: '#00C49F' },
     ].filter(d => d.value > 0)
 
-    // 3. Goal Stats (Updated in range)
-    const { data: goals } = await supabase
-        .from('goals')
-        .select('title, current_value, target_value, updated_at')
-        .eq('user_id', user.id)
+    // 3. Goal Stats
+    const goalsData = await db.select().from(goals)
+        .where(
+            and(
+                eq(goals.userId, userId),
+                gte(goals.createdAt, start),
+                lte(goals.createdAt, end)
+            )
+        )
         .limit(5)
-        .gte('updated_at', start.toISOString())
-        .lte('updated_at', end.toISOString())
 
-    const goalData = goals?.map(g => ({
+    const goalData = goalsData.map((g: any) => ({
         name: g.title,
-        current: Number(g.current_value),
-        target: Number(g.target_value),
-        progress: Math.min((Number(g.current_value) / Number(g.target_value)) * 100, 100)
-    })) || []
+        current: Number(g.currentValue),
+        target: Number(g.targetValue),
+        progress: Math.min((Number(g.currentValue) / Number(g.targetValue)) * 100, 100)
+    }))
 
-    // 4. Finance Stats (Filtered by Date)
-    const { data: transactions } = await supabase
-        .from('transactions')
-        .select('type, amount, date')
-        .eq('user_id', user.id)
-        .gte('date', start.toISOString())
-        .lte('date', end.toISOString())
+    // 4. Finance Stats (Transactions)
+    const transactionsData = await db.select().from(transactions)
+        .where(
+            and(
+                eq(transactions.userId, userId),
+                gte(transactions.date, start),
+                lte(transactions.date, end)
+            )
+        )
 
-    // Safe handling: transaction dates are timestamps, logic expects filter to work
-
-    const income = transactions?.filter(t => t.type === 'Income').reduce((acc, t) => acc + Number(t.amount), 0) || 0
-    const expense = transactions?.filter(t => t.type === 'Expense').reduce((acc, t) => acc + Number(t.amount), 0) || 0
+    const income = transactionsData.filter(t => t.type === 'Income').reduce((acc, t) => acc + Number(t.amount), 0)
+    const expense = transactionsData.filter(t => t.type === 'Expense').reduce((acc, t) => acc + Number(t.amount), 0)
 
     const financeData = [
-        { name: 'Income', value: income, fill: '#10b981' }, // green-500
-        { name: 'Expense', value: expense, fill: '#ef4444' }, // red-500
+        { name: 'Income', value: income, fill: '#10b981' },
+        { name: 'Expense', value: expense, fill: '#ef4444' },
     ]
 
     return {
@@ -128,6 +124,6 @@ export async function getAnalyticsData(period: string = '7d', startDate?: string
         taskData,
         goalData,
         financeData,
-        dateRange: { start: startStr, end: endStr } // Return resolved dates for UI if needed
+        dateRange: { start: startStr, end: endStr }
     }
 }

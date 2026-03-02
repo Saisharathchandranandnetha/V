@@ -11,11 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { updateSettings, updateProfile, deleteAccount, updatePassword, updateAvatar } from './actions'
-import { signout } from '@/app/login/actions'
+import { signout } from '@/app/dashboard/signout/actions'
 // import { useToast } from '@/components/ui/use-toast'
 import { Loader2, Upload } from 'lucide-react'
 import { useTheme } from "next-themes"
-import { createClient } from '@/lib/supabase/client'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 // If useToast doesn't exist, we'll gracefully degrade to console log or a simple robust implementation
@@ -77,22 +76,9 @@ export default function SettingsForm({ user }: { user: any }) {
 
         setLoading(true)
         try {
-            const supabase = createClient()
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${user.id}-${Math.random()}.${fileExt}`
-            const filePath = `${fileName}`
-
-            // Upload to Supabase Storage
-            const { error: uploadError } = await supabase.storage
-                .from('avatars')
-                .upload(filePath, file)
-
-            if (uploadError) throw uploadError
-
-            // Get Public URL
-            const { data: { publicUrl } } = supabase.storage
-                .from('avatars')
-                .getPublicUrl(filePath)
+            // Since Supabase storage is removed, we'll use a local object URL for immediate UI update. 
+            // A long-term storage solution (like neon serverless storage or S3) would be needed here.
+            const publicUrl = URL.createObjectURL(file)
 
             // Update User Profile
             await updateAvatar(publicUrl)
@@ -115,30 +101,11 @@ export default function SettingsForm({ user }: { user: any }) {
 
         setLoading(true)
         try {
-            const supabase = createClient()
-            const fileExt = file.name.split('.').pop()
-            const fileName = `${user.id}-${Math.random()}.${fileExt}`
-            const filePath = `${fileName}`
-
-            // Upload to Supabase Storage - using 'backgrounds' bucket
-            const { error: uploadError } = await supabase.storage
-                .from('backgrounds')
-                .upload(filePath, file)
-
-            if (uploadError) throw uploadError
-
-            // Get Signed URL for display (valid for 1 hour is enough for session)
-            const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-                .from('backgrounds')
-                .createSignedUrl(filePath, 3600)
-
-            if (signedUrlError) throw signedUrlError
-            const signedUrl = signedUrlData?.signedUrl
-
-            if (!signedUrl) throw new Error('Failed to sign URL')
+            // Supabase storage removed — using object URL for local test
+            const signedUrl = URL.createObjectURL(file)
 
             // Update Settings with FILE PATH, not URL
-            await updateSettings({ backgroundImage: filePath })
+            await updateSettings({ backgroundImage: signedUrl })
 
             // Optimistic update with Signed URL for display
             const newSettings = { ...settings, backgroundImage: signedUrl }
@@ -411,7 +378,7 @@ export default function SettingsForm({ user }: { user: any }) {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="eli5">Explain like I'm 15</SelectItem>
+                                        <SelectItem value="eli5">Explain like I&apos;m 15</SelectItem>
                                         <SelectItem value="standard">Standard</SelectItem>
                                         <SelectItem value="technical">Technical</SelectItem>
                                     </SelectContent>

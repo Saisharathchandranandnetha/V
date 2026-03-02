@@ -1,16 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { resources } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { ResourceCard } from '@/components/resource-card'
-import { Plus } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 
-export default async function ProjectResourcesPage({ params }: { params: { projectId: string } }) {
-    const supabase = await createClient()
+export default async function ProjectResourcesPage(props: { params: Promise<{ projectId: string }> }) {
+    const params = await props.params;
 
-    const { data: resources } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('project_id', params.projectId)
-        .order('created_at', { ascending: false })
+    const projectResources = await db.select()
+        .from(resources)
+        .where(eq(resources.projectId, params.projectId))
+        .orderBy(desc(resources.createdAt))
 
     return (
         <div className="space-y-6">
@@ -20,10 +19,10 @@ export default async function ProjectResourcesPage({ params }: { params: { proje
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {resources?.map((resource: any) => (
+                {projectResources?.map((resource: any) => (
                     <ResourceCard key={resource.id} resource={resource} />
                 ))}
-                {(!resources || resources.length === 0) && (
+                {(!projectResources || projectResources.length === 0) && (
                     <p className="text-muted-foreground col-span-full">No resources found for this project.</p>
                 )}
             </div>

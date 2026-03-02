@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -7,17 +6,18 @@ import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
 import { updateLearningPath } from '@/app/dashboard/actions'
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { learningPaths } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 
-export default async function EditLearningPathPage({ params }: { params: Promise<{ id: string }> }) {
-    const supabase = await createClient()
-    const { id } = await params
-    const { data: path } = await supabase
-        .from('learning_paths')
-        .select('*')
-        .eq('id', id)
-        .single()
+export default async function EditLearningPathPage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
+
+    const [path] = await db.select()
+        .from(learningPaths)
+        .where(eq(learningPaths.id, params.id))
+        .limit(1)
 
     if (!path) {
         notFound()
@@ -53,7 +53,7 @@ export default async function EditLearningPathPage({ params }: { params: Promise
 
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
-                            <Textarea id="description" name="description" defaultValue={path.description} />
+                            <Textarea id="description" name="description" defaultValue={path.description || ''} />
                         </div>
 
                         <div className="space-y-2">
@@ -61,7 +61,7 @@ export default async function EditLearningPathPage({ params }: { params: Promise
                             <Textarea
                                 id="links"
                                 name="links"
-                                defaultValue={linksValue}
+                                defaultValue={linksValue || ''}
                                 className="min-h-[150px] font-mono text-sm"
                             />
                             <p className="text-xs text-muted-foreground">

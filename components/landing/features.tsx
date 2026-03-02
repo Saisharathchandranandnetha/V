@@ -9,7 +9,7 @@ const features = [
     {
         title: "AI that creates tasks by just talking",
         benefit: "Zero-Friction Interface",
-        description: "Stop fiddling with IDs. Tell Antigravity what you need, and the Onyx engine handles the data layer execution.",
+        description: "Stop fiddling with IDs. Tell X what you need, and the Onyx engine handles the data layer execution.",
         icon: MessageSquare,
         color: "text-blue-400",
         bg: "bg-blue-400/5"

@@ -5,7 +5,7 @@ import { Star } from 'lucide-react';
 
 const testimonials = [
     {
-        quote: "Antigravity replaced 4 apps for me. I haven't missed a habit in 3 weeks. The Onyx engine is incredibly precise.",
+        quote: "X replaced 4 apps for me. I haven't missed a habit in 3 weeks. The Onyx engine is incredibly precise.",
         author: "Arjun S.",
         role: "Software Engineer",
         rating: 5
@@ -50,7 +50,7 @@ export function Testimonials() {
                                     ))}
                                 </div>
                                 <p className="text-xl font-sans text-muted-foreground/80 leading-relaxed italic mb-12">
-                                    "{t.quote}"
+                                    &quot;{t.quote}&quot;
                                 </p>
                             </div>
                             <div className="flex items-center gap-4 border-t border-white/5 pt-8">

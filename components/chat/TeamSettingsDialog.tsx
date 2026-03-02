@@ -59,7 +59,7 @@ export function TeamSettingsDialog({ teamId, currentName, open, onOpenChange, cu
         setIsLoadingMembers(true)
         try {
             const data = await getTeamMembers(teamId)
-            // @ts-ignore
+            // @ts-expect-error - getTeamMembers returns a type incompatible with Member[]
             setMembers(data)
         } catch (error) {
             console.error(error)

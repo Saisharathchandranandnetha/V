@@ -1,14 +1,13 @@
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { categories } from '@/lib/db/schema'
+import { asc } from 'drizzle-orm'
 import ResourceForm from './resource-form'
 
 export default async function NewResourcePage() {
-    const supabase = await createClient()
-
     // Fetch categories for dropdown
-    const { data: categories } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
+    const categoriesData = await db.select()
+        .from(categories)
+        .orderBy(asc(categories.name))
 
-    return <ResourceForm initialCategories={categories || []} />
+    return <ResourceForm initialCategories={categoriesData || []} />
 }

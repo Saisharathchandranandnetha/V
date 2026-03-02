@@ -1,38 +1,45 @@
 import { copyRoadmapFromShare, syncRoadmap } from '@/app/dashboard/roadmaps/actions'
 import { redirect, notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { roadmaps, roadmapSteps, roadmapStepLinks, notes, learningPaths, resources, goals } from '@/lib/db/schema'
+import { eq, and, inArray, asc } from 'drizzle-orm'
 import { RoadmapEditor } from '@/components/roadmaps/RoadmapEditor'
 import { RoadmapView } from '@/components/roadmaps/RoadmapView'
 
 export default async function RoadmapPage({ params, searchParams }: { params: Promise<{ id: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
     const { id } = await params
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const session = await auth()
+    const user = session?.user
 
-    const { data: roadmap, error } = await supabase
-        .from('roadmaps')
-        .select('*')
-        .eq('id', id)
-        .single()
+    const roadmapResults = await db.select().from(roadmaps).where(eq(roadmaps.id, id)).limit(1)
+    const roadmap = roadmapResults[0]
 
-    if (error || !roadmap) notFound()
+    if (!roadmap) notFound()
 
     // Auto-copy logic for shared roadmaps
-    if (user && roadmap.owner_id !== user.id) {
+    if (user && roadmap.ownerId !== user.id) {
         // Check if user already has a copy of this roadmap
-        const { data: existingCopy } = await supabase
-            .from('roadmaps')
-            .select('id, updated_at, created_at')
-            .eq('owner_id', user.id)
-            .eq('original_roadmap_id', roadmap.id)
-            .eq('copied_from_chat', true)
-            .single()
+        const existingCopies = await db.select({
+            id: roadmaps.id,
+            updatedAt: roadmaps.updatedAt,
+            createdAt: roadmaps.createdAt
+        })
+            .from(roadmaps)
+            .where(and(
+                eq(roadmaps.ownerId, user.id as string),
+                eq(roadmaps.originalRoadmapId, roadmap.id),
+                eq(roadmaps.copiedFromChat, true)
+            ))
+            .limit(1)
+
+        const existingCopy = existingCopies[0]
 
         let redirectToId = null
 
         if (existingCopy) {
-            const originalTime = new Date(roadmap.updated_at).getTime()
-            const copyTime = new Date(existingCopy.updated_at || existingCopy.created_at).getTime()
+            const originalTime = new Date(roadmap.updatedAt || roadmap.createdAt).getTime()
+            const copyTime = new Date(existingCopy.updatedAt || existingCopy.createdAt).getTime()
 
             if (originalTime > copyTime) {
                 try {
@@ -51,7 +58,11 @@ export default async function RoadmapPage({ params, searchParams }: { params: Pr
             try {
                 console.log('Auto-copying shared roadmap...')
                 const newRoadmap = await copyRoadmapFromShare(roadmap.id)
-                redirectToId = newRoadmap.id
+                if (newRoadmap && typeof newRoadmap !== 'string' && 'id' in newRoadmap) {
+                    redirectToId = newRoadmap.id
+                } else if (typeof newRoadmap === 'string') {
+                    redirectToId = newRoadmap
+                }
             } catch (e) {
                 console.error('Failed to auto-copy roadmap:', e)
             }
@@ -62,65 +73,61 @@ export default async function RoadmapPage({ params, searchParams }: { params: Pr
         }
     }
 
-    const { data: stepsData } = await supabase
-        .from('roadmap_steps')
-        .select('*')
-        .eq('roadmap_id', id)
-        .order('order', { ascending: true })
+    const stepsData = await db.select().from(roadmapSteps)
+        .where(eq(roadmapSteps.roadmapId, id))
+        .orderBy(asc(roadmapSteps.order))
 
-    const steps = (stepsData || []).map((step: any) => ({
+    const steps = stepsData.map((step) => ({
         ...step,
-        links: []
+        links: [] as any[]
     }))
 
     if (steps.length > 0) {
-        const stepIds = steps.map((s: any) => s.id)
+        const stepIds = steps.map((s) => s.id)
 
         // Fetch all links for these steps
-        const { data: links } = await supabase
-            .from('roadmap_step_links')
-            .select('*')
-            .in('step_id', stepIds)
+        const linksData = await db.select().from(roadmapStepLinks)
+            .where(inArray(roadmapStepLinks.stepId, stepIds))
 
-        if (links && links.length > 0) {
-            console.log('Found links:', links.length)
+        if (linksData && linksData.length > 0) {
+            console.log('Found links:', linksData.length)
             // Collect IDs for details
-            const noteIds = links.filter((l: any) => l.note_id).map((l: any) => l.note_id)
-            const pathIds = links.filter((l: any) => l.learning_path_id).map((l: any) => l.learning_path_id)
-            const resourceIds = links.filter((l: any) => l.resource_id).map((l: any) => l.resource_id)
-            const goalIds = links.filter((l: any) => l.goal_id).map((l: any) => l.goal_id)
+            const noteIds = linksData.filter(l => l.noteId).map(l => l.noteId!)
+            const pathIds = linksData.filter(l => l.learningPathId).map(l => l.learningPathId!)
+            const resourceIds = linksData.filter(l => l.resourceId).map(l => l.resourceId!)
+            const goalIds = linksData.filter(l => l.goalId).map(l => l.goalId!)
 
             console.log('IDs to fetch:', { noteIds, pathIds, resourceIds, goalIds })
 
             // Fetch details in parallel
             const [notesRes, pathsRes, resourcesRes, goalsRes] = await Promise.all([
-                noteIds.length > 0 ? supabase.from('notes').select('id, title').in('id', noteIds) : Promise.resolve({ data: [] }),
-                pathIds.length > 0 ? supabase.from('learning_paths').select('id, title').in('id', pathIds) : Promise.resolve({ data: [] }),
-                resourceIds.length > 0 ? supabase.from('resources').select('id, title, type').in('id', resourceIds) : Promise.resolve({ data: [] }),
-                goalIds.length > 0 ? supabase.from('goals').select('id, title').in('id', goalIds) : Promise.resolve({ data: [] })
+                noteIds.length > 0 ? db.select({ id: notes.id, title: notes.title }).from(notes).where(inArray(notes.id, noteIds)) : Promise.resolve([]),
+                pathIds.length > 0 ? db.select({ id: learningPaths.id, title: learningPaths.title }).from(learningPaths).where(inArray(learningPaths.id, pathIds)) : Promise.resolve([]),
+                resourceIds.length > 0 ? db.select({ id: resources.id, title: resources.title, type: resources.type }).from(resources).where(inArray(resources.id, resourceIds)) : Promise.resolve([]),
+                goalIds.length > 0 ? db.select({ id: goals.id, title: goals.title }).from(goals).where(inArray(goals.id, goalIds)) : Promise.resolve([])
             ])
 
-            const notesMap = new Map(notesRes.data?.map((n: any) => [n.id, n]) || [])
-            const pathsMap = new Map(pathsRes.data?.map((p: any) => [p.id, p]) || [])
-            const resourcesMap = new Map(resourcesRes.data?.map((r: any) => [r.id, r]) || [])
-            const goalsMap = new Map(goalsRes.data?.map((g: any) => [g.id, g]) || [])
+            const notesMap = new Map((notesRes as any[]).map((n) => [n.id, n]))
+            const pathsMap = new Map((pathsRes as any[]).map((p) => [p.id, p]))
+            const resourcesMap = new Map((resourcesRes as any[]).map((r) => [r.id, r]))
+            const goalsMap = new Map((goalsRes as any[]).map((g) => [g.id, g]))
 
             // Map back to steps
             const linksByStepId = new Map()
 
-            links.forEach((link: any) => {
-                if (!linksByStepId.has(link.step_id)) linksByStepId.set(link.step_id, [])
+            linksData.forEach((link) => {
+                if (!linksByStepId.has(link.stepId)) linksByStepId.set(link.stepId, [])
 
                 let detail = null
                 let type = ''
 
-                if (link.note_id) { detail = notesMap.get(link.note_id); type = 'note' }
-                else if (link.learning_path_id) { detail = pathsMap.get(link.learning_path_id); type = 'path' }
-                else if (link.resource_id) { detail = resourcesMap.get(link.resource_id); type = 'resource' }
-                else if (link.goal_id) { detail = goalsMap.get(link.goal_id); type = 'goal' }
+                if (link.noteId) { detail = notesMap.get(link.noteId); type = 'note' }
+                else if (link.learningPathId) { detail = pathsMap.get(link.learningPathId); type = 'path' }
+                else if (link.resourceId) { detail = resourcesMap.get(link.resourceId); type = 'resource' }
+                else if (link.goalId) { detail = goalsMap.get(link.goalId); type = 'goal' }
 
                 if (detail) {
-                    linksByStepId.get(link.step_id).push({
+                    linksByStepId.get(link.stepId).push({
                         link_id: link.id, // Explicitly name it link_id
                         type,
                         ...detail,
@@ -129,22 +136,22 @@ export default async function RoadmapPage({ params, searchParams }: { params: Pr
                 }
             })
 
-            steps.forEach((step: any) => {
+            steps.forEach((step) => {
                 if (linksByStepId.has(step.id)) {
                     step.links = linksByStepId.get(step.id)
                 }
             })
-            console.log('Steps with links:', steps.filter((s: any) => s.links && s.links.length > 0).length)
+            console.log('Steps with links:', steps.filter((s) => s.links && s.links.length > 0).length)
         } else {
             console.log('No links found in roadmap_step_links query')
         }
     }
 
     // If user is owner, show Editor. Else show View.
-    if (roadmap.owner_id === user?.id) {
-        return <RoadmapEditor roadmap={roadmap} initialSteps={steps || []} />
+    if (roadmap.ownerId === user?.id) {
+        return <RoadmapEditor roadmap={roadmap as any} initialSteps={steps || []} />
     }
 
-    // If user has access (via RLS) but is not owner, show Read Only view
-    return <RoadmapView roadmap={roadmap} steps={steps || []} currentUserId={user!.id} />
+    // If user has access but is not owner, show Read Only view
+    return <RoadmapView roadmap={roadmap as any} steps={steps || []} currentUserId={user!.id as string} />
 }

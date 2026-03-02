@@ -10,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Plus, Loader2 } from 'lucide-react'
 import { createResource, createCategoryAndReturn } from '@/app/dashboard/actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useSearchParams, useRouter } from 'next/navigation'
 
@@ -64,42 +63,12 @@ export function AddResourceDialog({ categories: initialCategories, onAdd }: { ca
 
         try {
             const formData = new FormData(e.currentTarget)
-            const type = formData.get('type') as string
+
+            const url = formData.get('url') as string
             const title = formData.get('title') as string
             const summary = formData.get('summary') as string
             const tags = formData.get('tags') as string
-
-            // Handle File Upload logic logic...
-            if (type === 'pdf' && uploadType === 'file') {
-                const fileInput = (e.currentTarget.querySelector('input[type="file"]') as HTMLInputElement)
-                const file = fileInput?.files?.[0]
-
-                if (!file) {
-                    toast.error('Please select a file to upload')
-                    setLoading(false)
-                    return
-                }
-
-                const supabase = createClient()
-                const fileExt = file.name.split('.').pop()
-                const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-                const filePath = `pdfs/${fileName}`
-
-                const { error: uploadError } = await supabase.storage
-                    .from('resources')
-                    .upload(filePath, file)
-
-                if (uploadError) throw uploadError
-
-                const { data: { publicUrl } } = supabase.storage
-                    .from('resources')
-                    .getPublicUrl(filePath)
-
-                formData.set('url', publicUrl)
-            }
-            // End file upload logic
-
-            const url = formData.get('url') as string
+            const type = formData.get('type') as string
 
             // Optimistic Update
             if (onAdd) {
@@ -116,13 +85,11 @@ export function AddResourceDialog({ categories: initialCategories, onAdd }: { ca
                 setOpen(false)
             }
 
-            const result = await createResource(formData)
+            await createResource(formData)
             if (!onAdd) {
                 setOpen(false)
-                toast.success("Resource created")
+                toast.success('Resource created')
             }
-
-
         } catch (error: any) {
             console.error('Error creating resource:', error)
             toast.error('Failed to create resource.')

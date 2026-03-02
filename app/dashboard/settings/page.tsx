@@ -1,8 +1,10 @@
-
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { resources, learningPaths, collections, categories } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Edit, Trash2, ExternalLink, ShieldCheck } from 'lucide-react'
 import { deleteResource, deleteLearningPath } from '@/app/dashboard/actions'
@@ -11,43 +13,20 @@ import SettingsForm from './settings-form'
 import CollectionsManager from './collections-manager'
 import CategoriesManager from './categories-manager'
 import DeviceList from '@/components/settings/device-list'
+import { redirect } from 'next/navigation'
 
 export default async function SettingsPage() {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
 
-    // Fetch user settings and ensure row exists
     const user = await getUserSettings()
 
-    // Sign background image URL if present and private
-    if (user?.settings?.backgroundImage && !user.settings.backgroundImage.startsWith('http')) {
-        const { data } = await supabase.storage
-            .from('backgrounds')
-            .createSignedUrl(user.settings.backgroundImage, 60 * 60 * 24) // 24 hours
-
-        if (data?.signedUrl) {
-            user.settings.backgroundImage = data.signedUrl
-        }
-    }
-
-    const { data: resources } = await supabase
-        .from('resources')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-    const { data: paths } = await supabase
-        .from('learning_paths')
-        .select('*')
-        .order('created_at', { ascending: false })
-
-    const { data: collections } = await supabase
-        .from('collections')
-        .select('*')
-        .order('name', { ascending: true })
-
-    const { data: categories } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
+    const [resourcesData, pathsData, collectionsData, categoriesData] = await Promise.all([
+        db.select().from(resources).where(eq(resources.userId, session.user.id)),
+        db.select().from(learningPaths).where(eq(learningPaths.userId, session.user.id)),
+        db.select().from(collections).where(eq(collections.userId, session.user.id)),
+        db.select().from(categories).where(eq(categories.userId, session.user.id)),
+    ])
 
     return (
         <div className="space-y-6 w-full max-w-full overflow-x-hidden">
@@ -88,7 +67,7 @@ export default async function SettingsPage() {
 
                 <TabsContent value="general">
                     {user ? (
-                        <SettingsForm user={user} />
+                        <SettingsForm user={user as any} />
                     ) : (
                         <div className="p-8 text-center text-red-500">
                             Failed to load user settings. Please try again.
@@ -97,7 +76,7 @@ export default async function SettingsPage() {
                 </TabsContent>
 
                 <TabsContent value="categories">
-                    <CategoriesManager categories={categories} />
+                    <CategoriesManager categories={categoriesData as any} />
                 </TabsContent>
 
                 <TabsContent value="resources" className="space-y-4">
@@ -109,16 +88,16 @@ export default async function SettingsPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {resources?.length === 0 ? (
+                            {resourcesData.length === 0 ? (
                                 <p className="text-muted-foreground text-center py-8">No resources found.</p>
                             ) : (
                                 <div className="space-y-4">
-                                    {resources?.map((resource) => (
+                                    {resourcesData.map((resource: any) => (
                                         <div key={resource.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
                                             <div className="space-y-1 min-w-0">
                                                 <h3 className="font-medium flex items-center gap-2 truncate">
                                                     <span className="truncate">{resource.title}</span>
-                                                    <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary flex-shrink-0">
+                                                    <a href={resource.url || '#'} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary flex-shrink-0">
                                                         <ExternalLink className="h-3 w-3" />
                                                     </a>
                                                 </h3>
@@ -155,11 +134,11 @@ export default async function SettingsPage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {paths?.length === 0 ? (
+                            {pathsData.length === 0 ? (
                                 <p className="text-muted-foreground text-center py-8">No learning paths found.</p>
                             ) : (
                                 <div className="space-y-4">
-                                    {paths?.map((path) => (
+                                    {pathsData.map((path: any) => (
                                         <div key={path.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg gap-4">
                                             <div className="space-y-1 min-w-0">
                                                 <h3 className="font-medium truncate">{path.title}</h3>

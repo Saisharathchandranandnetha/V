@@ -73,7 +73,7 @@ function MessageBubble({ message, isStreaming, index }: { message: Message; isSt
             )}>
                 {isUser
                     ? <User className="w-4 h-4 text-primary" />
-                    : <img src="/branding/v1_icon.png" alt="V_1.0" className="w-full h-full object-cover rounded-xl" />
+                    : <span className="text-white font-black text-xs italic tracking-tighter drop-shadow-sm">V</span>
                 }
             </div>
 
@@ -141,7 +141,7 @@ export function AIAssistant() {
     // Auto-scroll to bottom
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
         }
     }, [messages, isLoading])
 
@@ -304,8 +304,10 @@ export function AIAssistant() {
             <motion.button
                 onClick={() => setIsOpen(prev => !prev)}
                 className={cn(
-                    'fixed bottom-8 right-8 z-50',
-                    'w-16 h-16 rounded-[24px]',
+                    'fixed z-50',
+                    'bottom-4 right-4 sm:bottom-8 sm:right-8', // Responsive positioning
+                    'w-14 h-14 sm:w-16 sm:h-16', // Responsive sizing
+                    'rounded-[20px] sm:rounded-[24px]',
                     'flex items-center justify-center',
                     'bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500',
                     'shadow-[0_8px_30px_rgb(139,92,246,0.35)]',
@@ -337,9 +339,10 @@ export function AIAssistant() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
                             transition={{ duration: 0.2 }}
-                            className="w-8 h-8 pointer-events-none"
+                            className="w-full h-full flex items-center justify-center relative pointer-events-none"
                         >
-                            <img src="/branding/v1_icon.png" alt="V_1.0" className="w-full h-full object-cover rounded-lg" />
+                            <span className="text-white font-black text-2xl sm:text-3xl italic tracking-tighter drop-shadow-md relative z-10">V</span>
+                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-white/30 blur-[1px] animate-[spin_6s_linear_infinite]" />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -389,8 +392,9 @@ export function AIAssistant() {
                         {/* ── Header ─────────────────────────────────────── */}
                         <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 shrink-0 bg-white/5 backdrop-blur-md">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-lg border border-white/10">
-                                    <img src="/branding/v1_icon.png" alt="V_1.0 Logo" className="w-full h-full object-cover" />
+                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.4)] border border-white/20 relative overflow-hidden">
+                                    <span className="absolute inset-0 bg-white/10" />
+                                    <span className="text-white font-black text-xl italic tracking-tighter relative z-10">V</span>
                                 </div>
                                 <div>
                                     <p className="text-base font-bold text-foreground tracking-tight sm:text-lg">V_1.0</p>

@@ -10,7 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { createClient } from '@/lib/supabase/client'
+import { getAttachmentItems } from '@/app/dashboard/chat/actions'
 
 type AttachmentType = 'resource' | 'note' | 'finance' | 'learning_path' | 'roadmap'
 
@@ -18,6 +18,7 @@ interface AttachmentPickerProps {
     onSelect: (type: AttachmentType, item: any) => void
     projectId?: string
 }
+
 
 export function AttachmentPicker({ onSelect, projectId }: AttachmentPickerProps) {
     const [open, setOpen] = useState(false)
@@ -42,33 +43,16 @@ export function AttachmentPicker({ onSelect, projectId }: AttachmentPickerProps)
 
     const fetchItems = async (type: AttachmentType) => {
         setLoading(true)
-        const supabase = createClient()
-        let data: any[] = []
-
         try {
-            if (type === 'resource') {
-                const { data: resources } = await supabase.from('resources').select('id, title, project_id').limit(20)
-                data = resources || []
-            } else if (type === 'note') {
-                const { data: notes } = await supabase.from('notes').select('id, title, project_id').limit(20)
-                data = notes || []
-            } else if (type === 'learning_path') {
-                const { data: paths } = await supabase.from('learning_paths').select('id, title, project_id').limit(20)
-                data = paths || []
-            } else if (type === 'finance') {
-                const { data: projects } = await supabase.from('projects').select('id, name')
-                data = projects?.map(p => ({ id: p.id, title: p.name, project_id: p.id })) || []
-            } else if (type === 'roadmap') {
-                const { data: roadmaps } = await supabase.from('roadmaps').select('id, title, project_id').limit(20)
-                data = roadmaps || []
-            }
+            const data = await getAttachmentItems(type as any)
+            setItems(data as any[])
         } catch (error) {
             console.error('Failed to fetch items', error)
         } finally {
-            setItems(data)
             setLoading(false)
         }
     }
+
 
     const handleItemSelect = (item: any) => {
         onSelect(pickerType!, item)

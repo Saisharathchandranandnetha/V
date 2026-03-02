@@ -51,7 +51,7 @@ export function CompleteTaskDialog({
                 <DialogHeader>
                     <DialogTitle>Complete Task</DialogTitle>
                     <DialogDescription>
-                        You are completing "{taskTitle}" after its due date. Please provide details.
+                        You are completing &quot;{taskTitle}&quot; after its due date. Please provide details.
                     </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">

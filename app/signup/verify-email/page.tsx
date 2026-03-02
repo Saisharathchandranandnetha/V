@@ -23,7 +23,7 @@ function VerifyEmailContent() {
                     Check your email
                 </CardTitle>
                 <CardDescription className="text-center text-zinc-400 text-base">
-                    We've sent a verification link to
+                    We&apos;ve sent a verification link to
                     {email ? (
                         <span className="block mt-2 font-medium text-white">{email}</span>
                     ) : (

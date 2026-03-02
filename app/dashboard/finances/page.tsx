@@ -1,35 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { transactions, categories, projects } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { FinancesManager } from '@/components/finances/finances-manager'
+import { redirect } from 'next/navigation'
 
 export default async function FinancesPage() {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return <div>Please log in</div>
-
-    const { data: transactions } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false })
-
-    const { data: categories } = await supabase
-        .from('categories')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('name', { ascending: true })
-
-    const { data: projects } = await supabase
-        .from('projects')
-        .select('*')
-        .order('name', { ascending: true })
+    const [transactionsData, categoriesData, projectsData] = await Promise.all([
+        db.select().from(transactions).where(eq(transactions.userId, session.user.id)),
+        db.select().from(categories).where(eq(categories.userId, session.user.id)),
+        db.select().from(projects),
+    ])
 
     return (
         <FinancesManager
-            initialTransactions={transactions || []}
-            categories={categories || []}
-            projects={projects || []}
+            initialTransactions={transactionsData as any}
+            categories={categoriesData as any}
+            projects={projectsData as any}
         />
     )
 }

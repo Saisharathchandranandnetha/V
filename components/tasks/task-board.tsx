@@ -157,7 +157,7 @@ export function TaskBoard({ tasks }: { tasks: Task[] }) {
                                             {task.status === 'Done' && task.completed_at && task.completion_reason && (
                                                 <div className="mt-2 text-xs bg-muted/50 p-2 rounded border">
                                                     <p className="font-semibold text-green-600 dark:text-green-400">Completed on {format(new Date(task.completed_at), 'MMM d')}</p>
-                                                    <p className="text-muted-foreground italic mt-1">"{task.completion_reason}"</p>
+                                                    <p className="text-muted-foreground italic mt-1">&quot;{task.completion_reason}&quot;</p>
                                                 </div>
                                             )}
                                             {(task.team || task.project) && task.message?.sender && (

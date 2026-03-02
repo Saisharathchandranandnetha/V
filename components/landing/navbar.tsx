@@ -27,10 +27,11 @@ export function LandingNavbar() {
             <div className="max-w-7xl mx-auto flex items-center justify-between font-sans">
                 {/* Logo */}
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/10 group-hover:border-primary/50 transition-colors">
-                        <Image src="/branding/v1_icon.png" alt="Antigravity Logo" fill className="object-cover" />
+                    <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-bl from-violet-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden">
+                        <span className="absolute inset-0 bg-white/10" />
+                        <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">L</span>
                     </div>
-                    <span className="font-display font-bold text-xl tracking-tighter">Antigravity</span>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-primary font-black tracking-tight text-xl">LifeOS</span>
                 </Link>
 
                 {/* Nav Links */}

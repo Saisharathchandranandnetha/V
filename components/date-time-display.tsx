@@ -8,6 +8,7 @@ export function DateTimeDisplay() {
     const [date, setDate] = useState(new Date())
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true)
         const timer = setInterval(() => {
             setDate(new Date())

@@ -1,39 +1,39 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { teamMembers, teams } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
 import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Button } from '@/components/ui/button'
-import { Users, Plus, ArrowRight } from 'lucide-react'
+import { Users, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { CreateTeamDialog } from '@/components/chat/CreateTeamDialog'
 
 export default async function TeamsPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-        redirect('/login')
-    }
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
 
     // Fetch user's teams
-    const { data: teamMembers } = await supabase
-        .from('team_members')
-        .select(`
-            team_id,
-            role,
-            teams (
-                id,
-                name,
-                created_at,
-                created_by
-            )
-        `)
-        .eq('user_id', user.id)
+    const membersData = await db
+        .select({
+            role: teamMembers.role,
+            team: {
+                id: teams.id,
+                name: teams.name,
+                createdAt: teams.createdAt,
+            }
+        })
+        .from(teamMembers)
+        .leftJoin(teams, eq(teamMembers.teamId, teams.id))
+        .where(eq(teamMembers.userId, session.user.id))
 
-    const teams = teamMembers?.map(tm => ({
-        ...tm.teams,
-        role: tm.role
-    })) || []
+    const userTeams = membersData
+        .filter(m => m.team !== null)
+        .map(m => ({
+            ...m.team,
+            role: m.role
+        }))
 
     return (
         <div className="space-y-6">
@@ -46,7 +46,7 @@ export default async function TeamsPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {teams.map((team: any) => (
+                {userTeams.map((team: any) => (
                     <SpotlightCard key={team.id} className="flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default async function TeamsPage() {
                         <CardContent className="flex-1">
                             {/* Add member counts or other stats if available in future */}
                             <p className="text-sm text-muted-foreground">
-                                Joined on {new Date(team.created_at).toLocaleDateString()}
+                                Joined on {new Date(team.createdAt).toLocaleDateString()}
                             </p>
                         </CardContent>
                         <CardFooter>
@@ -74,7 +74,7 @@ export default async function TeamsPage() {
                     </SpotlightCard>
                 ))}
 
-                {teams.length === 0 && (
+                {userTeams.length === 0 && (
                     <SpotlightCard className="col-span-full border-dashed p-8 text-center flex flex-col items-center justify-center gap-4 text-muted-foreground bg-muted/10">
                         <div className="p-4 rounded-full bg-muted">
                             <Users className="h-8 w-8" />

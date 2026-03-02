@@ -1,16 +1,13 @@
-import { getUsers } from './actions'
+import { getUsers, UserDTO } from './actions'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { UsersTable } from '@/components/admin/users-table'
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 
-import { UserDTO } from './actions'
-
 export default async function AdminPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const session = await auth()
 
-    if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    if (!session?.user || session.user.email !== process.env.ADMIN_EMAIL) {
         redirect('/dashboard')
     }
 

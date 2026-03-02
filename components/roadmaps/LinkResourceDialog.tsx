@@ -46,6 +46,7 @@ export function LinkResourceDialog({ onSelect, currentLinks }: LinkResourceDialo
 
     useEffect(() => {
         if (open) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(true)
             getLinkableItems().then(res => {
                 setItems(res)

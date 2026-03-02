@@ -1,57 +1,44 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { resources, notes, learningPaths, chatSharedItems } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 export async function addToMyAccount(sharedItemId: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('Unauthorized')
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
+    const userId = session.user.id
 
     // 1. Fetch Shared Item Details
-    const { data: sharedItem, error: sharedError } = await supabase
-        .from('chat_shared_items')
-        .select('*')
-        .eq('id', sharedItemId)
-        .single()
+    const [sharedItem] = await db.select()
+        .from(chatSharedItems)
+        .where(eq(chatSharedItems.id, sharedItemId))
+        .limit(1)
 
-    if (sharedError || !sharedItem) {
+    if (!sharedItem) {
         throw new Error('Shared item not found')
     }
 
     // 2. Determine Type and Fetch Original Content
-    const originalItemId = sharedItem.shared_item_id
-    const type = sharedItem.shared_type
+    const originalItemId = sharedItem.sharedItemId
+    const type = sharedItem.sharedType
 
-    // 3. Prevent Duplicates (Check if user already copied this original item)
-    // We check the specific table for `original_item_id` + `user_id`
-    // Note: This logic assumes a user copies it once. If they want multiple copies, we might need to relax this.
-    // Requirement says: "Disable Add to My Account if already added"
-
+    // 3. Prevent Duplicates
     let existingCopy: any = null
 
     if (type === 'resource') {
-        const { data } = await supabase.from('resources')
-            .select('id')
-            .eq('original_item_id', originalItemId)
-            .eq('user_id', user.id)
-            .single()
+        const [data] = await db.select({ id: resources.id }).from(resources)
+            .where(and(eq(resources.originalItemId, originalItemId), eq(resources.userId, userId))).limit(1)
         existingCopy = data
     } else if (type === 'note') {
-        const { data } = await supabase.from('notes')
-            .select('id')
-            .eq('original_item_id', originalItemId)
-            .eq('user_id', user.id)
-            .single()
+        const [data] = await db.select({ id: notes.id }).from(notes)
+            .where(and(eq(notes.originalItemId, originalItemId), eq(notes.userId, userId))).limit(1)
         existingCopy = data
     } else if (type === 'learning_path') {
-        const { data } = await supabase.from('learning_paths')
-            .select('id')
-            .eq('original_item_id', originalItemId)
-            .eq('user_id', user.id)
-            .single()
+        const [data] = await db.select({ id: learningPaths.id }).from(learningPaths)
+            .where(and(eq(learningPaths.originalItemId, originalItemId), eq(learningPaths.userId, userId))).limit(1)
         existingCopy = data
     }
 
@@ -61,61 +48,53 @@ export async function addToMyAccount(sharedItemId: string) {
 
     // 4. Fetch Original Data & Create Copy
     if (type === 'resource') {
-        const { data: original } = await supabase.from('resources').select('*').eq('id', originalItemId).single()
+        const [original] = await db.select().from(resources).where(eq(resources.id, originalItemId)).limit(1)
         if (!original) throw new Error('Original resource not found')
 
-        const { error } = await supabase.from('resources').insert({
-            user_id: user.id,
+        await db.insert(resources).values({
+            userId,
             title: original.title,
             type: original.type,
             url: original.url,
             summary: original.summary,
             tags: original.tags,
-            // Isolated copy fields
-            original_item_id: original.id,
-            copied_from_chat: true,
-            copied_at: new Date().toISOString(),
-            // Project/Collection are NOT copied unless we want to put it in a "Inbox"?
-            // For now, null (root of personal account)
-            project_id: null,
-            collection_id: null
+            originalItemId: original.id,
+            copiedFromChat: true,
+            copiedAt: new Date(),
+            projectId: null,
+            collectionId: null
         })
-        if (error) throw error
     }
     else if (type === 'note') {
-        const { data: original } = await supabase.from('notes').select('*').eq('id', originalItemId).single()
+        const [original] = await db.select().from(notes).where(eq(notes.id, originalItemId)).limit(1)
         if (!original) throw new Error('Original note not found')
 
-        const { error } = await supabase.from('notes').insert({
-            user_id: user.id,
+        await db.insert(notes).values({
+            userId,
             title: original.title,
             content: original.content,
-            // Isolated copy fields
-            original_item_id: original.id,
-            copied_from_chat: true,
-            copied_at: new Date().toISOString(),
-            project_id: null,
-            collection_id: null
+            originalItemId: original.id,
+            copiedFromChat: true,
+            copiedAt: new Date(),
+            projectId: null,
+            collectionId: null
         })
-        if (error) throw error
     }
     else if (type === 'learning_path') {
-        const { data: original } = await supabase.from('learning_paths').select('*').eq('id', originalItemId).single()
+        const [original] = await db.select().from(learningPaths).where(eq(learningPaths.id, originalItemId)).limit(1)
         if (!original) throw new Error('Original learning path not found')
 
-        const { error } = await supabase.from('learning_paths').insert({
-            user_id: user.id,
+        await db.insert(learningPaths).values({
+            userId,
             title: original.title,
             description: original.description,
             links: original.links,
-            // Isolated copy fields
-            original_item_id: original.id,
-            copied_from_chat: true,
-            copied_at: new Date().toISOString(),
-            project_id: null,
-            collection_id: null
+            originalItemId: original.id,
+            copiedFromChat: true,
+            copiedAt: new Date(),
+            projectId: null,
+            collectionId: null
         })
-        if (error) throw error
     }
 
     revalidatePath('/dashboard/resources')
@@ -126,87 +105,74 @@ export async function addToMyAccount(sharedItemId: string) {
 }
 
 export async function copyItemToAccount(originalItemId: string, type: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) throw new Error('Unauthorized')
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
+    const userId = session.user.id
 
     let existingCopy: any = null
 
     // Check if user is the OWNER of the original item
     if (type === 'resource') {
-        const { data } = await supabase.from('resources').select('id').eq('id', originalItemId).eq('user_id', user.id).single()
+        const [data] = await db.select({ id: resources.id }).from(resources)
+            .where(and(eq(resources.id, originalItemId), eq(resources.userId, userId))).limit(1)
         if (data) return { success: true, newId: originalItemId, isNew: false }
     } else if (type === 'note') {
-        const { data } = await supabase.from('notes').select('id').eq('id', originalItemId).eq('user_id', user.id).single()
+        const [data] = await db.select({ id: notes.id }).from(notes)
+            .where(and(eq(notes.id, originalItemId), eq(notes.userId, userId))).limit(1)
         if (data) return { success: true, newId: originalItemId, isNew: false }
     } else if (type === 'learning_path') {
-        const { data } = await supabase.from('learning_paths').select('id').eq('id', originalItemId).eq('user_id', user.id).single()
+        const [data] = await db.select({ id: learningPaths.id }).from(learningPaths)
+            .where(and(eq(learningPaths.id, originalItemId), eq(learningPaths.userId, userId))).limit(1)
         if (data) return { success: true, newId: originalItemId, isNew: false }
     }
 
     if (type === 'resource') {
-        const { data } = await supabase.from('resources')
-            .select('id')
-            .eq('original_item_id', originalItemId)
-            .eq('user_id', user.id)
-            .single()
+        const [data] = await db.select({ id: resources.id }).from(resources)
+            .where(and(eq(resources.originalItemId, originalItemId), eq(resources.userId, userId))).limit(1)
         existingCopy = data
     } else if (type === 'note') {
-        const { data } = await supabase.from('notes')
-            .select('id')
-            .eq('original_item_id', originalItemId)
-            .eq('user_id', user.id)
-            .single()
+        const [data] = await db.select({ id: notes.id }).from(notes)
+            .where(and(eq(notes.originalItemId, originalItemId), eq(notes.userId, userId))).limit(1)
         existingCopy = data
     } else if (type === 'learning_path') {
-        const { data } = await supabase.from('learning_paths')
-            .select('id')
-            .eq('original_item_id', originalItemId)
-            .eq('user_id', user.id)
-            .single()
+        const [data] = await db.select({ id: learningPaths.id }).from(learningPaths)
+            .where(and(eq(learningPaths.originalItemId, originalItemId), eq(learningPaths.userId, userId))).limit(1)
         existingCopy = data
     }
 
-    // Use Admin Client to fetch original item (Bypass RLS)
-    const adminSupabase = createAdminClient()
-
     // --- UPDATE EXISTING LOGIC ---
     if (existingCopy) {
-        // Fetch latest original data
         let updated = false
         if (type === 'resource') {
-            const { data: original } = await adminSupabase.from('resources').select('*').eq('id', originalItemId).single()
+            const [original] = await db.select().from(resources).where(eq(resources.id, originalItemId)).limit(1)
             if (original) {
-                await supabase.from('resources').update({
+                await db.update(resources).set({
                     title: original.title,
                     type: original.type,
                     url: original.url,
                     summary: original.summary,
-                    tags: original.tags,
-                    updated_at: new Date().toISOString()
-                }).eq('id', existingCopy.id)
+                    tags: original.tags
+                }).where(eq(resources.id, existingCopy.id))
                 updated = true
             }
         } else if (type === 'note') {
-            const { data: original } = await adminSupabase.from('notes').select('*').eq('id', originalItemId).single()
+            const [original] = await db.select().from(notes).where(eq(notes.id, originalItemId)).limit(1)
             if (original) {
-                await supabase.from('notes').update({
+                await db.update(notes).set({
                     title: original.title,
                     content: original.content,
-                    updated_at: new Date().toISOString()
-                }).eq('id', existingCopy.id)
+                    updatedAt: new Date()
+                }).where(eq(notes.id, existingCopy.id))
                 updated = true
             }
         } else if (type === 'learning_path') {
-            const { data: original } = await adminSupabase.from('learning_paths').select('*').eq('id', originalItemId).single()
+            const [original] = await db.select().from(learningPaths).where(eq(learningPaths.id, originalItemId)).limit(1)
             if (original) {
-                await supabase.from('learning_paths').update({
+                await db.update(learningPaths).set({
                     title: original.title,
                     description: original.description,
-                    links: original.links,
-                    // updated_at might not exist on paths? Check schema. Assumed yes or standard.
-                }).eq('id', existingCopy.id)
+                    links: original.links
+                }).where(eq(learningPaths.id, existingCopy.id))
                 updated = true
             }
         }
@@ -226,58 +192,58 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
 
     // Create Copy
     if (type === 'resource') {
-        const { data: original } = await adminSupabase.from('resources').select('*').eq('id', originalItemId).single()
+        const [original] = await db.select().from(resources).where(eq(resources.id, originalItemId)).limit(1)
         if (!original) throw new Error('Original resource not found')
 
-        const { data: newItem, error } = await supabase.from('resources').insert({
-            user_id: user.id,
+        const [newItem] = await db.insert(resources).values({
+            userId,
             title: original.title,
             type: original.type,
             url: original.url,
             summary: original.summary,
             tags: original.tags,
-            original_item_id: original.id,
-            copied_from_chat: true,
-            copied_at: new Date().toISOString(),
-            project_id: null,
-            collection_id: null
-        }).select('id').single()
-        if (error) throw error
+            originalItemId: original.id,
+            copiedFromChat: true,
+            copiedAt: new Date(),
+            projectId: null,
+            collectionId: null
+        }).returning({ id: resources.id })
+
         newId = newItem.id
     }
     else if (type === 'note') {
-        const { data: original } = await adminSupabase.from('notes').select('*').eq('id', originalItemId).single()
+        const [original] = await db.select().from(notes).where(eq(notes.id, originalItemId)).limit(1)
         if (!original) throw new Error('Original note not found')
 
-        const { data: newItem, error } = await supabase.from('notes').insert({
-            user_id: user.id,
+        const [newItem] = await db.insert(notes).values({
+            userId,
             title: original.title,
             content: original.content,
-            original_item_id: original.id,
-            copied_from_chat: true,
-            copied_at: new Date().toISOString(),
-            project_id: null,
-            collection_id: null
-        }).select('id').single()
-        if (error) throw error
+            originalItemId: original.id,
+            copiedFromChat: true,
+            copiedAt: new Date(),
+            projectId: null,
+            collectionId: null
+        }).returning({ id: notes.id })
+
         newId = newItem.id
     }
     else if (type === 'learning_path') {
-        const { data: original } = await adminSupabase.from('learning_paths').select('*').eq('id', originalItemId).single()
+        const [original] = await db.select().from(learningPaths).where(eq(learningPaths.id, originalItemId)).limit(1)
         if (!original) throw new Error('Original learning path not found')
 
-        const { data: newItem, error } = await supabase.from('learning_paths').insert({
-            user_id: user.id,
+        const [newItem] = await db.insert(learningPaths).values({
+            userId,
             title: original.title,
             description: original.description,
             links: original.links,
-            original_item_id: original.id,
-            copied_from_chat: true,
-            copied_at: new Date().toISOString(),
-            project_id: null,
-            collection_id: null
-        }).select('id').single()
-        if (error) throw error
+            originalItemId: original.id,
+            copiedFromChat: true,
+            copiedAt: new Date(),
+            projectId: null,
+            collectionId: null
+        }).returning({ id: learningPaths.id })
+
         newId = newItem.id
     }
 

@@ -1,21 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { goals } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { GoalsManager } from '@/components/goals/goals-manager'
-
-interface Goal {
-    id: string
-    created_at: string
-    title: string
-    description?: string
-    type: string
-    priority: string
-    current_value: number
-    target_value: number
-    unit: string
-    deadline: string | null
-    user_id: string
-    status?: boolean
-    updated_at?: string
-}
+import { redirect } from 'next/navigation'
 
 export default async function GoalsPage({
     searchParams
@@ -23,23 +11,18 @@ export default async function GoalsPage({
     searchParams: Promise<{ q?: string }>
 }) {
     const { q: searchQuery } = await searchParams
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
 
-    const { data: { user } } = await supabase.auth.getUser()
+    const goalsData = await db.select().from(goals).where(eq(goals.userId, session.user.id))
 
-    if (!user) {
-        return <div>Please log in</div>
-    }
+    const allGoals = goalsData.map(g => ({
+        ...g,
+        user_id: g.userId,
+        current_value: Number(g.currentValue ?? 0),
+        target_value: Number(g.targetValue),
+        created_at: g.createdAt?.toISOString(),
+    }))
 
-    const { data: goalsData } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('deadline', { ascending: true })
-
-    const allGoals = (goalsData || []) as Goal[]
-
-    return (
-        <GoalsManager initialGoals={allGoals} searchQuery={searchQuery} />
-    )
+    return <GoalsManager initialGoals={allGoals as any} searchQuery={searchQuery} />
 }

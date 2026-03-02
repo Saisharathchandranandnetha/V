@@ -1,24 +1,23 @@
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { categories, resources } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { ResourceCard, ResourceProps } from '@/components/resource-card'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
 
-export default async function CategoryDetailPage({ params }: { params: { id: string } }) {
-    const supabase = await createClient()
-    const { id } = await params
+export default async function CategoryDetailPage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
 
-    const { data: category } = await supabase
-        .from('categories')
-        .select('name')
-        .eq('id', id)
-        .single()
+    const [category] = await db.select({ name: categories.name })
+        .from(categories)
+        .where(eq(categories.id, params.id))
+        .limit(1)
 
-    const { data: resources } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('category_id', id)
-        .order('created_at', { ascending: false })
+    const resourcesData = await db.select()
+        .from(resources)
+        .where(eq(resources.categoryId, params.id))
+        .orderBy(desc(resources.createdAt))
 
     if (!category) {
         return <div>Category not found</div>
@@ -35,17 +34,17 @@ export default async function CategoryDetailPage({ params }: { params: { id: str
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">{category.name}</h1>
                     <p className="text-muted-foreground">
-                        {resources?.length || 0} resources in this category
+                        {resourcesData?.length || 0} resources in this category
                     </p>
                 </div>
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {resources?.map((resource: any) => (
+                {resourcesData?.map((resource: any) => (
                     <ResourceCard key={resource.id} resource={resource} />
                 ))}
 
-                {resources?.length === 0 && (
+                {resourcesData?.length === 0 && (
                     <div className="col-span-full py-12 text-center text-muted-foreground border rounded-lg border-dashed">
                         No resources in this category yet.
                         <div className="mt-4">

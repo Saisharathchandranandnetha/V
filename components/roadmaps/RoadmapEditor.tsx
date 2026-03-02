@@ -412,6 +412,7 @@ export function RoadmapEditor({ roadmap, initialSteps }: { roadmap: Roadmap, ini
             }
         }
 
+        // eslint-disable-next-line react-hooks/purity
         const tempId = 'temp-' + Date.now()
         const newStep: Step = {
             id: tempId,

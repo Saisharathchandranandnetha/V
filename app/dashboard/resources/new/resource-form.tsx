@@ -13,7 +13,6 @@ import { ChevronLeft, Plus } from 'lucide-react'
 import { createResource, createCategoryAndReturn } from '@/app/dashboard/actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabase/client'
 
 export default function ResourceForm({ initialCategories }: { initialCategories: any[] }) {
     const [categories, setCategories] = useState(initialCategories || [])
@@ -81,21 +80,8 @@ export default function ResourceForm({ initialCategories }: { initialCategories:
                                     return
                                 }
 
-                                const supabase = createClient()
-                                const fileExt = file.name.split('.').pop()
-                                const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`
-                                const filePath = `pdfs/${fileName}`
-
-                                const { error: uploadError } = await supabase.storage
-                                    .from('resources')
-                                    .upload(filePath, file)
-
-                                if (uploadError) throw uploadError
-
-                                const { data: { publicUrl } } = supabase.storage
-                                    .from('resources')
-                                    .getPublicUrl(filePath)
-
+                                // Use an Object URL temporarily instead of Supabase storage
+                                const publicUrl = URL.createObjectURL(file)
                                 formData.set('url', publicUrl)
                             }
 
