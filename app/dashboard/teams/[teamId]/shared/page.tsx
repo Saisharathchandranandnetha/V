@@ -1,48 +1,58 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { teams, chatSharedItems, users, resources, notes, learningPaths, roadmaps } from '@/lib/db/schema'
+import { eq, inArray, isNotNull, desc, and } from 'drizzle-orm'
 import { SharedItemsList } from '@/components/chat/SharedItemsList'
 import { Hash, Share2 } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
-interface SharedPageProps {
-    params: Promise<{
-        teamId: string
-    }>
-}
-
-export default async function TeamSharedPage(props: SharedPageProps) {
+export default async function TeamSharedPage(props: { params: Promise<{ teamId: string }> }) {
     const params = await props.params;
     const { teamId } = params;
-    const supabase = await createClient()
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return null
+    const session = await auth()
+    if (!session?.user?.id) return redirect('/login')
+
+    const user = session.user
 
     // Get Team
-    const { data: team } = await supabase
-        .from('teams')
-        .select('name')
-        .eq('id', teamId)
-        .single()
+    const [team] = await db.select({ name: teams.name })
+        .from(teams)
+        .where(eq(teams.id, teamId))
+        .limit(1)
 
     if (!team) return <div>Team not found</div>
 
-    // Fetch Shared Items with Details
-    // This requires complex joining or multiple fetches.
-    // Since Supabase join syntax on multiple foreign types is tricky inside distinct tables:
-    // We'll fetch shared_items then fetch details.
+    // Fetch Shared Items
+    const sharedItemsRaw = await db.select({
+        id: chatSharedItems.id,
+        teamId: chatSharedItems.teamId,
+        projectId: chatSharedItems.projectId,
+        chatMessageId: chatSharedItems.chatMessageId,
+        sharedType: chatSharedItems.sharedType,
+        sharedItemId: chatSharedItems.sharedItemId,
+        sharedBy: chatSharedItems.sharedBy,
+        createdAt: chatSharedItems.createdAt,
+        sharedByUserName: users.name,
+        sharedByUserAvatar: users.image
+    })
+        .from(chatSharedItems)
+        .leftJoin(users, eq(chatSharedItems.sharedBy, users.id))
+        .where(eq(chatSharedItems.teamId, teamId))
+        .orderBy(desc(chatSharedItems.createdAt))
 
-    const { data: sharedItems } = await supabase
-        .from('chat_shared_items')
-        .select(`
-            *,
-            shared_by_user:users(name, avatar)
-        `)
-        .eq('team_id', teamId)
-        .order('created_at', { ascending: false })
+    if (!sharedItemsRaw || sharedItemsRaw.length === 0) return <div>No shared items</div>
 
-    // Fetch details for each item
-    // Optimization: Group by type and fetch in batch
-
-    if (!sharedItems) return <div>No shared items</div>
+    // Map properties for UI compatibility
+    const sharedItems = sharedItemsRaw.map(i => ({
+        ...i,
+        shared_type: i.sharedType,
+        shared_item_id: i.sharedItemId,
+        shared_by_user: {
+            name: i.sharedByUserName,
+            avatar: i.sharedByUserAvatar
+        }
+    }))
 
     const resourcesIds = sharedItems.filter(i => i.shared_type === 'resource').map(i => i.shared_item_id)
     const notesIds = sharedItems.filter(i => i.shared_type === 'note').map(i => i.shared_item_id)
@@ -50,34 +60,32 @@ export default async function TeamSharedPage(props: SharedPageProps) {
     const roadmapIds = sharedItems.filter(i => i.shared_type === 'roadmap').map(i => i.shared_item_id)
 
     const [resourcesRes, notesRes, pathsRes, roadmapsRes] = await Promise.all([
-        resourcesIds.length > 0 ? supabase.from('resources').select('*').in('id', resourcesIds) : { data: [] },
-        notesIds.length > 0 ? supabase.from('notes').select('*').in('id', notesIds) : { data: [] },
-        pathIds.length > 0 ? supabase.from('learning_paths').select('*').in('id', pathIds) : { data: [] },
-        roadmapIds.length > 0 ? supabase.from('roadmaps').select('*').in('id', roadmapIds) : { data: [] }
+        resourcesIds.length > 0 ? db.select().from(resources).where(inArray(resources.id, resourcesIds)) : Promise.resolve([]),
+        notesIds.length > 0 ? db.select().from(notes).where(inArray(notes.id, notesIds)) : Promise.resolve([]),
+        pathIds.length > 0 ? db.select().from(learningPaths).where(inArray(learningPaths.id, pathIds)) : Promise.resolve([]),
+        roadmapIds.length > 0 ? db.select().from(roadmaps).where(inArray(roadmaps.id, roadmapIds)) : Promise.resolve([])
     ])
 
-    const resourcesMap = new Map((resourcesRes.data || []).map(i => [i.id, i]))
-    const notesMap = new Map((notesRes.data || []).map(i => [i.id, i]))
-    const pathsMap = new Map((pathsRes.data || []).map(i => [i.id, i]))
-    const roadmapsMap = new Map((roadmapsRes.data || []).map(i => [i.id, i]))
+    const resourcesMap = new Map((resourcesRes || []).map((i: any) => [i.id, i]))
+    const notesMap = new Map((notesRes || []).map((i: any) => [i.id, i]))
+    const pathsMap = new Map((pathsRes || []).map((i: any) => [i.id, i]))
+    const roadmapsMap = new Map((roadmapsRes || []).map((i: any) => [i.id, i]))
 
     // Check if user has already added these items
-    // We need to fetch user's items which have original_item_id in these sets.
-
     const allOriginalIds = sharedItems.map(i => i.shared_item_id)
 
     const [userResources, userNotes, userPaths, userRoadmaps] = await Promise.all([
-        allOriginalIds.length > 0 ? supabase.from('resources').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] },
-        allOriginalIds.length > 0 ? supabase.from('notes').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] },
-        allOriginalIds.length > 0 ? supabase.from('learning_paths').select('original_item_id').eq('user_id', user.id).not('original_item_id', 'is', null).in('original_item_id', allOriginalIds) : { data: [] },
-        allOriginalIds.length > 0 ? supabase.from('roadmaps').select('original_roadmap_id').eq('owner_id', user.id).not('original_roadmap_id', 'is', null).in('original_roadmap_id', allOriginalIds) : { data: [] }
+        allOriginalIds.length > 0 ? db.select({ originalItemId: resources.originalItemId }).from(resources).where(and(eq(resources.userId, user.id!), isNotNull(resources.originalItemId), inArray(resources.originalItemId, allOriginalIds))) : Promise.resolve([]),
+        allOriginalIds.length > 0 ? db.select({ originalItemId: notes.originalItemId }).from(notes).where(and(eq(notes.userId, user.id!), isNotNull(notes.originalItemId), inArray(notes.originalItemId, allOriginalIds))) : Promise.resolve([]),
+        allOriginalIds.length > 0 ? db.select({ originalItemId: learningPaths.originalItemId }).from(learningPaths).where(and(eq(learningPaths.userId, user.id!), isNotNull(learningPaths.originalItemId), inArray(learningPaths.originalItemId, allOriginalIds))) : Promise.resolve([]),
+        allOriginalIds.length > 0 ? db.select({ originalRoadmapId: roadmaps.originalRoadmapId }).from(roadmaps).where(and(eq(roadmaps.ownerId, user.id!), isNotNull(roadmaps.originalRoadmapId), inArray(roadmaps.originalRoadmapId, allOriginalIds))) : Promise.resolve([])
     ])
 
     const addedSet = new Set([
-        ...(userResources.data || []).map(i => i.original_item_id),
-        ...(userNotes.data || []).map(i => i.original_item_id),
-        ...(userPaths.data || []).map(i => i.original_item_id),
-        ...(userRoadmaps.data || []).map(i => i.original_roadmap_id),
+        ...(userResources || []).map(i => i.originalItemId).filter(Boolean),
+        ...(userNotes || []).map(i => i.originalItemId).filter(Boolean),
+        ...(userPaths || []).map(i => i.originalItemId).filter(Boolean),
+        ...(userRoadmaps || []).map(i => i.originalRoadmapId).filter(Boolean),
     ])
 
     const enrichedItems = sharedItems.map(item => {

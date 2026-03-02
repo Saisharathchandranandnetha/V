@@ -1,30 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { projects } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Book, FileText, GraduationCap } from 'lucide-react'
-import { use } from 'react'
 
 export default async function ProjectLayout(props: {
     children: React.ReactNode
     params: Promise<{ projectId: string }>
 }) {
     const params = await props.params;
+    const { children } = props;
 
-    const {
-        children
-    } = props;
+    const session = await auth()
+    if (!session?.user?.id) return redirect('/login')
 
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return redirect('/login')
-
-    const { data: project } = await supabase
-        .from('projects')
-        .select('name')
-        .eq('id', params.projectId)
-        .single()
+    const [project] = await db.select({ name: projects.name })
+        .from(projects)
+        .where(eq(projects.id, params.projectId))
 
     if (!project) return <div>Project not found</div>
 

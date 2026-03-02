@@ -1,61 +1,36 @@
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { habits, habitLogs, tasks, goals, transactions, resources, notes, collections, categories, learningPaths } from '@/lib/db/schema'
+import { eq, and, or, isNull, lte, gte, count } from 'drizzle-orm'
 import { redirect } from 'next/navigation'
 
 export async function getUserTeams() {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const { teams, teamMembers, projects } = await import('@/lib/db/schema')
+    const { db } = await import('@/lib/db')
 
-    // Fetch teams the user belongs to
-    const { data: teams, error } = await supabase
-        .from('teams')
-        .select(`
-            id,
-            name,
-            team_members (
-                role,
-                user_id
-            ),
-            projects (
-                id,
-                name,
-                team_id,
-                project_members (
-                    user_id
-                )
-            )
-        `)
-        .order('name')
+    const userTeams = await db
+        .select({ teamId: teamMembers.teamId, role: teamMembers.role })
+        .from(teamMembers)
+        .where(eq(teamMembers.userId, session.user.id!))
 
-    if (error) {
-        console.error("Error fetching teams:", JSON.stringify(error, null, 2))
-        return []
-    }
+    if (!userTeams.length) return []
 
-    // Transform data
-    const formattedTeams = teams?.map(team => {
-        // Find current user's role
-        const userMember = team.team_members?.find(m => m.user_id === user.id)
-        const role = userMember?.role || 'member'
+    const teamIds = userTeams.map(t => t.teamId)
+    const roleMap = Object.fromEntries(userTeams.map(t => [t.teamId, t.role]))
 
-        // Filter projects: 
-        // 1. If project has members defined, only show to those members.
-        // 2. If project has NO members (legacy/old), show to all team members.
-        const visibleProjects = Array.isArray(team.projects)
-            ? team.projects.filter(p => {
-                const members = p.project_members || []
-                if (members.length === 0) return true // Legacy/Public fallback
-                return members.some((pm: any) => pm.user_id === user.id)
-            })
-            : []
+    const teamsData = await db.select({ id: teams.id, name: teams.name }).from(teams)
+        .where(or(...teamIds.map(id => eq(teams.id, id))))
 
-        return {
-            ...team,
-            currentUserRole: role,
-            projects: visibleProjects.sort((a, b) => a.name.localeCompare(b.name))
-        }
-    }) || []
+    const projectsData = await db.select().from(projects)
+        .where(or(...teamIds.map(id => eq(projects.teamId, id))))
 
-    return formattedTeams
+    return teamsData.map(team => ({
+        ...team,
+        currentUserRole: roleMap[team.id] || 'member',
+        team_members: userTeams.filter(m => m.teamId === team.id),
+        projects: projectsData.filter(p => p.teamId === team.id).sort((a, b) => a.name.localeCompare(b.name)),
+    }))
 }

@@ -1,26 +1,25 @@
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { resources, categories } from '@/lib/db/schema'
+import { eq, asc } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
 import { EditResourceForm } from './edit-resource-form'
 
-export default async function EditResourcePage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params
-    const supabase = await createClient()
+export default async function EditResourcePage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
 
-    const { data: resource, error } = await supabase
-        .from('resources')
-        .select('*')
-        .eq('id', id)
-        .single()
+    const [resource] = await db.select()
+        .from(resources)
+        .where(eq(resources.id, params.id))
+        .limit(1)
 
     // Fetch categories for dropdown
-    const { data: categories } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
+    const categoriesData = await db.select()
+        .from(categories)
+        .orderBy(asc(categories.name))
 
-    if (error || !resource) {
+    if (!resource) {
         notFound()
     }
 
-    return <EditResourceForm resource={resource} initialCategories={categories || []} />
+    return <EditResourceForm resource={resource as any} initialCategories={categoriesData || []} />
 }

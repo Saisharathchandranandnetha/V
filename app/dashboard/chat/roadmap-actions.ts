@@ -1,28 +1,29 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { roadmaps, teamMessages, chatSharedItems } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 export async function shareRoadmapAndSend(teamId: string, projectId: string | undefined, roadmapId: string, content: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Not authenticated')
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Not authenticated')
+    const userId = session.user.id
 
     // 0. Fetch Roadmap details for metadata
-    const { data: roadmap, error: rError } = await supabase
-        .from('roadmaps')
-        .select('title')
-        .eq('id', roadmapId)
-        .single()
+    const [roadmap] = await db.select({ title: roadmaps.title })
+        .from(roadmaps)
+        .where(eq(roadmaps.id, roadmapId))
+        .limit(1)
 
-    if (rError || !roadmap) throw new Error('Roadmap not found')
+    if (!roadmap) throw new Error('Roadmap not found')
 
     // 1. Create message
-    const { data: message, error: msgError } = await supabase
-        .from('team_messages')
-        .insert({
-            team_id: teamId,
-            project_id: projectId || null,
-            sender_id: user.id,
+    const [message] = await db.insert(teamMessages)
+        .values({
+            teamId,
+            projectId: projectId || null,
+            senderId: userId,
             message: content,
             metadata: {
                 attachments: [
@@ -36,26 +37,23 @@ export async function shareRoadmapAndSend(teamId: string, projectId: string | un
                 ]
             }
         })
-        .select()
-        .single() // Return single row
+        .returning()
 
-    if (msgError) throw new Error(msgError.message)
+    if (!message) throw new Error('Failed to create message')
 
     // 2. Create shared item
-    const { error: shareError } = await supabase
-        .from('chat_shared_items')
-        .insert({
-            chat_message_id: message.id,
-            team_id: teamId,
-            project_id: projectId || null,
-            shared_item_id: roadmapId,
-            shared_type: 'roadmap',
-            shared_by: user.id
+    try {
+        await db.insert(chatSharedItems).values({
+            chatMessageId: message.id,
+            teamId,
+            projectId: projectId || null,
+            sharedItemId: roadmapId,
+            sharedType: 'roadmap',
+            sharedBy: userId
         })
-
-    if (shareError) {
-        // Cleanup message if sharing fails (optional but good practice)
-        await supabase.from('team_messages').delete().eq('id', message.id)
+    } catch (shareError: any) {
+        // Cleanup message if sharing fails
+        await db.delete(teamMessages).where(eq(teamMessages.id, message.id))
         throw new Error(shareError.message)
     }
 

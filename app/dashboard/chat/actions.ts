@@ -1,232 +1,140 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { teamMessages, chatSharedItems, tasks, messageReads, users, projects } from '@/lib/db/schema'
+import { eq, and, ne, gte, isNull, desc } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import Ably from 'ably'
 
 export async function sendMessage(formData: FormData) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
     const message = formData.get('message') as string
     const teamId = formData.get('teamId') as string
     let projectId: string | null = formData.get('projectId') as string
     const metadataRaw = formData.get('metadata') as string
 
-    // Sanitize projectId
-    if (projectId === 'undefined' || projectId === 'null' || !projectId) {
-        projectId = null
-    }
-
-    if ((!message && !metadataRaw) || !teamId) {
-        throw new Error('Message or Attachment and Team ID are required')
-    }
-
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    if (projectId === 'undefined' || projectId === 'null' || !projectId) projectId = null
+    if ((!message && !metadataRaw) || !teamId) throw new Error('Message or Attachment and Team ID are required')
 
     let metadata = null
-    try {
-        if (metadataRaw) {
-            metadata = JSON.parse(metadataRaw)
-        }
-    } catch (e) {
-        console.error('Failed to parse metadata', e)
-    }
+    try { if (metadataRaw) metadata = JSON.parse(metadataRaw) } catch { }
 
-    const { data: insertedMessage, error } = await supabase
-        .from('team_messages')
-        .insert({
-            team_id: teamId,
-            project_id: projectId, // already sanitized to null or string
-            message,
-            sender_id: user.id,
-            metadata: metadata
-        })
-        .select()
-        .single()
+    const [insertedMessage] = await db.insert(teamMessages).values({
+        teamId,
+        projectId,
+        message,
+        senderId: session.user.id,
+        metadata,
+    }).returning()
 
-    if (error) {
-        console.error('Error sending message:', JSON.stringify(error, null, 2))
-        console.error('Debug Info:', { teamId, projectId, userId: user.id })
-        throw new Error(`Failed to send message: ${error.message}`)
-    }
-
-    // Handle Shared Items
-    // Handle Shared Items
-    // Support new 'attachments' array or legacy 'attachment' object
+    // Handle shared item attachments
     const attachments = metadata?.attachments || (metadata?.attachment ? [metadata.attachment] : [])
-
     if (attachments.length > 0) {
         const validTypes = ['resource', 'note', 'learning_path', 'roadmap']
-        const recordsToInsert = []
-
-        for (const attachment of attachments) {
-            const sharedType = attachment.type
-            if (validTypes.includes(sharedType) && attachment.item?.id) {
-                recordsToInsert.push({
-                    team_id: teamId,
-                    project_id: projectId || null,
-                    chat_message_id: insertedMessage.id,
-                    shared_type: sharedType as any,
-                    shared_item_id: attachment.item.id,
-                    shared_by: user.id
-                })
-            }
-        }
-
-        if (recordsToInsert.length > 0) {
-            await supabase.from('chat_shared_items').insert(recordsToInsert)
-        }
+        const records = attachments
+            .filter((a: any) => validTypes.includes(a.type) && a.item?.id)
+            .map((a: any) => ({
+                teamId, projectId: projectId || null,
+                chatMessageId: insertedMessage.id,
+                sharedType: a.type, sharedItemId: a.item.id, sharedBy: session.user!.id!,
+            }))
+        if (records.length > 0) await db.insert(chatSharedItems).values(records)
     }
 
-    // We don't necessarily need to revalidate path if we are using Realtime, 
-    // but it's good practice for initial load consistency.
-    // revalidatePath(`/dashboard/chat/${teamId}`) 
+    // Publish to Ably for realtime
+    if (process.env.ABLY_API_KEY) {
+        try {
+            const ably = new Ably.Rest(process.env.ABLY_API_KEY)
+            const channelName = `chat:${teamId}:${projectId || 'team'}`
+            const channel = ably.channels.get(channelName)
+            await channel.publish('new-message', {
+                ...insertedMessage,
+                senderName: session.user.name,
+                senderImage: session.user.image,
+            })
+        } catch (e) { console.error('Ably publish error:', e) }
+    }
 }
 
 export async function markMessageAsRead(messageId: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const session = await auth()
+    if (!session?.user?.id) return
 
-    if (!user) return
-
-    const { error } = await supabase
-        .from('message_reads')
-        .insert({
-            message_id: messageId,
-            user_id: user.id
-        })
-        // Ignore unique constraint violation if already read
-        .select()
-
-    if (error && error.code !== '23505') { // 23505 is unique_violation
-        console.error('Error marking message as read:', error)
-    }
+    try {
+        await db.insert(messageReads).values({ messageId, userId: session.user.id })
+    } catch { } // Ignore duplicate
 }
 
 export async function createTaskFromMessage(formData: FormData) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
     const title = formData.get('title') as string
     const teamId = formData.get('teamId') as string
-    const projectId = formData.get('projectId') as string
-    const messageId = formData.get('messageId') as string
-    const assignedTo = formData.get('assignedTo') as string
+    const projectId = formData.get('projectId') as string || null
+    const assignedTo = formData.get('assignedTo') as string || null
     const dueDate = formData.get('dueDate') as string
     const priority = formData.get('priority') as string
 
-    const { error } = await supabase
-        .from('tasks')
-        .insert({
-            title,
-            team_id: teamId,
-            project_id: projectId || null,
-            created_from_message_id: messageId,
-            assigned_to: assignedTo || null,
-            user_id: user.id, // Creator
-            due_date: dueDate || null,
-            priority: priority || 'Medium',
-            status: 'Todo'
-        })
-
-    if (error) {
-        console.error('Error creating task from message:', error)
-        throw new Error('Failed to create task')
-    }
+    await db.insert(tasks).values({
+        title, teamId,
+        projectId: projectId || null,
+        assignedTo: assignedTo || null,
+        userId: session.user.id,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        priority: priority || 'Medium',
+        status: 'Todo',
+    })
 
     revalidatePath(`/dashboard/chat/${teamId}`)
 }
 
 export async function createTaskDirectly(formData: FormData) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
     const title = formData.get('title') as string
     const teamId = formData.get('teamId') as string
-    const projectId = formData.get('projectId') as string
-    const assignedTo = formData.get('assignedTo') as string
+    const projectId = formData.get('projectId') as string || null
+    const assignedTo = formData.get('assignedTo') as string || null
     const dueDate = formData.get('dueDate') as string
     const priority = formData.get('priority') as string
 
     if (!title || !teamId) throw new Error('Title and Team ID required')
 
-    let description = ''
-
-    // Fetch user name
-    const { data: userData } = await supabase
-        .from('users')
-        .select('name, email')
-        .eq('id', user.id)
-        .single()
-
+    const [userData] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, session.user.id)).limit(1)
     const assignerName = userData?.name || userData?.email || 'Unknown User'
 
-    // If created from a project, fetch project name and add note
+    let description = `Task assigned by ${assignerName}`
     if (projectId) {
-        const { data: project } = await supabase
-            .from('projects')
-            .select('name')
-            .eq('id', projectId)
-            .single()
-
-        if (project) {
-            description = `Task assigned from project: ${project.name} by ${assignerName}`
-        }
-    } else {
-        description = `Task assigned by ${assignerName}`
+        const [project] = await db.select({ name: projects.name }).from(projects).where(eq(projects.id, projectId)).limit(1)
+        if (project) description = `Task assigned from project: ${project.name} by ${assignerName}`
     }
 
-    const { error } = await supabase
-        .from('tasks')
-        .insert({
-            title,
-            team_id: teamId,
-            project_id: projectId || null,
-            assigned_to: assignedTo || null,
-            user_id: user.id,
-            due_date: dueDate || null,
-            status: 'Todo',
-            priority: priority || 'Medium',
-            description: description || null
-        })
+    await db.insert(tasks).values({
+        title, teamId,
+        projectId: projectId || null,
+        assignedTo: assignedTo || null,
+        userId: session.user.id,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        status: 'Todo',
+        priority: priority || 'Medium',
+        description,
+    })
 
-    if (error) {
-        console.error('Error creating task:', error)
-        throw new Error('Failed to create task')
-    }
-
-    // Send automated assignment message if assigned
     if (assignedTo) {
         try {
-            // Fetch assignee name
-            const { data: assigneeData } = await supabase
-                .from('users')
-                .select('name, email')
-                .eq('id', assignedTo)
-                .single()
-
-            const assigneeName = assigneeData?.name || assigneeData?.email || 'Unknown User'
-
-            console.log('Sending assignment message...')
-            const { error: assignMsgError } = await supabase.from('team_messages').insert({
-                team_id: teamId,
-                project_id: projectId || null,
+            const [assigneeData] = await db.select({ name: users.name, email: users.email }).from(users).where(eq(users.id, assignedTo)).limit(1)
+            const assigneeName = assigneeData?.name || assigneeData?.email || 'Unknown'
+            await db.insert(teamMessages).values({
+                teamId, projectId: projectId || null,
                 message: `Assigned task '${title}' to ${assigneeName}`,
-                sender_id: user.id,
-                type: 'system'
+                senderId: session.user.id, type: 'system',
             })
-
-            if (assignMsgError) {
-                console.error('Assignment message error:', assignMsgError)
-            } else {
-                console.log('Assignment message sent successfully')
-            }
-        } catch (msgError) {
-            console.error('Failed to send assignment message:', msgError)
-            // Don't fail the task creation
-        }
+        } catch { }
     }
 
     revalidatePath(`/dashboard/chat/${teamId}`)
@@ -234,162 +142,107 @@ export async function createTaskDirectly(formData: FormData) {
 }
 
 export async function updateProject(formData: FormData) {
-    const supabase = await createClient()
     const projectId = formData.get('projectId') as string
     const name = formData.get('name') as string
     const teamId = formData.get('teamId') as string
-
     if (!projectId || !name) throw new Error('Project ID and Name required')
 
-    const { error } = await supabase
-        .from('projects')
-        .update({ name })
-        .eq('id', projectId)
-
-    if (error) {
-        console.error('Error updating project:', error)
-        throw new Error('Failed to update project')
-    }
-
-    revalidatePath(`/dashboard/chat/${teamId}/project/${projectId}`)
+    await db.update(projects).set({ name }).where(eq(projects.id, projectId))
     revalidatePath(`/dashboard/chat/${teamId}`)
 }
 
 export async function deleteProject(projectId: string, teamId: string) {
-    const supabase = await createClient()
-
-    const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', projectId)
-
-    if (error) {
-        console.error('Error deleting project:', error)
-        throw new Error('Failed to delete project')
-    }
-
+    await db.delete(projects).where(eq(projects.id, projectId))
     revalidatePath(`/dashboard/chat/${teamId}`)
 }
 
 export async function deleteMessage(messageId: string, teamId: string) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
-    if (!user) throw new Error('Unauthorized')
+    const [message] = await db.select({ senderId: teamMessages.senderId }).from(teamMessages).where(eq(teamMessages.id, messageId)).limit(1)
+    if (!message) return
+    if (message.senderId !== session.user.id) throw new Error('You can only delete your own messages')
 
-    // Check ownership before delete
-    // OR isAdmin/Owner (not strictly enforced here for speed, but good practice to constrain)
-    const { data: message } = await supabase
-        .from('team_messages')
-        .select('sender_id')
-        .eq('id', messageId)
-        .single()
-
-    if (!message) return // Already deleted?
-
-    if (message.sender_id !== user.id) {
-        throw new Error('You can only delete your own messages')
-    }
-
-    const { error } = await supabase
-        .from('team_messages')
-        .delete()
-        .eq('id', messageId)
-
-    if (error) {
-        console.error('Error deleting message:', error)
-        throw new Error('Failed to delete message')
-    }
-
+    await db.delete(teamMessages).where(eq(teamMessages.id, messageId))
     revalidatePath(`/dashboard/chat/${teamId}`)
 }
 
 export async function getUnreadCounts() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return {}
+    const session = await auth()
+    if (!session?.user?.id) return {}
 
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    // Fetch recent messages
-    const { data: recentMessages } = await supabase
-        .from('team_messages')
-        .select(`
-            id,
-            team_id,
-            project_id,
-            message_reads (
-                user_id
-            )
-        `)
-        .neq('sender_id', user.id)
-        .gte('created_at', thirtyDaysAgo.toISOString())
-
-    if (!recentMessages) return {}
+    const recentMessages = await db.select({
+        id: teamMessages.id,
+        teamId: teamMessages.teamId,
+        projectId: teamMessages.projectId,
+    }).from(teamMessages)
+        .where(and(ne(teamMessages.senderId, session.user.id), gte(teamMessages.createdAt, thirtyDaysAgo)))
 
     const unreadCounts: Record<string, number> = {}
-
-    recentMessages.forEach((msg: any) => {
-        // Check if current user has read it
-        // message_reads is an array of objects { user_id: string }
-        const hasRead = msg.message_reads?.some((r: any) => r.user_id === user.id)
-
-        if (!hasRead) {
-            // Increment Team Count
-            if (msg.team_id) {
-                unreadCounts[msg.team_id] = (unreadCounts[msg.team_id] || 0) + 1
-            }
-            // Increment Project Count
-            if (msg.project_id) {
-                unreadCounts[msg.project_id] = (unreadCounts[msg.project_id] || 0) + 1
-            }
+    for (const msg of recentMessages) {
+        const [read] = await db.select().from(messageReads)
+            .where(and(eq(messageReads.messageId, msg.id), eq(messageReads.userId, session.user.id))).limit(1)
+        if (!read) {
+            if (msg.teamId) unreadCounts[msg.teamId] = (unreadCounts[msg.teamId] || 0) + 1
+            if (msg.projectId) unreadCounts[msg.projectId] = (unreadCounts[msg.projectId] || 0) + 1
         }
-    })
+    }
 
     return unreadCounts
 }
 
 export async function markProjectMessagesAsRead(teamId: string, projectId: string | null) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const session = await auth()
+    if (!session?.user?.id) return
 
-    if (!user) return
+    const messages = await db.select({ id: teamMessages.id })
+        .from(teamMessages)
+        .where(and(
+            eq(teamMessages.teamId, teamId),
+            ne(teamMessages.senderId, session.user.id),
+            projectId ? eq(teamMessages.projectId, projectId) : isNull(teamMessages.projectId)
+        ))
+        .orderBy(desc(teamMessages.createdAt))
+        .limit(50)
 
-    // Limit to recent messages for performance (e.g. last 50)
-    let query = supabase
-        .from('team_messages')
-        .select('id, message_reads(user_id)')
-        .eq('team_id', teamId)
-        .neq('sender_id', user.id)
-
-    if (projectId) {
-        query = query.eq('project_id', projectId)
-    } else {
-        query = query.is('project_id', null)
+    for (const msg of messages) {
+        try {
+            await db.insert(messageReads).values({ messageId: msg.id, userId: session.user.id })
+        } catch { } // Ignore duplicates
     }
 
-    const { data: messages } = await query.order('created_at', { ascending: false }).limit(50)
+    revalidatePath('/dashboard/chat')
+}
 
-    if (!messages) return
+export async function getAttachmentItems(type: 'resource' | 'note' | 'learning_path' | 'finance' | 'roadmap') {
+    const session = await auth()
+    if (!session?.user?.id) return []
 
-    const unreadMessageIds = messages
-        .filter((msg: any) => !msg.message_reads?.some((r: any) => r.user_id === user.id))
-        .map((msg: any) => msg.id)
+    const { resources, notes, learningPaths, roadmaps } = await import('@/lib/db/schema')
 
-    if (unreadMessageIds.length === 0) return
-
-    const recordsToInsert = unreadMessageIds.map(id => ({
-        message_id: id,
-        user_id: user.id
-    }))
-
-    const { error } = await supabase.from('message_reads').insert(recordsToInsert)
-
-    if (error) {
-        console.error("Error marking messages as read:", error)
-    } else {
-        revalidatePath('/dashboard/chat')
+    if (type === 'resource') {
+        const items = await db.select({ id: resources.id, title: resources.title }).from(resources).where(eq(resources.userId, session.user.id)).limit(20)
+        return items
     }
+    if (type === 'note') {
+        const items = await db.select({ id: notes.id, title: notes.title }).from(notes).where(eq(notes.userId, session.user.id)).limit(20)
+        return items
+    }
+    if (type === 'learning_path') {
+        const items = await db.select({ id: learningPaths.id, title: learningPaths.title }).from(learningPaths).where(eq(learningPaths.userId, session.user.id)).limit(20)
+        return items
+    }
+    if (type === 'roadmap') {
+        const items = await db.select({ id: roadmaps.id, title: roadmaps.title }).from(roadmaps).where(eq(roadmaps.ownerId, session.user.id)).limit(20)
+        return items
+    }
+    if (type === 'finance') {
+        const items = await db.select({ id: projects.id, title: projects.name }).from(projects).limit(20)
+        return items.map(p => ({ id: p.id, title: p.title }))
+    }
+    return []
 }

@@ -1,10 +1,14 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { goals } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
 export async function createGoal(formData: FormData) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
     const title = formData.get('title') as string
     const type = (formData.get('type') as string) || 'Short Term'
@@ -13,53 +17,43 @@ export async function createGoal(formData: FormData) {
     const current = Number(formData.get('current_value')) || 0
     const deadline = formData.get('deadline') as string
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
-
-    const { error } = await supabase.from('goals').insert({
+    await db.insert(goals).values({
+        userId: session.user.id,
         title,
         type,
-        target_value: target,
-        current_value: current,
+        targetValue: String(target),
+        currentValue: String(current),
         unit,
-        deadline: deadline ? deadline : null,
-        user_id: user.id
+        deadline: deadline || null,
     })
-
-    if (error) {
-        console.error('Error creating goal:', error)
-        throw new Error('Failed to create goal')
-    }
 
     revalidatePath('/dashboard/goals')
 }
 
 export async function updateGoalProgress(id: string, current: number) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
-    const { error } = await supabase.from('goals').update({
-        current_value: current,
-        updated_at: new Date().toISOString()
-    }).eq('id', id)
-
-    if (error) {
-        console.error('Error updating goal:', error)
-        throw new Error('Failed to update goal')
-    }
+    await db.update(goals)
+        .set({ currentValue: String(current) })
+        .where(and(eq(goals.id, id), eq(goals.userId, session.user.id)))
 
     revalidatePath('/dashboard/goals')
 }
 
 export async function deleteGoal(id: string) {
-    const supabase = await createClient()
-    const { error } = await supabase.from('goals').delete().eq('id', id)
-    if (error) throw new Error('Failed to delete goal')
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
+
+    await db.delete(goals)
+        .where(and(eq(goals.id, id), eq(goals.userId, session.user.id)))
 
     revalidatePath('/dashboard/goals')
 }
 
 export async function updateGoal(id: string, formData: FormData) {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) throw new Error('Unauthorized')
 
     const title = formData.get('title') as string
     const type = formData.get('type') as string
@@ -67,21 +61,9 @@ export async function updateGoal(id: string, formData: FormData) {
     const unit = formData.get('unit') as string
     const deadline = formData.get('deadline') as string
 
-    const { error } = await supabase.from('goals')
-        .update({
-            title,
-            type,
-            target_value: target,
-            unit,
-            deadline: deadline ? deadline : null,
-            updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-
-    if (error) {
-        console.error('Error updating goal:', error)
-        throw new Error('Failed to update goal')
-    }
+    await db.update(goals)
+        .set({ title, type, targetValue: String(target), unit, deadline: deadline || null })
+        .where(and(eq(goals.id, id), eq(goals.userId, session.user.id)))
 
     revalidatePath('/dashboard/goals')
 }

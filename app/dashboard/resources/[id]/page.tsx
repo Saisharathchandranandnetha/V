@@ -115,7 +115,7 @@ export default async function ResourceDetailPage({ params }: { params: { id: str
                             </Button>
                             <Button className="w-full justify-start" variant="outline">
                                 <Sparkles className="mr-2 h-4 w-4" />
-                                Explain Like I'm 15
+                                Explain Like I&apos;m 15
                             </Button>
                         </CardContent>
                     </Card>

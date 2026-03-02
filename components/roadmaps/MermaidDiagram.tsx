@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useId } from 'react'
 import mermaid from 'mermaid'
 
 interface MermaidDiagramProps {
@@ -9,7 +9,8 @@ interface MermaidDiagramProps {
 
 export function MermaidDiagram({ chart }: MermaidDiagramProps) {
     const ref = useRef<HTMLDivElement>(null)
-    const [id] = useState(`mermaid-${Math.random().toString(36).substring(2, 9)}`)
+    const rawId = useId()
+    const id = `mermaid-${rawId.replace(/:/g, '')}`
     const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {

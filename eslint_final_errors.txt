@@ -1,0 +1,44 @@
+
+  16:40  warning  'authError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  24:42  error  Error: Cannot call impure function during render
+  118:47  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  
+react/no-unescaped-entities
+  24:31  error    'error' is never reassigned. Use 'const' instead  prefer-const
+  414:80  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                          
+                                                                                                            
+                                                                                    
+react/no-unescaped-entities
+  72:28  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  26:23  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   55:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  75:13  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the 
+following line is error-free  @typescript-eslint/ban-ts-comment
+  62:13  error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the 
+following line is error-free  @typescript-eslint/ban-ts-comment
+  11:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+  20:29  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  20:50  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  54:27  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  53:37  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  53:47  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  24:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+  22 |                 .catch(err => console.error("Failed to load Lottie JSON", err))
+   31:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+  36:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+  235:64  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  
+react/no-unescaped-entities
+  235:78  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  
+react/no-unescaped-entities
+  49:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+  12:38  error    Error: Cannot call impure function during render
+  13 |     const [error, setError] = useState<string | null>(null)
+  415:34  error    Error: Cannot call impure function during render
+  54:44  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  54:56  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  160:102  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  
+react/no-unescaped-entities
+  160:127  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  
+react/no-unescaped-entities
+??? 359 problems (26 errors, 333 warnings)
+
+

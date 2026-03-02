@@ -19,13 +19,19 @@ import { useEffect } from 'react'
 export type Project = {
     id: string
     name: string
-    team_id: string
+    teamId?: string | null
+    description?: string | null
+    ownerId?: string | null
+    status?: string | null
+    progress?: number | null
 }
 
 export type Team = {
     id: string
     name: string
+    description?: string | null
     currentUserRole?: string
+    team_members?: any[]
     projects: Project[]
 }
 

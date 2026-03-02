@@ -1,0 +1,696 @@
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\api\ai-assistant\route.ts
+  204:15  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  380:13  warning  'conversationHistory' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  411:27  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  434:28  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  451:18  warning  'jsonErr' is defined but never used                       @typescript-eslint/no-unused-vars
+  457:24  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  484:21  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  487:18  warning  'e' is defined but never used                             @typescript-eslint/no-unused-vars
+  542:36  warning  Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  558:26  warning  'jsonErr' is defined but never used                       @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\api\debug\schema-check\route.ts
+  10:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\api\health\route.ts
+  16:40  warning  'authError' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\admin\actions.ts
+  108:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\analytics\actions.ts
+  71:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\analytics\analytics-charts.tsx
+   34:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  158:71  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  214:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  220:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  222:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\categories\[id]\page.tsx
+   2:24  warning  'ResourceProps' is defined but never used  @typescript-eslint/no-unused-vars
+  44:44  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\categories\page.tsx
+   3:8   warning  'CategoriesManager' is defined but never used  @typescript-eslint/no-unused-vars
+   5:10  warning  'Card' is defined but never used               @typescript-eslint/no-unused-vars
+  44:41  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+  47:34  warning  Unexpected any. Specify a different type       @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\chat\[teamId]\page.tsx
+   3:10  warning  'Separator' is defined but never used     @typescript-eslint/no-unused-vars
+  57:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\chat\[teamId]\project\[projectId]\page.tsx
+  69:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\chat\actions.ts
+   69:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  334:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  337:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  378:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  378:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  379:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\chat\layout.tsx
+  2:10  warning  'redirect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\chat\queries.ts
+  49:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\chat\shared-actions.ts
+   33:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  134:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\collections\[id]\page.tsx
+   65:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  127:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\collections\collection-card.tsx
+  5:10  warning  'Card' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\collections\page.tsx
+   2:8   warning  'Link' is defined but never used             @typescript-eslint/no-unused-vars
+   3:10  warning  'Card' is defined but never used             @typescript-eslint/no-unused-vars
+   3:16  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+   3:28  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+   3:39  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+   3:56  warning  'CardContent' is defined but never used      @typescript-eslint/no-unused-vars
+   4:10  warning  'Folder' is defined but never used           @typescript-eslint/no-unused-vars
+  36:42  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  39:36  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\finances\actions.ts
+    6:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:14  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\habits\page.tsx
+  24:42  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\habits\page.tsx:24:42
+  22 |         .eq('user_id', user.id)
+  23 |         // Optimization: Only fetch recent logs (last 90 days) to calculate streaks/analytics
+> 24 |         .gte('habit_logs.date', new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())
+     |                                          ^^^^^^^^^^ Cannot call impure function
+  25 |         .order('created_at', { ascending: false })
+  26 |
+  27 |     return (  react-hooks/purity
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\layout.tsx
+  9:10  warning  'ScrollArea' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\notes\actions.ts
+  5:10  warning  'redirect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\page.tsx
+    2:10   warning  'Button' is defined but never used                     @typescript-eslint/no-unused-vars
+    3:10   warning  'Card' is defined but never used                       @typescript-eslint/no-unused-vars
+    6:10   warning  'PlusCircle' is defined but never used                 @typescript-eslint/no-unused-vars
+    6:118  warning  'Route' is defined but never used                      @typescript-eslint/no-unused-vars
+    6:158  warning  'FolderOpen' is defined but never used                 @typescript-eslint/no-unused-vars
+    6:216  warning  'Layout' is defined but never used                     @typescript-eslint/no-unused-vars
+    9:10   warning  'format' is defined but never used                     @typescript-eslint/no-unused-vars
+   13:10   warning  'Entrance' is defined but never used                   @typescript-eslint/no-unused-vars
+  122:11   warning  'pathsCount' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  124:11   warning  'collectionsCount' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  125:11   warning  'categoriesCount' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  127:11   warning  'activeGoals' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\projects\[projectId]\layout.tsx
+  6:10  warning  'use' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\projects\[projectId]\notes\page.tsx
+   3:56  warning  'CardFooter' is defined but never used    @typescript-eslint/no-unused-vars
+  22:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\projects\[projectId]\paths\page.tsx
+  20:36  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\projects\[projectId]\resources\page.tsx
+   3:10  warning  'Plus' is defined but never used          @typescript-eslint/no-unused-vars
+   4:10  warning  'Button' is defined but never used        @typescript-eslint/no-unused-vars
+  23:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\resources\[id]\edit\edit-resource-form.tsx
+   10:18  warning  'LinkIcon' is defined but never used      @typescript-eslint/no-unused-vars
+   16:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   17:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\resources\[id]\page.tsx
+    8:10  warning  'LottiePlayer' is defined but never used                         @typescript-eslint/no-unused-vars
+    9:10  warning  'ResourceType' is defined but never used                         @typescript-eslint/no-unused-vars
+   18:34  warning  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  118:47  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\resources\new\resource-form.tsx
+   15:10  warning  'cn' is defined but never used            @typescript-eslint/no-unused-vars
+   18:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  149:72  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\roadmaps\[id]\page.tsx
+    7:53  warning  'searchParams' is defined but never used  @typescript-eslint/no-unused-vars
+   71:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   77:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   89:82  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:81  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   91:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  103:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  104:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  105:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  106:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\roadmaps\actions.ts
+  146:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  429:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\roadmaps\page.tsx
+   6:5   warning  'Card' is defined but never used             @typescript-eslint/no-unused-vars
+  45:27  warning  'newMap' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  58:39  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  62:33  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\roadmaps\roadmaps-auto-create.tsx
+  51:8  warning  React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\settings\actions.ts
+  24:31  error    'error' is never reassigned. Use 'const' instead  prefer-const
+  71:63  warning  Unexpected any. Specify a different type          @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\settings\device-actions.ts
+  39:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  44:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\settings\page.tsx
+  11:8   warning  'CollectionsManager' is defined but never used    @typescript-eslint/no-unused-vars
+  42:19  warning  'collections' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\settings\settings-form.tsx
+   25:56  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+   31:60  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  104:25  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  148:25  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  257:45  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  414:80  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                          react/no-unescaped-entities
+  573:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\tasks\actions.ts
+  49:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\tasks\page.tsx
+  3:5   warning  'Tabs' is defined but never used         @typescript-eslint/no-unused-vars
+  4:5   warning  'TabsContent' is defined but never used  @typescript-eslint/no-unused-vars
+  5:5   warning  'TabsList' is defined but never used     @typescript-eslint/no-unused-vars
+  6:5   warning  'TabsTrigger' is defined but never used  @typescript-eslint/no-unused-vars
+  9:10  warning  'LayoutList' is defined but never used   @typescript-eslint/no-unused-vars
+  9:22  warning  'Kanban' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\teams\[teamId]\shared\page.tsx
+   95:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\teams\actions.ts
+  5:10  warning  'redirect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\dashboard\teams\page.tsx
+   6:17  warning  'Plus' is defined but never used          @typescript-eslint/no-unused-vars
+  49:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\login\page.tsx
+  72:28  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\signup\page.tsx
+  12:10  warning  'z' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\signup\teams\page.tsx
+  11:10  warning  'z' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\app\signup\verify-email\page.tsx
+  26:23  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\3d\model-viewer.tsx
+  16:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\admin\users-table.tsx
+   55:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  132:54  warning  'e' is defined but never used      @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ai-assistant\ai-assistant.tsx
+    7:5   warning  'Sparkles' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   10:5   warning  'ChevronDown' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   12:5   warning  'Bot' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   76:23  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  264:23  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  282:8   warning  React Hook useCallback has a missing dependency: 'router'. Either include it or remove the dependency array                                                                                                                                                                              react-hooks/exhaustive-deps
+  342:29  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  393:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\background-wrapper.tsx
+  3:10  warning  'cn' is defined but never used      @typescript-eslint/no-unused-vars
+  4:21  warning  'useRef' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\AddMemberDialog.tsx
+  11:5   warning  'DialogTrigger' is defined but never used     @typescript-eslint/no-unused-vars
+  17:10  warning  'UserPlus' is defined but never used          @typescript-eslint/no-unused-vars
+  18:10  warning  'DropdownMenuItem' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\AttachmentPicker.tsx
+   4:64  warning  'X' is defined but never used             @typescript-eslint/no-unused-vars
+  18:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  46:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  73:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\ChatContainer.tsx
+   12:10  warning  'differenceInMinutes' is defined but never used  @typescript-eslint/no-unused-vars
+   25:14  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  207:80  warning  Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\ChatInput.tsx
+    4:23  warning  'Paperclip' is defined but never used     @typescript-eslint/no-unused-vars
+   21:15  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   72:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  195:74  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  197:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\ChatLayout.tsx
+  27:12  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  35:11  warning  'isRoot' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\ChatSidebar.tsx
+  6:31  warning  'Plus' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\CreateProjectDialog.tsx
+  15:25  warning  'getTeamMembers' is defined but never used  @typescript-eslint/no-unused-vars
+  17:10  warning  'Checkbox' is defined but never used        @typescript-eslint/no-unused-vars
+  18:10  warning  'ScrollArea' is defined but never used      @typescript-eslint/no-unused-vars
+  19:10  warning  'Avatar' is defined but never used          @typescript-eslint/no-unused-vars
+  19:18  warning  'AvatarFallback' is defined but never used  @typescript-eslint/no-unused-vars
+  19:34  warning  'AvatarImage' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\CreateTaskDialog.tsx
+  24:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\MessageItem.tsx
+    5:61  warning  'Smile' is defined but never used                  @typescript-eslint/no-unused-vars
+   16:10  warning  'createTaskFromMessage' is defined but never used  @typescript-eslint/no-unused-vars
+   35:16  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   45:15  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  174:51  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  174:79  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  179:52  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  179:93  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  180:85  warning  Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\MessageList.tsx
+  22:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\ProjectSettingsDialog.tsx
+   8:5   warning  'DialogFooter' is defined but never used                                                                                                                       @typescript-eslint/no-unused-vars
+  16:25  warning  'deleteProject' is defined but never used                                                                                                                      @typescript-eslint/no-unused-vars
+  21:10  warning  'useEffect' is defined but never used                                                                                                                          @typescript-eslint/no-unused-vars
+  69:11  warning  'router' is assigned a value but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  75:13  error    Include a description after the "@ts-expect-error" directive to explain why the @ts-expect-error is necessary. The description must be 3 characters or longer  @typescript-eslint/ban-ts-comment
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\SharedContentCard.tsx
+   3:65  warning  'Check' is defined but never used         @typescript-eslint/no-unused-vars
+   4:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+  10:87  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  65:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\SharedItemsList.tsx
+  12:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+  40:56  warning  'teamId' is defined but never used        @typescript-eslint/no-unused-vars
+  50:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\chat\TeamSettingsDialog.tsx
+  56:8   warning  React Hook useEffect has a missing dependency: 'fetchMembers'. Either include it or remove the dependency array                                                react-hooks/exhaustive-deps
+  62:13  error    Include a description after the "@ts-expect-error" directive to explain why the @ts-expect-error is necessary. The description must be 3 characters or longer  @typescript-eslint/ban-ts-comment
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\confirm-delete-dialog.tsx
+  14:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\dashboard-content.tsx
+   4:10  warning  'cn' is defined but never used            @typescript-eslint/no-unused-vars
+  39:66  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\date-time-display.tsx
+  11:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\date-time-display.tsx:11:9
+   9 |
+  10 |     useEffect(() => {
+> 11 |         setMounted(true)
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  12 |         const timer = setInterval(() => {
+  13 |             setDate(new Date())
+  14 |         }, 1000)  react-hooks/set-state-in-effect
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\finances\add-transaction-dialog.tsx
+  43:131  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\finances\breakdown-chart.tsx
+   9:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  36:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\finances\finances-manager.tsx
+  40:12  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\finances\transaction-list.tsx
+  6:10  warning  'Card' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\goals\create-goal-dialog.tsx
+  25:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\goals\goals-manager.tsx
+  39:12  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\habits\create-habit-dialog.tsx
+  25:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\habits\habit-item.tsx
+  7:10  warning  'Card' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\habits\habit-list.tsx
+  3:10  warning  'HoverEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  5:10  warning  'cn' is defined but never used           @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\habits\habits-analytics-graph.tsx
+   23:10  warning  'Label' is defined but never used         @typescript-eslint/no-unused-vars
+   35:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\habits\habits-manager.tsx
+  24:12  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\landing\hero.tsx
+  7:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\landing\navbar.tsx
+  6:29  warning  'useTransform' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\landing\problem.tsx
+  20:29  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  20:50  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  54:27  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\landing\testimonials.tsx
+  53:37  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  53:47  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\learning-path-card.tsx
+  4:10  warning  'Card' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\lottie-player.tsx
+  24:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\lottie-player.tsx:24:13
+  22 |                 .catch(err => console.error("Failed to load Lottie JSON", err))
+  23 |         } else {
+> 24 |             setAnimationData(src)
+     |             ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  25 |         }
+  26 |     }, [src])
+  27 |  react-hooks/set-state-in-effect
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\mobile-nav.tsx
+  7:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\mobile\cinematic-menu.tsx
+    4:42  warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   15:5   warning  'DrawerDescription' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   21:12  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+   26:48  warning  'user' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   31:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\mobile\cinematic-menu.tsx:31:9
+  29 |
+  30 |     useEffect(() => {
+> 31 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  32 |     }, []);
+  33 |
+  34 |     // Prevent body scroll when menu is open  react-hooks/set-state-in-effect
+   75:39  warning  'i' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  116:47  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  119:69  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  141:48  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\mobile\floating-dock.tsx
+   5:52  warning  'X' is defined but never used             @typescript-eslint/no-unused-vars
+  14:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\mobile\quick-actions-menu.tsx
+  36:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\mobile\quick-actions-menu.tsx:36:9
+  34 |
+  35 |     useEffect(() => {
+> 36 |         setMounted(true);
+     |         ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  37 |     }, []);
+  38 |
+  39 |     useEffect(() => {  react-hooks/set-state-in-effect
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\notes\note-card.tsx
+  2:10  warning  'Card' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\notes\note-editor.tsx
+   15:10  warning  'cn' is defined but never used            @typescript-eslint/no-unused-vars
+   58:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:40  warning  'node' is defined but never used          @typescript-eslint/no-unused-vars
+  109:87  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\notes\notes-layout.tsx
+    4:59  warning  'Loader2' is defined but never used                              @typescript-eslint/no-unused-vars
+   48:12  warning  'isDeleting' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+   53:12  warning  'isPending' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  235:64  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  235:78  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\resource-card.tsx
+   3:10  warning  'Card' is defined but never used          @typescript-eslint/no-unused-vars
+  11:10  warning  'HoverEffect' is defined but never used   @typescript-eslint/no-unused-vars
+  37:34  warning  'useTransform' is defined but never used  @typescript-eslint/no-unused-vars
+  38:10  warning  'cn' is defined but never used            @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\resources\add-resource-dialog.tsx
+   17:91   warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+   17:110  warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  119:19   warning  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  126:25   warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+  183:68   warning  Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\resources\resources-manager.tsx
+   24:17  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   28:12  warning  'isPending' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   89:66  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+   99:62  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  109:62  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+  119:62  warning  Unexpected any. Specify a different type        @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\roadmaps\LinkResourceDialog.tsx
+  38:12  warning  'loading' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  49:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\roadmaps\LinkResourceDialog.tsx:49:13
+  47 |     useEffect(() => {
+  48 |         if (open) {
+> 49 |             setLoading(true)
+     |             ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  50 |             getLinkableItems().then(res => {
+  51 |                 setItems(res)
+  52 |                 setLoading(false)  react-hooks/set-state-in-effect
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\roadmaps\MermaidDiagram.tsx
+  42:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\roadmaps\RoadmapEditor.tsx
+   34:5   warning  'arrayMove' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   79:24  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  379:11  warning  'getStepDepth' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  415:34  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\roadmaps\RoadmapEditor.tsx:415:34
+  413 |         }
+  414 |
+> 415 |         const tempId = 'temp-' + Date.now()
+      |                                  ^^^^^^^^^^ Cannot call impure function
+  416 |         const newStep: Step = {
+  417 |             id: tempId,
+  418 |             title: parentId ? 'New Branch' : 'New Step',  react-hooks/purity
+  449:11  warning  'handleUpdateStepTitle' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  475:25  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  569:55  warning  'updates' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  569:64  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-explicit-any
+  583:58  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  591:58  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\roadmaps\RoadmapView.tsx
+   3:23  warning  'User' is defined but never used          @typescript-eslint/no-unused-vars
+  49:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\settings\device-list.tsx
+  36:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\sidebar.tsx
+   9:5   warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+  10:5   warning  'Library' is defined but never used          @typescript-eslint/no-unused-vars
+  11:5   warning  'BookOpen' is defined but never used         @typescript-eslint/no-unused-vars
+  12:5   warning  'Route' is defined but never used            @typescript-eslint/no-unused-vars
+  13:5   warning  'BarChart3' is defined but never used        @typescript-eslint/no-unused-vars
+  14:5   warning  'Settings' is defined but never used         @typescript-eslint/no-unused-vars
+  16:5   warning  'CalendarCheck' is defined but never used    @typescript-eslint/no-unused-vars
+  17:5   warning  'CheckSquare' is defined but never used      @typescript-eslint/no-unused-vars
+  18:5   warning  'Target' is defined but never used           @typescript-eslint/no-unused-vars
+  19:5   warning  'DollarSign' is defined but never used       @typescript-eslint/no-unused-vars
+  20:5   warning  'StickyNote' is defined but never used       @typescript-eslint/no-unused-vars
+  21:5   warning  'Folder' is defined but never used           @typescript-eslint/no-unused-vars
+  23:5   warning  'Users' is defined but never used            @typescript-eslint/no-unused-vars
+  25:5   warning  'MessageSquare' is defined but never used    @typescript-eslint/no-unused-vars
+  26:5   warning  'Layout' is defined but never used           @typescript-eslint/no-unused-vars
+  27:12  warning  'MapIcon' is defined but never used          @typescript-eslint/no-unused-vars
+  30:10  warning  'SubmitButton' is defined but never used     @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\tasks\activities-calendar.tsx
+  3:20  warning  'useEffect' is defined but never used     @typescript-eslint/no-unused-vars
+  5:49  warning  'CalendarIcon' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\tasks\complete-task-dialog.tsx
+  54:44  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  54:56  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\tasks\create-task-dialog.tsx
+  27:95  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\tasks\task-board.tsx
+    5:26   warning  'Trash2' is defined but never used                               @typescript-eslint/no-unused-vars
+    8:35   warning  'CardTitle' is defined but never used                            @typescript-eslint/no-unused-vars
+  160:102  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  160:127  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\tasks\task-list.tsx
+  8:10  warning  'Card' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\tasks\tasks-wrapper.tsx
+  39:12  warning  'localTasks' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  39:24  warning  'setLocalTasks' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  48:12  warning  'isPending' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  49:11  warning  'router' is assigned a value but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\theme-sync.tsx
+   7:11  warning  'ThemeSyncProps' is defined but never used                                                                @typescript-eslint/no-unused-vars
+  19:8   warning  React Hook useEffect has a missing dependency: 'theme'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  41:27  warning  Unexpected any. Specify a different type                                                                  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\calendar.tsx
+  4:10  warning  'ChevronLeft' is defined but never used   @typescript-eslint/no-unused-vars
+  4:23  warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\custom-cursor.tsx
+  14:11  warning  'x' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+  15:11  warning  'y' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+  17:11  warning  'auraX' is assigned a value but never used                                                                                  @typescript-eslint/no-unused-vars
+  18:11  warning  'auraY' is assigned a value but never used                                                                                  @typescript-eslint/no-unused-vars
+  20:12  warning  'isHovering' is assigned a value but never used                                                                             @typescript-eslint/no-unused-vars
+  53:8   warning  React Hook useEffect has missing dependencies: 'cursorX' and 'cursorY'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\entrance.tsx
+   52:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   88:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\grid-breaking-overlay.tsx
+  26:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:59  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\hover-effect.tsx
+  52:26  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\interactive-grid.tsx
+   3:25  warning  'useState' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+  25:8   warning  React Hook useEffect has missing dependencies: 'mouseX' and 'mouseY'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\magnetic-wrapper.tsx
+  3:25  warning  'useState' is defined but never used      @typescript-eslint/no-unused-vars
+  3:35  warning  'useMemo' is defined but never used       @typescript-eslint/no-unused-vars
+  4:29  warning  'useTransform' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\spotlight-card.tsx
+   3:35  warning  'useEffect' is defined but never used             @typescript-eslint/no-unused-vars
+  29:11  warning  'handleFocus' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  33:11  warning  'handleBlur' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\components\ui\theme-toggle.tsx
+  33:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\lib\agents.ts
+  1:10  warning  'createClient' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\lib\ai-context-builder.ts
+  106:15  warning  'page' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  155:39  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  155:67  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  166:35  warning  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+
+C:\Users\gunde\Desktop\lifeos\LifeOS\lib\supabase\middleware.ts
+  20:58  warning  'options' is defined but never used  @typescript-eslint/no-unused-vars
+
+??? 358 problems (25 errors, 333 warnings)
+

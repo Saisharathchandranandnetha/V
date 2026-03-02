@@ -17,7 +17,7 @@ export function ProblemSection() {
                     <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 blur-[80px] rounded-full" />
 
                     <h2 className="text-3xl md:text-5xl font-display font-bold tracking-tight mb-12 text-center md:text-left leading-tight">
-                        The "Productivity Paradox"
+                        The &quot;Productivity Paradox&quot;
                     </h2>
 
                     <div className="space-y-8">
@@ -51,7 +51,7 @@ export function ProblemSection() {
                         viewport={{ once: true }}
                         className="mt-16 text-lg text-primary/60 font-bold tracking-widest uppercase text-center"
                     >
-                        It's time for a Unified Operating System.
+                        It&apos;s time for a Unified Operating System.
                     </motion.p>
                 </motion.div>
             </div>

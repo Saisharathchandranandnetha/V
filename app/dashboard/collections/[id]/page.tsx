@@ -1,4 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { collections, resources, habits, tasks, goals, notes, learningPaths } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ResourceCard } from '@/components/resource-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -6,16 +8,14 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
 
-export default async function CollectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
-    const supabase = await createClient()
-    const { id } = await params
+export default async function CollectionDetailPage(props: { params: Promise<{ id: string }> }) {
+    const params = await props.params;
 
     // Fetch Collection Details
-    const { data: collection } = await supabase
-        .from('collections')
-        .select('name')
-        .eq('id', id)
-        .single()
+    const [collection] = await db.select({ name: collections.name })
+        .from(collections)
+        .where(eq(collections.id, params.id))
+        .limit(1)
 
     if (!collection) {
         return <div>Collection not found</div>
@@ -23,19 +23,19 @@ export default async function CollectionDetailPage({ params }: { params: Promise
 
     // Parallel Fetching
     const [
-        { data: resources },
-        { data: habits },
-        { data: tasks },
-        { data: goals },
-        { data: notes },
-        { data: paths }
+        resourcesData,
+        habitsData,
+        tasksData,
+        goalsData,
+        notesData,
+        pathsData
     ] = await Promise.all([
-        supabase.from('resources').select('*').eq('collection_id', id),
-        supabase.from('habits').select('*').eq('collection_id', id),
-        supabase.from('tasks').select('*').eq('collection_id', id),
-        supabase.from('goals').select('*').eq('collection_id', id),
-        supabase.from('notes').select('*').eq('collection_id', id),
-        supabase.from('learning_paths').select('*').eq('collection_id', id)
+        db.select().from(resources).where(eq(resources.collectionId, params.id)),
+        db.select().from(habits).where(eq(habits.collectionId, params.id)),
+        db.select().from(tasks).where(eq(tasks.collectionId, params.id)),
+        db.select().from(goals).where(eq(goals.collectionId, params.id)),
+        db.select().from(notes).where(eq(notes.collectionId, params.id)),
+        db.select().from(learningPaths).where(eq(learningPaths.collectionId, params.id))
     ])
 
     return (
@@ -51,86 +51,86 @@ export default async function CollectionDetailPage({ params }: { params: Promise
 
             <Tabs defaultValue="resources" className="w-full">
                 <TabsList>
-                    <TabsTrigger value="resources">Resources ({resources?.length || 0})</TabsTrigger>
-                    <TabsTrigger value="habits">Habits ({habits?.length || 0})</TabsTrigger>
-                    <TabsTrigger value="tasks">Tasks ({tasks?.length || 0})</TabsTrigger>
-                    <TabsTrigger value="goals">Goals ({goals?.length || 0})</TabsTrigger>
-                    <TabsTrigger value="notes">Notes ({notes?.length || 0})</TabsTrigger>
-                    <TabsTrigger value="paths">Paths ({paths?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="resources">Resources ({resourcesData?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="habits">Habits ({habitsData?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="tasks">Tasks ({tasksData?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="goals">Goals ({goalsData?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="notes">Notes ({notesData?.length || 0})</TabsTrigger>
+                    <TabsTrigger value="paths">Paths ({pathsData?.length || 0})</TabsTrigger>
                 </TabsList>
 
                 {/* Resources Content */}
                 <TabsContent value="resources" className="mt-6">
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {resources?.map((resource: any) => (
+                        {resourcesData?.map((resource: any) => (
                             <ResourceCard key={resource.id} resource={resource} />
                         ))}
-                        {resources?.length === 0 && <p className="text-muted-foreground">No resources in this collection.</p>}
+                        {resourcesData?.length === 0 && <p className="text-muted-foreground">No resources in this collection.</p>}
                     </div>
                 </TabsContent>
 
                 {/* Habits Content */}
                 <TabsContent value="habits" className="mt-6">
                     <div className="grid gap-4">
-                        {habits?.map((habit: any) => (
+                        {habitsData?.map((habit: any) => (
                             <Card key={habit.id}>
                                 <CardHeader><CardTitle>{habit.name}</CardTitle></CardHeader>
                                 <CardContent><p className="text-sm text-muted-foreground">Frequency: {habit.frequency}</p></CardContent>
                             </Card>
                         ))}
-                        {habits?.length === 0 && <p className="text-muted-foreground">No habits in this collection.</p>}
+                        {habitsData?.length === 0 && <p className="text-muted-foreground">No habits in this collection.</p>}
                     </div>
                 </TabsContent>
 
                 {/* Tasks Content */}
                 <TabsContent value="tasks" className="mt-6">
                     <div className="grid gap-4">
-                        {tasks?.map((task: any) => (
+                        {tasksData?.map((task: any) => (
                             <Card key={task.id}>
                                 <CardHeader><CardTitle>{task.title}</CardTitle></CardHeader>
                                 <CardContent><p className="text-sm text-muted-foreground">Status: {task.status}</p></CardContent>
                             </Card>
                         ))}
-                        {tasks?.length === 0 && <p className="text-muted-foreground">No tasks in this collection.</p>}
+                        {tasksData?.length === 0 && <p className="text-muted-foreground">No tasks in this collection.</p>}
                     </div>
                 </TabsContent>
 
                 {/* Goals Content */}
                 <TabsContent value="goals" className="mt-6">
                     <div className="grid gap-4">
-                        {goals?.map((goal: any) => (
+                        {goalsData?.map((goal: any) => (
                             <Card key={goal.id}>
                                 <CardHeader><CardTitle>{goal.title}</CardTitle></CardHeader>
-                                <CardContent><p className="text-sm text-muted-foreground">Target: {goal.target_value} {goal.unit}</p></CardContent>
+                                <CardContent><p className="text-sm text-muted-foreground">Target: {goal.targetValue} {goal.unit}</p></CardContent>
                             </Card>
                         ))}
-                        {goals?.length === 0 && <p className="text-muted-foreground">No goals in this collection.</p>}
+                        {goalsData?.length === 0 && <p className="text-muted-foreground">No goals in this collection.</p>}
                     </div>
                 </TabsContent>
 
                 {/* Notes Content */}
                 <TabsContent value="notes" className="mt-6">
                     <div className="grid gap-4">
-                        {notes?.map((note: any) => (
+                        {notesData?.map((note: any) => (
                             <Card key={note.id}>
                                 <CardHeader><CardTitle>{note.title}</CardTitle></CardHeader>
                                 <CardContent><p className="text-sm text-muted-foreground line-clamp-3">{note.content}</p></CardContent>
                             </Card>
                         ))}
-                        {notes?.length === 0 && <p className="text-muted-foreground">No notes in this collection.</p>}
+                        {notesData?.length === 0 && <p className="text-muted-foreground">No notes in this collection.</p>}
                     </div>
                 </TabsContent>
 
                 {/* Learning Paths Content */}
                 <TabsContent value="paths" className="mt-6">
                     <div className="grid gap-4">
-                        {paths?.map((path: any) => (
+                        {pathsData?.map((path: any) => (
                             <Card key={path.id}>
                                 <CardHeader><CardTitle>{path.title}</CardTitle></CardHeader>
                                 <CardContent><p className="text-sm text-muted-foreground">{path.description}</p></CardContent>
                             </Card>
                         ))}
-                        {paths?.length === 0 && <p className="text-muted-foreground">No learning paths in this collection.</p>}
+                        {pathsData?.length === 0 && <p className="text-muted-foreground">No learning paths in this collection.</p>}
                     </div>
                 </TabsContent>
 

@@ -1,0 +1,9 @@
+app/dashboard/layout.tsx(47,63): error TS2339: Property 'theme' does not exist on type '{}'.
+app/dashboard/notes/page.tsx(16,26): error TS2322: Type '{ id: string; userId: string; title: string; content: string | null; projectId: string | null; collectionId: string | null; originalItemId: string | null; copiedFromChat: boolean | null; copiedAt: Date | null; createdAt: Date; updatedAt: Date; }[]' is not assignable to type 'Note[]'.
+  Property 'created_at' is missing in type '{ id: string; userId: string; title: string; content: string | null; projectId: string | null; collectionId: string | null; originalItemId: string | null; copiedFromChat: boolean | null; copiedAt: Date | null; createdAt: Date; updatedAt: Date; }' but required in type 'Note'.
+app/dashboard/roadmaps/[id]/page.tsx(3,30): error TS2307: Cannot find module '@/lib/supabase/server' or its corresponding type declarations.
+app/dashboard/roadmaps/[id]/page.tsx(127,36): error TS2339: Property 'id' does not exist on type '{}'.
+components/tasks/task-board.tsx(63,50): error TS2554: Expected 2 arguments, but got 3.
+components/tasks/task-board.tsx(94,69): error TS2554: Expected 2 arguments, but got 4.
+components/tasks/task-list.tsx(54,50): error TS2554: Expected 2 arguments, but got 3.
+components/tasks/task-list.tsx(66,69): error TS2554: Expected 2 arguments, but got 4.

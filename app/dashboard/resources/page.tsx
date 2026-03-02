@@ -1,6 +1,9 @@
-
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { resources, categories } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import { ResourcesManager } from '@/components/resources/resources-manager'
-import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 export default async function ResourcesPage({
     searchParams
@@ -8,22 +11,19 @@ export default async function ResourcesPage({
     searchParams: Promise<{ q?: string }>
 }) {
     const { q: searchQuery } = await searchParams
-    const supabase = await createClient()
-    const { data: resources } = await supabase.from('resources')
-        .select('id, title, type, summary, tags, url, created_at')
-        .order('created_at', { ascending: false })
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
 
-    // Fetch categories for dropdown (ResourcesManager -> AddResourceDialog needs them)
-    const { data: categories } = await supabase
-        .from('categories')
-        .select('*')
-        .order('name', { ascending: true })
+    const [resourcesData, categoriesData] = await Promise.all([
+        db.select().from(resources).where(eq(resources.userId, session.user.id)),
+        db.select().from(categories).where(eq(categories.userId, session.user.id)),
+    ])
 
     return (
         <ResourcesManager
-            initialResources={resources || []}
+            initialResources={resourcesData as any}
             searchQuery={searchQuery}
-            categories={categories || []}
+            categories={categoriesData as any}
         />
     )
 }

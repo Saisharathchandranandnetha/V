@@ -17,9 +17,13 @@ import NextTopLoader from 'nextjs-toploader';
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { SmoothScrollWrapper } from "@/components/ui/smooth-scroll-wrapper";
 import { InteractiveGrid } from "@/components/ui/interactive-grid";
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { SessionProvider } from 'next-auth/react'
 import { headers } from 'next/headers'
 import { UAParser } from 'ua-parser-js'
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -55,29 +59,19 @@ export default async function RootLayout({
   const deviceType = (device.type === 'mobile' || device.type === 'tablet') ? device.type : 'desktop'
 
   // Fetch User Settings for Background
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const session = await auth()
   let customBackground = null
 
-  if (user) {
-    const { data: userData } = await supabase
-      .from('users')
-      .select('settings')
-      .eq('id', user.id)
-      .single()
+  if (session?.user?.id) {
+    const [userData] = await db
+      .select({ settings: users.settings })
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1)
 
-    if (userData && userData.settings && userData.settings.backgroundImage) {
-      const bgImage = userData.settings.backgroundImage
-      if (!bgImage.startsWith('http')) {
-        const { data } = await supabase.storage
-          .from('backgrounds')
-          .createSignedUrl(bgImage, 60 * 60 * 24) // 24 hours
-        if (data?.signedUrl) {
-          customBackground = data.signedUrl
-        }
-      } else {
-        customBackground = bgImage
-      }
+    const settings = userData?.settings as Record<string, string> | null
+    if (settings?.backgroundImage && settings.backgroundImage.startsWith('http')) {
+      customBackground = settings.backgroundImage
     }
   }
 
@@ -88,20 +82,22 @@ export default async function RootLayout({
       >
         <NextTopLoader showSpinner={false} />
         <CustomCursor />
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <SmoothScrollWrapper>
-            <InteractiveGrid />
-            <BackgroundWrapper deviceType={deviceType} customUrl={customBackground}>
-              <GlobalNoise />
-              {children}
-            </BackgroundWrapper>
-          </SmoothScrollWrapper>
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <SmoothScrollWrapper>
+              <InteractiveGrid />
+              <BackgroundWrapper deviceType={deviceType} customUrl={customBackground}>
+                <GlobalNoise />
+                {children}
+              </BackgroundWrapper>
+            </SmoothScrollWrapper>
+          </ThemeProvider>
+        </SessionProvider>
         <Toaster position="top-right" richColors />
         <SpeedInsights />
       </body>

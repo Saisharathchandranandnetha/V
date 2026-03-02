@@ -23,9 +23,9 @@ import { toast } from 'sonner'
 interface Note {
     id: string
     title: string
-    content: string
-    created_at: string
-    updated_at?: string
+    content: string | null
+    createdAt: Date
+    updatedAt?: Date
 }
 
 interface NotesLayoutProps {
@@ -58,7 +58,7 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                 case 'ADD':
                     return [action.payload, ...state]
                 case 'UPDATE':
-                    return state.map(n => n.id === action.payload.id ? action.payload : n).sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+                    return state.map(n => n.id === action.payload.id ? action.payload : n).sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())
                 case 'DELETE':
                     return state.filter(n => n.id !== action.payload)
                 default:
@@ -232,7 +232,7 @@ export function NotesLayout({ initialNotes }: NotesLayoutProps) {
                         <div className="text-center text-muted-foreground py-10">
                             {searchQuery ? (
                                 <>
-                                    <p>No notes found matching "{searchQuery}"</p>
+                                    <p>No notes found matching &quot;{searchQuery}&quot;</p>
                                     <Button
                                         variant="link"
                                         onClick={() => setSearchQuery('')}

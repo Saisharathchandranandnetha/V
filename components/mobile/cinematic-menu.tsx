@@ -5,7 +5,7 @@ import { X, ChevronDown, LogOut, Shield, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { signout } from '@/app/login/actions';
+import { signout } from '@/app/dashboard/signout/actions';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     Drawer,
@@ -28,6 +28,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 

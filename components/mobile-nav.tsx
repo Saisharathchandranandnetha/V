@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sheet"
 import { Menu, LogOut, Shield, ChevronDown } from 'lucide-react'
 import { sidebarNavItems } from '@/lib/nav-config'
-import { signout } from '@/app/login/actions'
+import { signout } from '@/app/dashboard/signout/actions'
 import { SubmitButton } from '@/components/submit-button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 
@@ -34,16 +34,12 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
                 <div className="flex flex-col h-full">
                     <div className="flex-1 overflow-y-auto py-4">
                         <div className="px-3 py-2">
-                            <SheetTitle className="mb-2 px-4 text-lg font-semibold tracking-tight text-primary flex items-center gap-2">
-                                <div className="relative h-8 w-8 rounded-sm overflow-hidden">
-                                    <Image
-                                        src="/logo.png"
-                                        alt="V Logo"
-                                        fill
-                                        className="object-cover"
-                                    />
+                            <SheetTitle className="mb-2 px-4 text-lg font-bold tracking-tighter flex items-center gap-3">
+                                <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-bl from-violet-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden">
+                                    <span className="absolute inset-0 bg-white/10" />
+                                    <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">L</span>
                                 </div>
-                                V
+                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-primary font-black tracking-tight">LifeOS</span>
                             </SheetTitle>
                             <div className="space-y-1">
                                 {sidebarNavItems.map((item) => {

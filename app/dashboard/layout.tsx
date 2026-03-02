@@ -1,7 +1,7 @@
 
 import { Sidebar } from '@/components/sidebar'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { getUserSettings, isAdmin } from '@/app/dashboard/settings/actions'
@@ -13,13 +13,9 @@ import { FloatingDock } from '@/components/mobile/floating-dock'
 import { AIAssistant } from '@/components/ai-assistant/ai-assistant'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-    const supabase = await createClient()
+    const session = await auth()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    if (!session?.user) {
         redirect('/login')
     }
 
@@ -27,12 +23,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     const isTeamOnly = userSettings?.role === 'team_only'
     const adminUser = await isAdmin()
 
-    if (isTeamOnly) {
-    }
-
-
     const headersList = await headers()
     const deviceType = headersList.get('x-device-type')
+
+    // Shape user to match what components expect
+    const user = {
+        id: session.user.id!,
+        email: session.user.email!,
+        name: session.user.name ?? '',
+        image: session.user.image ?? '',
+        user_metadata: { full_name: session.user.name, avatar_url: session.user.image },
+    }
 
     return (
         <div className="flex min-h-screen relative">
@@ -43,7 +44,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-h-screen relative z-10 min-w-0">
-                <ThemeSync userTheme={userSettings?.settings?.theme} userId={user.id} />
+                <ThemeSync userTheme={(userSettings?.settings as any)?.theme as string | undefined} userId={user.id} />
 
                 {/* Mobile Header - Cinematic Redesign */}
                 <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50">

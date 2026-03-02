@@ -53,27 +53,7 @@ security definer
 as $$
   delete from auth.users where id = auth.uid();
 $$;
-grant execute on function delete_user() to authenticated;
 
--- Atomic team creation
-create or replace function create_new_team(team_name text)
-returns uuid
-language plpgsql
-security definer
-as $$
-declare
-  new_team_id uuid;
-begin
-  insert into teams (name, created_by)
-  values (team_name, auth.uid())
-  returning id into new_team_id;
-
-  insert into team_members (team_id, user_id, role)
-  values (new_team_id, auth.uid(), 'owner');
-
-  return new_team_id;
-end;
-$$;
 
 
 -- ============================================================
@@ -348,6 +328,8 @@ create policy "Users can delete their own habit logs" on habit_logs
 
 -- ============================================================
 -- TABLE: teams
+-- NOTE: RLS policies that reference team_members are added AFTER
+--       team_members is created (further below).
 -- ============================================================
 create table if not exists teams (
   id uuid default gen_random_uuid() primary key,
@@ -357,36 +339,6 @@ create table if not exists teams (
 );
 
 alter table teams enable row level security;
-
-drop policy if exists "Users can view teams they belong to" on teams;
-drop policy if exists "Owners and Admins can update teams"  on teams;
-drop policy if exists "Owners can delete teams"             on teams;
-drop policy if exists "Enable delete for team owners"       on teams;
-create policy "Users can view teams they belong to" on teams
-  for select using (exists (select 1 from team_members where team_members.team_id = teams.id and team_members.user_id = (select auth.uid())));
-create policy "Owners and Admins can update teams" on teams
-  for update using (exists (select 1 from team_members where team_members.team_id = teams.id and team_members.user_id = (select auth.uid()) and team_members.role in ('owner', 'admin')));
-create policy "Owners can delete teams" on teams
-  for delete using (exists (select 1 from team_members where team_members.team_id = teams.id and team_members.user_id = (select auth.uid()) and team_members.role = 'owner'));
-
-
--- ============================================================
--- HELPER: is_team_member() — security definer to avoid RLS recursion
--- This runs as the table owner (bypasses RLS) so it is safe to call
--- from within RLS policies on team_members and other tables.
--- ============================================================
-create or replace function is_team_member(p_team_id uuid, p_user_id uuid)
-returns boolean
-language sql
-security definer
-stable
-set search_path = public
-as $$
-  select exists (
-    select 1 from team_members
-    where team_id = p_team_id and user_id = p_user_id
-  );
-$$;
 
 -- ============================================================
 -- TABLE: team_members
@@ -402,13 +354,42 @@ create table if not exists team_members (
 
 alter table team_members enable row level security;
 
+-- ============================================================
+-- HELPER: is_team_member() — defined here, AFTER team_members exists
+-- security definer bypasses RLS to avoid infinite recursion
+-- ============================================================
+create or replace function is_team_member(p_team_id uuid, p_user_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1 from team_members
+    where team_id = p_team_id and user_id = p_user_id
+  );
+$$;
+
+-- ============================================================
+-- teams RLS policies (added now that team_members exists)
+-- ============================================================
+drop policy if exists "Users can view teams they belong to" on teams;
+drop policy if exists "Owners and Admins can update teams"  on teams;
+drop policy if exists "Owners can delete teams"             on teams;
+drop policy if exists "Enable delete for team owners"       on teams;
+create policy "Users can view teams they belong to" on teams
+  for select using (exists (select 1 from team_members where team_members.team_id = teams.id and team_members.user_id = (select auth.uid())));
+create policy "Owners and Admins can update teams" on teams
+  for update using (exists (select 1 from team_members where team_members.team_id = teams.id and team_members.user_id = (select auth.uid()) and team_members.role in ('owner', 'admin')));
+create policy "Owners can delete teams" on teams
+  for delete using (exists (select 1 from team_members where team_members.team_id = teams.id and team_members.user_id = (select auth.uid()) and team_members.role = 'owner'));
+
+-- team_members RLS policies
 drop policy if exists "Users can view members of their teams"  on team_members;
 drop policy if exists "Owners and Admins can add members"      on team_members;
 drop policy if exists "Owners and Admins can update members"   on team_members;
 drop policy if exists "Owners and Admins can remove members"   on team_members;
--- SELECT: a user can always see their own membership rows, and any row in
--- a team they belong to — checked via the security-definer function above
--- that bypasses RLS and avoids infinite recursion.
 create policy "Users can view members of their teams" on team_members
   for select using (
     user_id = (select auth.uid())
@@ -583,7 +564,6 @@ create policy "Team members can share items" on chat_shared_items
 
 -- ============================================================
 -- TABLE: tasks
--- Creator OR assignee can view and update.
 -- ============================================================
 create table if not exists tasks (
   id uuid default gen_random_uuid() primary key,
@@ -657,7 +637,6 @@ create policy "Users can insert their own goals" on goals for insert with check 
 create policy "Users can update their own goals" on goals for update using ((select auth.uid()) = user_id);
 create policy "Users can delete their own goals" on goals for delete using ((select auth.uid()) = user_id);
 
--- Idempotent column additions (for existing databases)
 alter table goals add column if not exists collection_id uuid references collections(id) on delete set null;
 
 
@@ -714,7 +693,6 @@ create policy "Users can delete their own transactions" on transactions for dele
 
 -- ============================================================
 -- TABLE: roadmaps
--- status: 'draft' | 'active' | 'completed'
 -- ============================================================
 create table if not exists roadmaps (
   id uuid default gen_random_uuid() primary key,
@@ -733,7 +711,7 @@ create table if not exists roadmaps (
 
 alter table roadmaps enable row level security;
 
-drop policy if exists "Users can view roadmaps"           on roadmaps;
+drop policy if exists "Users can view roadmaps"            on roadmaps;
 drop policy if exists "Users can insert roadmaps"          on roadmaps;
 drop policy if exists "Users can update their own roadmaps" on roadmaps;
 drop policy if exists "Users can delete their own roadmaps" on roadmaps;
@@ -754,7 +732,6 @@ create trigger update_roadmaps_updated_at before update on roadmaps for each row
 
 -- ============================================================
 -- TABLE: roadmap_steps
--- parent_step_id: branching support
 -- ============================================================
 create table if not exists roadmap_steps (
   id uuid default gen_random_uuid() primary key,
@@ -854,12 +831,37 @@ create policy "Users can delete own files"     on storage.objects for delete to 
 -- ============================================================
 -- REALTIME PUBLICATIONS
 -- ============================================================
--- Idempotent realtime publication (no IF NOT EXISTS in PG, so catch duplicate error)
 do $$ begin alter publication supabase_realtime add table team_messages;      exception when sqlstate '42710' then null; end $$;
 do $$ begin alter publication supabase_realtime add table message_reads;       exception when sqlstate '42710' then null; end $$;
 do $$ begin alter publication supabase_realtime add table roadmaps;            exception when sqlstate '42710' then null; end $$;
 do $$ begin alter publication supabase_realtime add table roadmap_steps;       exception when sqlstate '42710' then null; end $$;
 do $$ begin alter publication supabase_realtime add table roadmap_step_links;  exception when sqlstate '42710' then null; end $$;
+
+
+-- ============================================================
+-- GRANTS & FUNCTIONS (moved to end — all tables exist now)
+-- ============================================================
+grant execute on function delete_user() to authenticated;
+
+-- Atomic team creation (create_new_team MUST be after team_members table)
+create or replace function create_new_team(team_name text)
+returns uuid
+language plpgsql
+security definer
+as $$
+declare
+  new_team_id uuid;
+begin
+  insert into teams (name, created_by)
+  values (team_name, auth.uid())
+  returning id into new_team_id;
+
+  insert into team_members (team_id, user_id, role)
+  values (new_team_id, auth.uid(), 'owner');
+
+  return new_team_id;
+end;
+$$;
 
 
 -- ============================================================
@@ -873,7 +875,4 @@ do $$ begin alter publication supabase_realtime add table roadmap_step_links;  e
 -- Teams:    teams, team_members, projects, project_members,
 --           team_messages, message_reads, chat_shared_items
 -- Roadmaps: roadmaps, roadmap_steps, roadmap_step_links
---
--- Key: All CREATE POLICY statements are preceded by
---      DROP POLICY IF EXISTS for safe re-runs (idempotent).
 -- ============================================================

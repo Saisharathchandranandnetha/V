@@ -1,86 +1,49 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { transactions, categories, tasks, teamMessages } from '@/lib/db/schema'
+import { eq, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 
-async function getOrCreateCategory(supabase: any, user_id: string, name: string, type: string) {
-    const { data: existing } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('user_id', user_id)
-        .eq('name', name)
-        .eq('type', type)
-        .single()
+async function getOrCreateCategory(userId: string, name: string, type: string) {
+    const [existing] = await db.select({ id: categories.id }).from(categories)
+        .where(and(eq(categories.userId, userId), eq(categories.name, name), eq(categories.type, type)))
+        .limit(1)
 
     if (existing) return existing.id
 
-    const { data: newCategory, error } = await supabase
-        .from('categories')
-        .insert({ user_id, name, type })
-        .select('id')
-        .single()
-
-    if (error) {
-        console.error('Error creating category:', error)
-        return null // Fallback to just name in transaction
-    }
-    return newCategory.id
+    const [newCategory] = await db.insert(categories).values({ userId, name, type }).returning({ id: categories.id })
+    return newCategory?.id ?? null
 }
 
 export async function addTransaction(formData: FormData) {
     try {
-        const supabase = await createClient()
+        const session = await auth()
+        if (!session?.user?.id) return { error: 'Unauthorized' }
 
         const type = formData.get('type') as 'Income' | 'Expense'
-        const amountRaw = formData.get('amount')
-        const amount = Number(amountRaw)
-        if (isNaN(amount)) {
-            return { error: 'Invalid amount' }
-        }
+        const amount = Number(formData.get('amount'))
+        if (isNaN(amount)) return { error: 'Invalid amount' }
 
         const categoryName = formData.get('category') as string
+        const customCategory = formData.get('custom_category') as string
+        const finalCategoryName = (categoryName === 'Other' && customCategory?.trim()) ? customCategory.trim() : categoryName
         const description = formData.get('description') as string
         const dateRaw = formData.get('date') as string
+        const date = dateRaw ? new Date(dateRaw) : new Date()
 
-        let date: string
-        try {
-            date = dateRaw ? new Date(dateRaw).toISOString() : new Date().toISOString()
-        } catch {
-            return { error: 'Invalid date format' }
-        }
+        const categoryId = await getOrCreateCategory(session.user.id, finalCategoryName, type)
 
-        const customCategory = formData.get('custom_category') as string
-
-        // Override category name if "Other" and custom name provided
-        let finalCategoryName = categoryName
-        if (categoryName === 'Other' && customCategory && customCategory.trim()) {
-            finalCategoryName = customCategory.trim()
-        }
-
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { error: 'Unauthorized' }
-
-        const projectIdRaw = formData.get('projectId') as string
-        const projectId = projectIdRaw && projectIdRaw !== 'undefined' && projectIdRaw !== 'null' ? projectIdRaw : null
-
-        // Handle Category Link
-        const categoryId = await getOrCreateCategory(supabase, user.id, finalCategoryName, type)
-
-        const { error } = await supabase.from('transactions').insert({
+        await db.insert(transactions).values({
+            userId: session.user.id,
             type,
-            amount,
-            category_id: categoryId,
-            category_name: finalCategoryName,
+            amount: String(amount),
+            categoryId,
+            categoryName: finalCategoryName,
             description,
             date,
-            user_id: user.id,
-            project_id: projectId
         })
-
-        if (error) {
-            console.error('Error adding transaction:', error)
-            return { error: 'Failed to add transaction' }
-        }
 
         revalidatePath('/dashboard/finances')
         return { success: true }
@@ -92,74 +55,38 @@ export async function addTransaction(formData: FormData) {
 
 export async function deleteTransaction(id: string) {
     try {
-        const supabase = await createClient()
-        const { error } = await supabase.from('transactions').delete().eq('id', id)
-        if (error) return { error: 'Failed to delete transaction' }
+        const session = await auth()
+        if (!session?.user?.id) return { error: 'Unauthorized' }
 
+        await db.delete(transactions).where(and(eq(transactions.id, id), eq(transactions.userId, session.user.id)))
         revalidatePath('/dashboard/finances')
         return { success: true }
-    } catch (e) {
+    } catch {
         return { error: 'Failed to delete transaction' }
     }
 }
 
 export async function updateTransaction(id: string, formData: FormData) {
     try {
-        const supabase = await createClient()
+        const session = await auth()
+        if (!session?.user?.id) return { error: 'Unauthorized' }
 
         const type = formData.get('type') as 'Income' | 'Expense'
-        const amountRaw = formData.get('amount')
-        const amount = Number(amountRaw)
-        if (isNaN(amount)) {
-            return { error: 'Invalid amount' }
-        }
+        const amount = Number(formData.get('amount'))
+        if (isNaN(amount)) return { error: 'Invalid amount' }
 
         const categoryName = formData.get('category') as string
+        const customCategory = formData.get('custom_category') as string
+        const finalCategoryName = (categoryName === 'Other' && customCategory?.trim()) ? customCategory.trim() : categoryName
         const description = formData.get('description') as string
         const dateRaw = formData.get('date') as string
+        const date = dateRaw ? new Date(dateRaw) : new Date()
 
-        let date: string
-        try {
-            date = dateRaw ? new Date(dateRaw).toISOString() : new Date().toISOString()
-        } catch {
-            return { error: 'Invalid date format' }
-        }
+        const categoryId = await getOrCreateCategory(session.user.id, finalCategoryName, type)
 
-        const customCategory = formData.get('custom_category') as string
-
-        // Override category name if "Other" and custom name provided
-        let finalCategoryName = categoryName
-        if (categoryName === 'Other' && customCategory && customCategory.trim()) {
-            finalCategoryName = customCategory.trim()
-        }
-
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) return { error: 'Unauthorized' }
-
-        const projectIdRaw = formData.get('projectId') as string
-        const projectId = projectIdRaw && projectIdRaw !== 'undefined' && projectIdRaw !== 'null' ? projectIdRaw : null
-
-        // Handle Category Link (reuse existing logic if possible, or duplicate for now safely)
-        // We need to pass supabase client to helper if we want to reuse it, which we can.
-        const categoryId = await getOrCreateCategory(supabase, user.id, finalCategoryName, type)
-
-        const { error } = await supabase.from('transactions')
-            .update({
-                type,
-                amount,
-                category_id: categoryId,
-                category_name: finalCategoryName,
-                description,
-                date,
-                project_id: projectId
-            })
-            .eq('id', id)
-            .eq('user_id', user.id)
-
-        if (error) {
-            console.error('Error updating transaction:', error)
-            return { error: 'Failed to update transaction' }
-        }
+        await db.update(transactions)
+            .set({ type, amount: String(amount), categoryId, categoryName: finalCategoryName, description, date })
+            .where(and(eq(transactions.id, id), eq(transactions.userId, session.user.id)))
 
         revalidatePath('/dashboard/finances')
         return { success: true }

@@ -1,59 +1,21 @@
 "use client"
 
 import { useTheme } from "next-themes"
-import { useEffect, useRef } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { useEffect } from "react"
 
 interface ThemeSyncProps {
     userTheme?: string
+    userId?: string
 }
 
-export function ThemeSync({ userTheme, userId }: { userTheme?: string, userId?: string }) {
+export function ThemeSync({ userTheme }: ThemeSyncProps) {
     const { theme, setTheme } = useTheme()
 
-    // Initial sync
     useEffect(() => {
         if (userTheme && userTheme !== theme) {
             setTheme(userTheme)
         }
-    }, [userTheme, setTheme]) // Sync only when userTheme changes from props
-
-    // Real-time sync
-    const themeRef = useRef(theme)
-    useEffect(() => {
-        themeRef.current = theme
-    }, [theme])
-
-    useEffect(() => {
-        if (!userId) return
-
-        const supabase = createClient()
-
-        const channel = supabase.channel(`user_theme_sync_${userId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'users',
-                    filter: `id=eq.${userId}`
-                },
-                (payload: any) => {
-                    const newSettings = payload.new.settings
-                    const newTheme = newSettings?.theme
-
-                    if (newTheme && newTheme !== themeRef.current) {
-                        console.log('Syncing theme from remote:', newTheme)
-                        setTheme(newTheme)
-                    }
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [userId, setTheme])
+    }, [userTheme, setTheme])
 
     return null
 }

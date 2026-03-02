@@ -1,47 +1,39 @@
-import { createClient } from '@/lib/supabase/server'
-import {
-    Tabs,
-    TabsContent,
-    TabsList,
-    TabsTrigger,
-} from '@/components/ui/tabs'
+import { auth } from '@/auth'
+import { db } from '@/lib/db'
+import { tasks, teams, projects } from '@/lib/db/schema'
+import { eq, or } from 'drizzle-orm'
 import { TasksWrapper } from '@/components/tasks/tasks-wrapper'
-import { LayoutList, Kanban } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 export default async function TasksPage() {
-    const supabase = await createClient()
+    const session = await auth()
+    if (!session?.user?.id) redirect('/login')
+    const userId = session.user.id
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) return <div>Please log in</div>
-
-    const { data: tasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select(`
-            *,
-            team:teams(name),
-            project:projects(name)
-        `)
-        .or(`assigned_to.eq.${user.id},and(assigned_to.is.null,user_id.eq.${user.id})`)
-        .order('created_at', { ascending: false })
+    const tasksData = await db.select({
+        id: tasks.id,
+        userId: tasks.userId,
+        teamId: tasks.teamId,
+        projectId: tasks.projectId,
+        assignedTo: tasks.assignedTo,
+        title: tasks.title,
+        description: tasks.description,
+        priority: tasks.priority,
+        status: tasks.status,
+        dueDate: tasks.dueDate,
+        completedAt: tasks.completedAt,
+        createdAt: tasks.createdAt,
+    }).from(tasks)
+        .where(or(eq(tasks.userId, userId), eq(tasks.assignedTo, userId)))
         .limit(100)
 
-    // If the or() query fails (e.g. assigned_to column missing on existing DB),
-    // fall back to a simple user_id filter so the board still shows tasks.
-    let finalTasks = tasks
-    if (tasksError) {
-        console.error('Tasks query error (or filter):', tasksError.message)
-        const { data: fallbackTasks, error: fallbackError } = await supabase
-            .from('tasks')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(100)
-        if (fallbackError) {
-            console.error('Tasks fallback query error:', fallbackError.message)
-        }
-        finalTasks = fallbackTasks
-    }
+    const finalTasks = tasksData.map(t => ({
+        ...t,
+        user_id: t.userId,
+        assigned_to: t.assignedTo,
+        due_date: t.dueDate?.toISOString() ?? null,
+        created_at: t.createdAt?.toISOString(),
+    }))
 
     return (
         <div className="space-y-6">
@@ -51,8 +43,7 @@ export default async function TasksPage() {
                     <p className="text-muted-foreground">Manage your daily tasks.</p>
                 </div>
             </div>
-
-            <TasksWrapper tasks={finalTasks || []} />
+            <TasksWrapper tasks={finalTasks as any} />
         </div>
     )
 }

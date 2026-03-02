@@ -1,14 +1,15 @@
-import { createClient } from '@/lib/supabase/server'
+import { db } from '@/lib/db'
+import { learningPaths } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { LearningPathCard } from '@/components/learning-path-card'
 
-export default async function ProjectPathsPage({ params }: { params: { projectId: string } }) {
-    const supabase = await createClient()
+export default async function ProjectPathsPage(props: { params: Promise<{ projectId: string }> }) {
+    const params = await props.params;
 
-    const { data: paths } = await supabase
-        .from('learning_paths')
-        .select('*')
-        .eq('project_id', params.projectId)
-        .order('created_at', { ascending: false })
+    const projectPaths = await db.select()
+        .from(learningPaths)
+        .where(eq(learningPaths.projectId, params.projectId))
+        .orderBy(desc(learningPaths.createdAt))
 
     return (
         <div className="space-y-6">
@@ -17,10 +18,10 @@ export default async function ProjectPathsPage({ params }: { params: { projectId
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {paths?.map((path: any) => (
+                {projectPaths?.map((path: any) => (
                     <LearningPathCard key={path.id} path={path} />
                 ))}
-                {(!paths || paths.length === 0) && (
+                {(!projectPaths || projectPaths.length === 0) && (
                     <p className="text-muted-foreground col-span-full">No learning paths found for this project.</p>
                 )}
             </div>
