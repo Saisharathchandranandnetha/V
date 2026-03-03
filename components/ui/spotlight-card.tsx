@@ -12,9 +12,10 @@ interface SpotlightCardProps extends React.ComponentProps<typeof Card> {
 export function SpotlightCard({
     children,
     className,
+    contentClassName,
     spotlightColor = "rgba(120, 119, 198, 0.3)",
     ...props
-}: SpotlightCardProps) {
+}: SpotlightCardProps & { contentClassName?: string }) {
     const divRef = useRef<HTMLDivElement>(null)
     const isFocused = useRef(false)
     const mouseX = useMotionValue(0)
@@ -42,7 +43,7 @@ export function SpotlightCard({
     return (
         <div
             className={cn(
-                "group relative border border-transparent rounded-xl overflow-hidden bg-background",
+                "group relative border border-transparent rounded-xl overflow-hidden",
                 className
             )}
             onMouseMove={handleMouseMove}
@@ -69,7 +70,7 @@ export function SpotlightCard({
           OR keep transparent to let glow show through. 
           For "revealing border" effect, we often leave this transparent or semi-transparent.
       */}
-            <div className="relative h-full bg-card/50 backdrop-blur-sm rounded-xl p-6 border-white/5">
+            <div className={cn("relative h-full bg-card/50 backdrop-blur-sm rounded-xl p-6 border-white/5", contentClassName)}>
                 {children}
             </div>
         </div>
