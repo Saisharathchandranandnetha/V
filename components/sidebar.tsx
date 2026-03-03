@@ -62,23 +62,30 @@ export function Sidebar({ className, isAdmin, isTeamOnly }: SidebarProps) {
             <ScrollArea className="flex-1 pr-1">
                 <div className="px-3 py-2">
                     <Link href="/dashboard" prefetch={false} className="block mb-6 px-4 hover:opacity-80 transition-opacity">
-                        <h2 className="text-xl font-bold tracking-tighter text-primary flex items-center gap-3">
-                            <div className="relative h-9 w-9 rounded-lg overflow-hidden shadow-sm">
-                                <Image
-                                    src="/logo.png"
-                                    alt="V Logo"
-                                    fill
-                                    className="object-cover"
-                                />
+                        <h2 className="flex items-center gap-3">
+                            <div className="relative shrink-0 flex items-center justify-center h-10 w-10 overflow-visible">
+                                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    {/* Right arm (Green) */}
+                                    <path d="M48 85 L85 15 L68 15 L40 68 Z" fill="#4ade80" />
+                                    {/* Left arm (Blue Arrow Body) */}
+                                    <path d="M48 85 C35 75 25 55 18 35 L32 30 C38 48 44 65 48 85 Z" fill="#3b82f6" />
+                                    {/* Arrow Head */}
+                                    <polygon points="10,40 30,15 42,35" fill="#3b82f6" />
+                                    {/* Stopwatch inner icon */}
+                                    <circle cx="62" cy="40" r="6" stroke="#166534" strokeWidth="2" fill="none" className="opacity-80" />
+                                    <path d="M62 37 L62 40 L64 42 M59 33 L65 33 M67 35 L69 33" stroke="#166534" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-80" />
+                                </svg>
                             </div>
-                            V
-                            <span className="flex items-center gap-1 ml-0.5">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                            <div className="flex flex-col justify-center">
+                                <span className="text-[14px] font-black tracking-widest text-foreground uppercase leading-none drop-shadow-sm font-syne">Track Habit</span>
+                                <span className="flex items-center gap-1.5 mt-1">
+                                    <span className="relative flex h-2 w-2 shadow-[0_0_8px_oklch(var(--primary))] rounded-full">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                                    </span>
+                                    <span className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase leading-none">BETA</span>
                                 </span>
-                                <span className="text-[9px] font-bold tracking-widest uppercase text-primary/70">Beta</span>
-                            </span>
+                            </div>
                         </h2>
                     </Link>
                     <div className="space-y-1">
