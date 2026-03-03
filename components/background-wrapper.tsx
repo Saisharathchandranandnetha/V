@@ -26,7 +26,7 @@ export function BackgroundWrapper({ deviceType, customUrl, children }: Backgroun
         const applyTheme = async () => {
             try {
                 // Lazy load ColorThief to reduce initial bundle size
-                const ColorThief = (await import('colorthief')).default
+                const ColorThief = (await import('colorthief')).default as any
                 const colorThief = new ColorThief()
 
                 // Execute heavy work in idle time to avoid blocking UI

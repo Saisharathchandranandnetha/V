@@ -5,7 +5,7 @@ import { X, ChevronDown, LogOut, Shield, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { signout } from '@/app/dashboard/signout/actions';
+import { signOut } from 'next-auth/react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
     Drawer,
@@ -20,15 +20,13 @@ interface CinematicMenuProps {
     onClose: () => void;
     user?: any;
     isAdmin?: boolean;
-    isTeamOnly?: boolean;
 }
 
-export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: CinematicMenuProps) {
+export function CinematicMenu({ open, onClose, user, isAdmin }: CinematicMenuProps) {
     const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -56,7 +54,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
         <Drawer open={open} onOpenChange={(val) => !val && onClose()}>
             <DrawerContent className="h-[90vh] flex flex-col rounded-t-[10px] bg-background">
                 <DrawerHeader className="px-6 flex flex-row items-center justify-between space-y-0 shrink-0 mb-2 pt-8">
-                    <DrawerTitle className="text-xl font-display font-bold tracking-tight">Menu</DrawerTitle>
+                    <DrawerTitle className="text-xl font-syne font-bold tracking-tight">Menu</DrawerTitle>
                     <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-black/5 -mr-2">
                         <X className="h-5 w-5 opacity-70" />
                     </Button>
@@ -68,12 +66,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
                     style={{ WebkitOverflowScrolling: 'touch' }}
                 >
                     <div className="space-y-1">
-                        {sidebarNavItems.filter(item => {
-                            if (isTeamOnly) {
-                                return ['Teams', 'Settings'].includes(item.title)
-                            }
-                            return true
-                        }).map((item, i) => (
+                        {sidebarNavItems.map((item, i) => (
                             <MenuItem key={item.href} item={item} pathname={pathname} onClose={onClose} />
                         ))}
 
@@ -86,7 +79,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
                                     pathname === '/dashboard/admin' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                                 )}
                             >
-                                <Link href="/dashboard/admin" onClick={onClose}>
+                                <Link href="/dashboard/admin" onClick={onClose} prefetch={false}>
                                     <Shield className="mr-3 h-5 w-5" />
                                     Admin Dashboard
                                 </Link>
@@ -95,22 +88,20 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
 
                         <div className="my-4 border-t border-border/40" />
 
-                        <form action={signout}>
-                            <Button
-                                variant="ghost"
-                                className="w-full justify-start text-red-500 hover:bg-red-500/10 hover:text-red-500 h-12 text-base font-normal"
-                                type="submit"
-                            >
-                                <LogOut className="mr-3 h-5 w-5" />
-                                Sign Out
-                            </Button>
-                        </form>
+                        <Button
+                            variant="ghost"
+                            className="w-full justify-start text-red-500 hover:bg-red-500/10 hover:text-red-500 h-12 text-base font-normal mt-4"
+                            onClick={() => signOut({ callbackUrl: '/login' })}
+                        >
+                            <LogOut className="mr-3 h-5 w-5" />
+                            Sign Out
+                        </Button>
 
                         <div className="h-10" />
                     </div>
                 </div>
-            </DrawerContent>
-        </Drawer>
+            </DrawerContent >
+        </Drawer >
     );
 }
 
@@ -149,7 +140,7 @@ function MenuItem({ item, pathname, onClose }: { item: any; pathname: string; on
                                 pathname === child.href ? "text-primary bg-primary/10" : "text-muted-foreground/80 hover:text-foreground hover:bg-white/5"
                             )}
                         >
-                            <Link href={child.href} onClick={onClose}>
+                            <Link href={child.href} onClick={onClose} prefetch={false}>
                                 <child.icon className="mr-3 h-4 w-4" />
                                 {child.title}
                             </Link>
@@ -169,7 +160,7 @@ function MenuItem({ item, pathname, onClose }: { item: any; pathname: string; on
                 isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
             )}
         >
-            <Link href={item.href} onClick={onClose}>
+            <Link href={item.href} onClick={onClose} prefetch={false}>
                 <item.icon className={cn("mr-3 h-5 w-5", isActive ? "text-primary" : "text-muted-foreground/70")} />
                 {item.title}
             </Link>

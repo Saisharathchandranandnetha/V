@@ -21,7 +21,7 @@ const actions = [
     { label: 'Add Task', icon: CheckSquare, color: 'text-green-400', bg: 'bg-green-500/10', href: '/dashboard/tasks?add=true' },
     { label: 'Add Habit', icon: Zap, color: 'text-amber-400', bg: 'bg-amber-500/10', href: '/dashboard/habits?add=true' },
     { label: 'Add Transaction', icon: CreditCard, color: 'text-rose-400', bg: 'bg-rose-500/10', href: '/dashboard/finances?add=true' },
-    { label: 'Add Goal', icon: Target, color: 'text-purple-400', bg: 'bg-purple-500/10', href: '/dashboard/goals?add=true' },
+    { label: 'Add Goal', icon: Target, color: 'text-cyan-400', bg: 'bg-cyan-500/10', href: '/dashboard/goals?add=true' },
     { label: 'Add Category', icon: Folder, color: 'text-indigo-400', bg: 'bg-indigo-500/10', href: '/dashboard/categories?add=true' },
     { label: 'Add Collection', icon: Layers, color: 'text-cyan-400', bg: 'bg-cyan-500/10', href: '/dashboard/collections?add=true' },
     { label: 'Add Learning Path', icon: Map, color: 'text-teal-400', bg: 'bg-teal-500/10', href: '/dashboard/paths?add=true' },
@@ -33,7 +33,6 @@ export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -72,7 +71,7 @@ export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
                         <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-8 opacity-50" />
 
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold font-display">Quick Add</h2>
+                            <h2 className="text-2xl font-bold font-syne">Quick Add</h2>
                             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
                                 <X className="h-5 w-5" />
                             </Button>
@@ -80,7 +79,7 @@ export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
 
                         <div className="grid grid-cols-2 gap-4">
                             {actions.map((action, i) => (
-                                <Link key={action.label} href={action.href} onClick={onClose}>
+                                <Link key={action.label} href={action.href} onClick={onClose} prefetch={false}>
                                     <motion.div
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
