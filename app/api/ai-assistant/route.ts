@@ -19,8 +19,8 @@ import { AIContextBuilder } from '@/lib/ai-context-builder'
 import type { PageContext } from '@/lib/ai-page-contexts'
 import {
     tasks, habits, habitLogs, goals,
-    transactions, notes, learningPaths,
-    teamMessages, users, roadmaps, roadmapSteps
+    transactions, notes, learningPaths, collections,
+    teamMessages, users, roadmaps, roadmapSteps, teamMembers
 } from '@/lib/db/schema'
 import { eq, and, ne, gte, desc } from 'drizzle-orm'
 
@@ -348,6 +348,138 @@ const TOOLS = [
             },
         },
     },
+    // ── Delete Tools ─────────────────────────────────────────────────────────
+    {
+        type: 'function',
+        function: {
+            name: 'delete_goal',
+            description: 'Delete a goal by ID.',
+            parameters: {
+                type: 'object',
+                properties: { goal_id: { type: 'string' } },
+                required: ['goal_id'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'delete_habit',
+            description: 'Delete a habit by ID.',
+            parameters: {
+                type: 'object',
+                properties: { habit_id: { type: 'string' } },
+                required: ['habit_id'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'delete_note',
+            description: 'Delete a note by ID.',
+            parameters: {
+                type: 'object',
+                properties: { note_id: { type: 'string' } },
+                required: ['note_id'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'update_note',
+            description: 'Update the title or content of an existing note.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    note_id: { type: 'string' },
+                    title: { type: 'string' },
+                    content: { type: 'string' },
+                },
+                required: ['note_id'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'delete_transaction',
+            description: 'Delete a financial transaction by ID.',
+            parameters: {
+                type: 'object',
+                properties: { transaction_id: { type: 'string' } },
+                required: ['transaction_id'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'delete_roadmap',
+            description: 'Delete a roadmap and all its steps by ID.',
+            parameters: {
+                type: 'object',
+                properties: { roadmap_id: { type: 'string' } },
+                required: ['roadmap_id'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'delete_learning_path',
+            description: 'Delete a learning path by ID.',
+            parameters: {
+                type: 'object',
+                properties: { learning_path_id: { type: 'string' } },
+                required: ['learning_path_id'],
+            },
+        },
+    },
+    // ── Collections ──────────────────────────────────────────────────────────
+    {
+        type: 'function',
+        function: {
+            name: 'create_collection',
+            description: 'Create a new collection (folder/group to organise notes, tasks, etc).',
+            parameters: {
+                type: 'object',
+                properties: {
+                    name: { type: 'string', description: 'Name of the collection' },
+                },
+                required: ['name'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'delete_collection',
+            description: 'Delete a collection by ID.',
+            parameters: {
+                type: 'object',
+                properties: { collection_id: { type: 'string' } },
+                required: ['collection_id'],
+            },
+        },
+    },
+    // ── Team Chat ────────────────────────────────────────────────────────────
+    {
+        type: 'function',
+        function: {
+            name: 'send_team_message',
+            description: 'Send a message in a team chat. Use when user wants to post/send something in a team chat.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    team_id: { type: 'string', description: 'The ID of the team to send to — get from context' },
+                    message: { type: 'string', description: 'The message content' },
+                },
+                required: ['team_id', 'message'],
+            },
+        },
+    },
 ]
 
 // ─── Single Agent System Prompt ───────────────────────────────────────────────
@@ -357,13 +489,15 @@ const SINGLE_AGENT_SYSTEM = `You are V — a smart, action-oriented life OS assi
 
 
 FEATURES YOU CAN CREATE (ALWAYS use the corresponding tool — NEVER just describe in text):
-- Tasks: create_task (single) | create_bulk_tasks (multiple) | create_daily_study_plan (DAILY tasks from a topic curriculum)
-- Habits: create_habit (single) | create_bulk_habits (multiple)
-- Goals: create_goal
-- Notes: create_note
-- Roadmaps: create_roadmap with 6-8 milestones | add_steps_to_roadmap
-- Learning Paths: create_learning_path
-- Transactions: add_transaction
+- Tasks: create_task | create_bulk_tasks | create_daily_study_plan | edit_task | delete_task | mark_complete
+- Habits: create_habit | create_bulk_habits | delete_habit | log_habit_completion
+- Goals: create_goal | update_goal_progress | delete_goal
+- Notes: create_note | update_note | delete_note
+- Roadmaps: create_roadmap | add_steps_to_roadmap | delete_roadmap
+- Learning Paths: create_learning_path | delete_learning_path
+- Collections: create_collection | delete_collection
+- Finances: add_transaction | delete_transaction
+- Team Chat: send_team_message
 - Navigate: navigate_to_page
 
 COMPREHENSIVE STUDY PLAN STRATEGY:
@@ -793,6 +927,72 @@ async function executeTool(
                 action: 'navigate',
                 path: '/dashboard/tasks',
             }
+        }
+
+        case 'delete_goal': {
+            await db.delete(goals).where(and(eq(goals.id, args.goal_id as string), eq(goals.userId, userId)))
+            return { result: `🗑️ Goal deleted.`, action: 'navigate', path: '/dashboard/goals' }
+        }
+
+        case 'delete_habit': {
+            await db.delete(habits).where(and(eq(habits.id, args.habit_id as string), eq(habits.userId, userId)))
+            return { result: `🗑️ Habit deleted.`, action: 'navigate', path: '/dashboard/habits' }
+        }
+
+        case 'delete_note': {
+            await db.delete(notes).where(and(eq(notes.id, args.note_id as string), eq(notes.userId, userId)))
+            return { result: `🗑️ Note deleted.`, action: 'navigate', path: '/dashboard/notes' }
+        }
+
+        case 'update_note': {
+            const updates: Record<string, string> = {}
+            if (args.title) updates.title = args.title as string
+            if (args.content) updates.content = args.content as string
+            await db.update(notes).set(updates).where(and(eq(notes.id, args.note_id as string), eq(notes.userId, userId)))
+            return { result: `✅ Note updated.`, action: 'navigate', path: '/dashboard/notes' }
+        }
+
+        case 'delete_transaction': {
+            await db.delete(transactions).where(and(eq(transactions.id, args.transaction_id as string), eq(transactions.userId, userId)))
+            return { result: `🗑️ Transaction deleted.`, action: 'navigate', path: '/dashboard/finance' }
+        }
+
+        case 'delete_roadmap': {
+            await db.delete(roadmaps).where(and(eq(roadmaps.id, args.roadmap_id as string), eq(roadmaps.ownerId, userId)))
+            return { result: `🗑️ Roadmap and all its steps deleted.`, action: 'navigate', path: '/dashboard/roadmaps' }
+        }
+
+        case 'delete_learning_path': {
+            await db.delete(learningPaths).where(and(eq(learningPaths.id, args.learning_path_id as string), eq(learningPaths.userId, userId)))
+            return { result: `🗑️ Learning path deleted.`, action: 'navigate', path: '/dashboard/library' }
+        }
+
+        case 'create_collection': {
+            const [col] = await db.insert(collections).values({
+                userId,
+                name: args.name as string,
+            }).returning()
+            return { result: `✅ Collection **${col.name}** created.`, action: 'navigate', path: '/dashboard/collections' }
+        }
+
+        case 'delete_collection': {
+            await db.delete(collections).where(and(eq(collections.id, args.collection_id as string), eq(collections.userId, userId)))
+            return { result: `🗑️ Collection deleted.`, action: 'navigate', path: '/dashboard/collections' }
+        }
+
+        case 'send_team_message': {
+            // Verify user is a member of this team
+            const membership = await db.select().from(teamMembers)
+                .where(and(eq(teamMembers.teamId, args.team_id as string), eq(teamMembers.userId, userId)))
+                .limit(1)
+            if (membership.length === 0) throw new Error('You are not a member of this team')
+            await db.insert(teamMessages).values({
+                teamId: args.team_id as string,
+                senderId: userId,
+                message: args.message as string,
+                type: 'message',
+            })
+            return { result: `✅ Message sent to team chat.`, action: 'navigate', path: '/dashboard/chat' }
         }
 
         default:

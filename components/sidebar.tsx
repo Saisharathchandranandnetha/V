@@ -72,6 +72,13 @@ export function Sidebar({ className, isAdmin, isTeamOnly }: SidebarProps) {
                                 />
                             </div>
                             V
+                            <span className="flex items-center gap-1 ml-0.5">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                                </span>
+                                <span className="text-[9px] font-bold tracking-widest uppercase text-primary/70">Beta</span>
+                            </span>
                         </h2>
                     </Link>
                     <div className="space-y-1">

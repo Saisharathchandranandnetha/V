@@ -48,8 +48,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
                 {/* Mobile Header */}
                 <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50">
-                    <Link href="/dashboard" className="font-display font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm">
+                    <Link href="/dashboard" className="font-display font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm flex items-center gap-2">
                         V
+                        <span className="flex items-center gap-1">
+                            <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
+                            </span>
+                            <span className="text-[9px] font-bold tracking-widest uppercase text-primary/70">Beta</span>
+                        </span>
                     </Link>
                     <div className="backdrop-blur-md bg-background/30 rounded-full p-1 border border-white/5 shadow-sm">
                         <ThemeToggle />
