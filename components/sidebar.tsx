@@ -95,7 +95,7 @@ export function Sidebar({ className, isAdmin, isTeamOnly }: SidebarProps) {
                         }).map((item) => {
                             if (item.children) {
                                 // Check if any child is active to open properly (optional, but good UX)
-                                const isOpen = item.children.some(child => pathname.startsWith(child.href))
+                                const isOpen = typeof window !== 'undefined' ? item.children.some(child => pathname.startsWith(child.href)) : false
                                 return (
                                     <Collapsible key={item.title} defaultOpen={isOpen} className="group/collapsible">
                                         <CollapsibleTrigger asChild>

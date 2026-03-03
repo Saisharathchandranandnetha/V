@@ -42,12 +42,6 @@ export function SharedContentCard({ attachment }: { attachment: { type: string, 
         e.preventDefault()
         e.stopPropagation()
 
-        // Direct navigation for Roadmap (Page handles logic)
-        if (type === 'roadmap') {
-            router.push(`/dashboard/roadmaps/${item.id}`)
-            return
-        }
-
         if (type === 'finance') {
             router.push('/dashboard/finances')
             return
@@ -75,6 +69,8 @@ export function SharedContentCard({ attachment }: { attachment: { type: string, 
                     router.push(`/dashboard/notes`)
                 } else if (type === 'learning_path') {
                     router.push(`/dashboard/paths/${result.newId}/edit`)
+                } else if (type === 'roadmap') {
+                    router.push(`/dashboard/roadmaps/${result.newId}`)
                 }
             }
         } catch (error: any) {

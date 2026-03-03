@@ -1,7 +1,7 @@
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { teams, teamMessages, messageReads, users } from '@/lib/db/schema'
-import { eq, inArray, asc, and, isNull } from 'drizzle-orm'
+import { eq, inArray, asc, desc, and, isNull } from 'drizzle-orm'
 import { ChatContainer } from '@/components/chat/ChatContainer'
 import { Hash, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -48,7 +48,10 @@ export default async function TeamChatPage(props: { params: Promise<{ teamId: st
         .from(teamMessages)
         .leftJoin(users, eq(teamMessages.senderId, users.id))
         .where(and(eq(teamMessages.teamId, teamId), isNull(teamMessages.projectId)))
-        .orderBy(asc(teamMessages.createdAt))
+        .orderBy(desc(teamMessages.createdAt))
+        .limit(50)
+
+    rawMessages.reverse()
 
     // Fetch Read Receipts
     const messageIds = rawMessages.map(m => m.id)

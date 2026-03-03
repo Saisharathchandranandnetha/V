@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, boolean, numeric, date, jsonb, unique, integer } from 'drizzle-orm/pg-core'
+import { pgTable, uuid, text, timestamp, boolean, numeric, date, jsonb, unique, integer, index } from 'drizzle-orm/pg-core'
 
 // ── AUTH (NextAuth required tables) ──────────────────────────────────────────
 export const users = pgTable('users', {
@@ -96,14 +96,34 @@ export const tasks = pgTable('tasks', {
 export const goals = pgTable('goals', {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    teamId: uuid('team_id').references(() => teams.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     type: text('type').default('Short Term'),
     targetValue: numeric('target_value').notNull(),
     currentValue: numeric('current_value').default('0'),
     unit: text('unit').notNull(),
+    color: text('color').default('#3b82f6'),
     deadline: date('deadline'),
     collectionId: uuid('collection_id').references(() => collections.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const goalProgressLogs = pgTable('goal_progress_logs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    goalId: uuid('goal_id').notNull().references(() => goals.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    addedValue: numeric('added_value').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+})
+
+export const goalMilestones = pgTable('goal_milestones', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    goalId: uuid('goal_id').notNull().references(() => goals.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    completed: boolean('completed').default(false),
+    order: integer('order').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
 })
 
 // ── FINANCES ──────────────────────────────────────────────────────────────────
@@ -245,7 +265,10 @@ export const teamMessages = pgTable('team_messages', {
     type: text('type').default('message'),
     metadata: jsonb('metadata'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-})
+}, (t) => [
+    index('msg_team_date_idx').on(t.teamId, t.createdAt),
+    index('msg_project_date_idx').on(t.projectId, t.createdAt),
+])
 
 export const messageReads = pgTable('message_reads', {
     id: uuid('id').defaultRandom().primaryKey(),

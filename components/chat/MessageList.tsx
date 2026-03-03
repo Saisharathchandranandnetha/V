@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MessageItem, Message } from './MessageItem'
 
 import { differenceInMinutes, isSameDay, isToday, isYesterday, format } from 'date-fns'
@@ -15,26 +15,50 @@ function formatDateLabel(date: Date) {
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Simplified MessageList
-export function MessageList({ messages, teamId, projectId, onDelete, members }: {
+export function MessageList({ messages, teamId, projectId, onDelete, members, onLoadOlder, isFetchingOlder, hasMore }: {
     messages: Message[],
     teamId: string,
     projectId?: string,
     onDelete?: (id: string) => void,
-    members: any[]
+    members: any[],
+    onLoadOlder?: () => void,
+    isFetchingOlder?: boolean,
+    hasMore?: boolean
 }) {
     const scrollRef = useRef<HTMLDivElement>(null)
+    const loaderRef = useRef<HTMLDivElement>(null)
+    const [isInitialLoad, setIsInitialLoad] = useState(true)
+
+    // Intersection Observer for Infinite Scroll
+    useEffect(() => {
+        if (!loaderRef.current || !hasMore || isFetchingOlder) return
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && onLoadOlder) {
+                onLoadOlder()
+            }
+        }, { threshold: 0.1, root: scrollRef.current })
+
+        observer.observe(loaderRef.current)
+        return () => observer.disconnect()
+    }, [hasMore, isFetchingOlder, onLoadOlder])
 
     // Scroll to bottom when messages change
     useEffect(() => {
         if (scrollRef.current) {
-            // Use requestAnimationFrame to ensure DOM is ready
             requestAnimationFrame(() => {
-                if (scrollRef.current) {
+                if (!scrollRef.current) return
+                if (isInitialLoad) {
                     scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+                    setIsInitialLoad(false)
+                } else if (!isFetchingOlder) {
+                    const isNearBottom = scrollRef.current.scrollHeight - scrollRef.current.scrollTop - scrollRef.current.clientHeight < 250
+                    if (isNearBottom) {
+                        scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+                    }
                 }
             })
         }
-    }, [messages.length])
+    }, [messages.length, isInitialLoad, isFetchingOlder])
 
     // Group messages
     const groupedMessages = messages.map((msg, index) => {
@@ -59,6 +83,11 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
             style={{ WebkitOverflowScrolling: 'touch' }}
         >
             <div className="flex flex-col gap-1 pb-4">
+                {hasMore && (
+                    <div ref={loaderRef} className="w-full flex justify-center py-4">
+                        {isFetchingOlder ? <span className="text-xs text-muted-foreground animate-pulse">Loading older messages...</span> : <div className="h-4" />}
+                    </div>
+                )}
                 <AnimatePresence initial={false}>
                     {groupedMessages.length === 0 && (
                         <motion.div

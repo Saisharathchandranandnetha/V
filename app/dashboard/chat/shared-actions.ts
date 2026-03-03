@@ -2,9 +2,10 @@
 
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
-import { resources, notes, learningPaths, chatSharedItems } from '@/lib/db/schema'
+import { resources, notes, learningPaths, chatSharedItems, roadmaps, roadmapSteps, roadmapStepLinks } from '@/lib/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function addToMyAccount(sharedItemId: string) {
     const session = await auth()
@@ -39,6 +40,10 @@ export async function addToMyAccount(sharedItemId: string) {
     } else if (type === 'learning_path') {
         const [data] = await db.select({ id: learningPaths.id }).from(learningPaths)
             .where(and(eq(learningPaths.originalItemId, originalItemId), eq(learningPaths.userId, userId))).limit(1)
+        existingCopy = data
+    } else if (type === 'roadmap') {
+        const [data] = await db.select({ id: roadmaps.id }).from(roadmaps)
+            .where(and(eq(roadmaps.originalRoadmapId, originalItemId), eq(roadmaps.ownerId, userId))).limit(1)
         existingCopy = data
     }
 
@@ -96,6 +101,65 @@ export async function addToMyAccount(sharedItemId: string) {
             collectionId: null
         })
     }
+    else if (type === 'roadmap') {
+        const [original] = await db.select().from(roadmaps).where(eq(roadmaps.id, originalItemId)).limit(1)
+        if (!original) throw new Error('Original roadmap not found')
+
+        const newRoadmapId = uuidv4()
+        await db.insert(roadmaps).values({
+            id: newRoadmapId,
+            ownerId: userId,
+            title: original.title,
+            description: original.description,
+            status: 'draft',
+            progress: original.progress,
+            originalRoadmapId: original.id,
+            copiedFromChat: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        })
+
+        // Copy steps
+        const originalSteps = await db.select().from(roadmapSteps).where(eq(roadmapSteps.roadmapId, originalItemId))
+        if (originalSteps.length > 0) {
+            const stepIdMap = new Map<string, string>()
+
+            // Generate mapping of old step IDs to new IDs
+            for (const step of originalSteps) stepIdMap.set(step.id, uuidv4())
+
+            for (const step of originalSteps) {
+                const newStepId = stepIdMap.get(step.id)!
+                const newParentId = step.parentStepId ? stepIdMap.get(step.parentStepId) || null : null
+
+                await db.insert(roadmapSteps).values({
+                    id: newStepId,
+                    roadmapId: newRoadmapId,
+                    parentStepId: newParentId,
+                    title: step.title,
+                    description: step.description,
+                    order: step.order,
+                    completed: false,
+                    linkedResourceId: step.linkedResourceId,
+                    linkedTaskId: step.linkedTaskId,
+                    linkedNoteId: step.linkedNoteId,
+                    linkedPathId: step.linkedPathId,
+                    linkedGoalId: step.linkedGoalId,
+                })
+
+                // Copy links for this step
+                const originalLinks = await db.select().from(roadmapStepLinks).where(eq(roadmapStepLinks.stepId, step.id))
+                if (originalLinks.length > 0) {
+                    await db.insert(roadmapStepLinks).values(originalLinks.map(link => ({
+                        stepId: newStepId,
+                        noteId: link.noteId,
+                        learningPathId: link.learningPathId,
+                        resourceId: link.resourceId,
+                        goalId: link.goalId
+                    })))
+                }
+            }
+        }
+    }
 
     revalidatePath('/dashboard/resources')
     revalidatePath('/dashboard/notes')
@@ -111,7 +175,6 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
 
     let existingCopy: any = null
 
-    // Check if user is the OWNER of the original item
     if (type === 'resource') {
         const [data] = await db.select({ id: resources.id }).from(resources)
             .where(and(eq(resources.id, originalItemId), eq(resources.userId, userId))).limit(1)
@@ -123,6 +186,10 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
     } else if (type === 'learning_path') {
         const [data] = await db.select({ id: learningPaths.id }).from(learningPaths)
             .where(and(eq(learningPaths.id, originalItemId), eq(learningPaths.userId, userId))).limit(1)
+        if (data) return { success: true, newId: originalItemId, isNew: false }
+    } else if (type === 'roadmap') {
+        const [data] = await db.select({ id: roadmaps.id }).from(roadmaps)
+            .where(and(eq(roadmaps.id, originalItemId), eq(roadmaps.ownerId, userId))).limit(1)
         if (data) return { success: true, newId: originalItemId, isNew: false }
     }
 
@@ -137,6 +204,10 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
     } else if (type === 'learning_path') {
         const [data] = await db.select({ id: learningPaths.id }).from(learningPaths)
             .where(and(eq(learningPaths.originalItemId, originalItemId), eq(learningPaths.userId, userId))).limit(1)
+        existingCopy = data
+    } else if (type === 'roadmap') {
+        const [data] = await db.select({ id: roadmaps.id }).from(roadmaps)
+            .where(and(eq(roadmaps.originalRoadmapId, originalItemId), eq(roadmaps.ownerId, userId))).limit(1)
         existingCopy = data
     }
 
@@ -173,6 +244,16 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
                     description: original.description,
                     links: original.links
                 }).where(eq(learningPaths.id, existingCopy.id))
+                updated = true
+            }
+        } else if (type === 'roadmap') {
+            const [original] = await db.select().from(roadmaps).where(eq(roadmaps.id, originalItemId)).limit(1)
+            if (original) {
+                await db.update(roadmaps).set({
+                    title: original.title,
+                    description: original.description,
+                    updatedAt: new Date()
+                }).where(eq(roadmaps.id, existingCopy.id))
                 updated = true
             }
         }
@@ -246,10 +327,72 @@ export async function copyItemToAccount(originalItemId: string, type: string) {
 
         newId = newItem.id
     }
+    else if (type === 'roadmap') {
+        const [original] = await db.select().from(roadmaps).where(eq(roadmaps.id, originalItemId)).limit(1)
+        if (!original) throw new Error('Original roadmap not found')
+
+        const newRoadmapId = uuidv4()
+        await db.insert(roadmaps).values({
+            id: newRoadmapId,
+            ownerId: userId,
+            title: original.title,
+            description: original.description,
+            status: 'draft',
+            progress: original.progress,
+            originalRoadmapId: original.id,
+            copiedFromChat: true,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        })
+
+        // Copy steps
+        const originalSteps = await db.select().from(roadmapSteps).where(eq(roadmapSteps.roadmapId, originalItemId))
+        if (originalSteps.length > 0) {
+            const stepIdMap = new Map<string, string>()
+
+            // Generate mapping of old step IDs to new IDs
+            for (const step of originalSteps) stepIdMap.set(step.id, uuidv4())
+
+            for (const step of originalSteps) {
+                const newStepId = stepIdMap.get(step.id)!
+                const newParentId = step.parentStepId ? stepIdMap.get(step.parentStepId) || null : null
+
+                await db.insert(roadmapSteps).values({
+                    id: newStepId,
+                    roadmapId: newRoadmapId,
+                    parentStepId: newParentId,
+                    title: step.title,
+                    description: step.description,
+                    order: step.order,
+                    completed: false,
+                    linkedResourceId: step.linkedResourceId,
+                    linkedTaskId: step.linkedTaskId,
+                    linkedNoteId: step.linkedNoteId,
+                    linkedPathId: step.linkedPathId,
+                    linkedGoalId: step.linkedGoalId,
+                })
+
+                // Copy links for this step
+                const originalLinks = await db.select().from(roadmapStepLinks).where(eq(roadmapStepLinks.stepId, step.id))
+                if (originalLinks.length > 0) {
+                    await db.insert(roadmapStepLinks).values(originalLinks.map(link => ({
+                        stepId: newStepId,
+                        noteId: link.noteId,
+                        learningPathId: link.learningPathId,
+                        resourceId: link.resourceId,
+                        goalId: link.goalId
+                    })))
+                }
+            }
+        }
+
+        newId = newRoadmapId
+    }
 
     revalidatePath('/dashboard/resources')
     revalidatePath('/dashboard/notes')
     revalidatePath('/dashboard/learning')
+    revalidatePath('/dashboard/roadmaps')
 
     return { success: true, newId, isNew: true }
 }
