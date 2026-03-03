@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { HoverEffect } from '@/components/ui/hover-effect'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
+import { Card } from '@/components/ui/card'
 import { CreateGoalDialog } from './create-goal-dialog'
 import { EditGoalDialog } from './edit-goal-dialog'
 import { DeleteGoalButton } from './delete-goal-button'
@@ -105,7 +105,7 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                             return (
                                                 <StaggerItem key={goal.id}>
                                                     <HoverEffect variant="lift">
-                                                        <SpotlightCard className="h-full flex flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm">
+                                                        <Card className="h-full flex flex-col overflow-hidden transition-colors hover:border-primary/30">
                                                             <CardHeader className="pb-0 space-y-0 relative">
                                                                 <div className="flex justify-between items-start w-full">
                                                                     <CardTitle className="text-base font-medium leading-tight pr-12 line-clamp-2 min-h-[2.5rem]" title={goal.title}>
@@ -118,24 +118,23 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                                                 </div>
                                                             </CardHeader>
                                                             <CardContent className="space-y-4 pt-0">
-                                                                <div className="space-y-2">
-                                                                    <div className="flex items-baseline gap-1">
-                                                                        <span className="text-2xl font-bold">{goal.current_value}</span>
+                                                                <div className="space-y-2 flex-grow">
+                                                                    <div className="flex items-baseline gap-1 mt-3">
+                                                                        <span className="text-2xl font-bold tracking-tight">{goal.current_value}</span>
                                                                         <span className="text-muted-foreground text-base">/ {goal.target_value}</span>
-                                                                        <span className="text-muted-foreground text-base ml-1">{goal.unit}</span>
+                                                                        <span className="text-muted-foreground text-sm font-medium ml-1 uppercase tracking-wider">{goal.unit}</span>
                                                                     </div>
-                                                                    <Progress value={progress} className="h-2.5 bg-secondary" indicatorClassName="bg-primary" />
-                                                                    <div className="flex justify-between text-xs text-muted-foreground font-medium">
+                                                                    <Progress value={progress} className="h-2 bg-muted mt-2" indicatorClassName="bg-primary" />
+                                                                    <div className="flex justify-between text-[10px] font-bold tracking-widest uppercase text-muted-foreground/80 mt-2">
                                                                         <span>{Math.round(progress)}% Complete</span>
-                                                                        <span>Due {goal.deadline ? format(new Date(goal.deadline), 'MMM d, yyyy') : 'N/A'}</span>
-                                                                    </div>
-                                                                    <div className="text-xs text-muted-foreground pt-1">
-                                                                        Created {format(new Date(goal.created_at), 'MMM d, yyyy • h:mm a')}
+                                                                        <span>{goal.deadline ? `Due ${format(new Date(goal.deadline), 'MMM d, yy')}` : 'No Deadline'}</span>
                                                                     </div>
                                                                 </div>
-                                                                <UpdateProgressDialog goal={goal} />
+                                                                <div className="pt-3 border-t border-white/5 flex gap-2 w-full mt-auto">
+                                                                    <UpdateProgressDialog goal={goal} />
+                                                                </div>
                                                             </CardContent>
-                                                        </SpotlightCard>
+                                                        </Card>
                                                     </HoverEffect>
                                                 </StaggerItem>
                                             )
@@ -155,7 +154,7 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                     return (
                                         <StaggerItem key={goal.id}>
                                             <HoverEffect variant="lift">
-                                                <SpotlightCard className="h-full flex flex-col overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm opacity-75">
+                                                <Card className="h-full flex flex-col overflow-hidden border-border/20 bg-card/30 opacity-60 grayscale-[50%] transition-colors hover:grayscale-0 hover:opacity-100">
                                                     <CardHeader className="pb-0 space-y-0 relative">
                                                         <div className="flex justify-between items-start w-full">
                                                             <CardTitle className="text-base font-medium leading-tight pr-12 line-clamp-2 min-h-[2.5rem] line-through text-muted-foreground" title={goal.title}>
@@ -168,26 +167,25 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                                         </div>
                                                     </CardHeader>
                                                     <CardContent className="space-y-4 pt-0">
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-baseline gap-1">
+                                                        <div className="space-y-2 flex-grow">
+                                                            <div className="flex items-baseline gap-1 mt-3">
                                                                 <span className="text-2xl font-bold text-muted-foreground">{goal.current_value}</span>
                                                                 <span className="text-muted-foreground text-base">/ {goal.target_value}</span>
-                                                                <span className="text-muted-foreground text-base ml-1">{goal.unit}</span>
+                                                                <span className="text-muted-foreground text-sm font-medium ml-1 uppercase tracking-wider">{goal.unit}</span>
                                                             </div>
-                                                            <Progress value={100} className="h-2.5 bg-secondary" indicatorClassName="bg-green-500" />
-                                                            <div className="flex justify-between text-xs text-muted-foreground font-medium">
-                                                                <span className="text-green-600 font-bold">Completed</span>
-                                                                <span>Finished {goal.updated_at ? format(new Date(goal.updated_at), 'MMM d, yyyy') : 'N/A'}</span>
-                                                            </div>
-                                                            <div className="text-xs text-muted-foreground pt-1">
-                                                                Created {format(new Date(goal.created_at), 'MMM d, yyyy • h:mm a')}
+                                                            <Progress value={100} className="h-2 bg-muted mt-2" indicatorClassName="bg-emerald-500/50" />
+                                                            <div className="flex justify-between text-[10px] font-bold tracking-widest uppercase text-muted-foreground/80 mt-2">
+                                                                <span className="text-emerald-500/70">Completed</span>
+                                                                <span>{goal.updated_at ? format(new Date(goal.updated_at), 'MMM d, yy') : 'N/A'}</span>
                                                             </div>
                                                         </div>
-                                                        <Button variant="outline" className="w-full" disabled>
-                                                            Goal Achieved
-                                                        </Button>
+                                                        <div className="pt-3 border-t border-white/5 mt-auto">
+                                                            <div className="w-full text-center text-xs font-medium text-muted-foreground/50 py-2 border border-dashed border-white/10 rounded-md">
+                                                                Achieved
+                                                            </div>
+                                                        </div>
                                                     </CardContent>
-                                                </SpotlightCard>
+                                                </Card>
                                             </HoverEffect>
                                         </StaggerItem>
                                     )

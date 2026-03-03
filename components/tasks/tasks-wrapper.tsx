@@ -116,10 +116,11 @@ export function TasksWrapper({ tasks: initialTasks }: { tasks: Task[] }) {
                     </TabsList>
                 </div>
 
-                <TabsContent value="list" className="mt-0">
+                {/* forceMount keeps both tabs mounted — avoids re-mount flash when switching back */}
+                <TabsContent value="list" className="mt-0 data-[state=inactive]:hidden" forceMount>
                     <TaskList tasks={filteredTasks} />
                 </TabsContent>
-                <TabsContent value="board" className="mt-0">
+                <TabsContent value="board" className="mt-0 data-[state=inactive]:hidden" forceMount>
                     <TaskBoard tasks={filteredTasks} />
                 </TabsContent>
             </Tabs>

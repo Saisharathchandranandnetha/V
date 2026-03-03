@@ -9,7 +9,6 @@ import { deleteHabit, toggleHabit } from '@/app/dashboard/habits/actions'
 import { EditHabitDialog } from '@/components/habits/edit-habit-dialog'
 import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { HoverEffect } from '@/components/ui/hover-effect'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { cn } from '@/lib/utils'
 
 interface Habit {
@@ -65,12 +64,12 @@ export function HabitItem({ habit }: { habit: Habit }) {
 
     return (
         <HoverEffect variant="lift" className="h-full">
-            <SpotlightCard className="h-full transition-colors hover:border-primary/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
+            <Card className="h-full transition-colors hover:border-primary/30 min-h-[140px] flex flex-col justify-between">
+                <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-4">
+                    <CardTitle className="text-sm font-medium leading-tight pr-8">
                         {habit.name}
                     </CardTitle>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 absolute top-3 right-3">
                         <EditHabitDialog habit={habit} />
                         <ConfirmDeleteDialog
                             trigger={
@@ -84,16 +83,19 @@ export function HabitItem({ habit }: { habit: Habit }) {
                         />
                     </div>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center justify-between">
-                        <div className="text-2xl font-bold">{completionCount} Days</div>
+                <CardContent className="p-4 pt-0 mt-auto">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex flex-col">
+                            <span className="text-3xl font-bold tracking-tighter">{completionCount}</span>
+                            <span className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground/50">Total Days</span>
+                        </div>
                         <Button
                             size="icon"
                             variant={optimisticCompleted ? "default" : "outline"}
                             className={cn(
-                                "h-10 w-10 transition-all",
-                                optimisticCompleted && "bg-green-500 hover:bg-green-600 border-green-500",
-                                isPending && "opacity-70"
+                                "h-12 w-12 transition-all rounded-xl",
+                                optimisticCompleted && "bg-emerald-500 hover:bg-emerald-600 border-emerald-500 shadow-lg shadow-emerald-500/20",
+                                isPending && "opacity-70 scale-95"
                             )}
                             onClick={handleToggle}
                             disabled={isPending}
@@ -101,16 +103,16 @@ export function HabitItem({ habit }: { habit: Habit }) {
                             <Check className={cn("h-6 w-6", optimisticCompleted ? "text-white" : "text-muted-foreground")} />
                         </Button>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs text-muted-foreground">
+                    <div className="flex justify-between items-center pt-3 border-t border-white/5">
+                        <p className="text-[10px] font-bold tracking-widest uppercase text-muted-foreground/60">
                             {habit.frequency}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                            Started: {format(new Date(habit.created_at), 'MMM d, yyyy')}
+                        <p className="text-[10px] text-muted-foreground/50">
+                            Since {format(new Date(habit.created_at), 'MMM d, yy')}
                         </p>
                     </div>
                 </CardContent>
-            </SpotlightCard>
+            </Card>
         </HoverEffect>
     )
 }

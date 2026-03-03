@@ -20,7 +20,6 @@ import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { CompleteTaskDialog } from '@/components/tasks/complete-task-dialog'
 import { cn } from '@/lib/utils'
 import { HoverEffect } from '@/components/ui/hover-effect'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 interface Task {
     id: string
@@ -77,7 +76,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                 {tasks.map((task) => (
                     <StaggerItem key={task.id} className="w-full">
                         <HoverEffect variant="lift">
-                            <SpotlightCard className="transition-colors hover:border-primary/50">
+                            <Card className="transition-colors hover:border-primary/30">
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <div className="space-y-1">
                                         <CardTitle className={cn("text-sm font-medium", task.status === 'Done' && "line-through text-muted-foreground")}>
@@ -139,7 +138,7 @@ export function TaskList({ tasks }: { tasks: Task[] }) {
                                         </Select>
                                     </div>
                                 </CardContent>
-                            </SpotlightCard>
+                            </Card>
                         </HoverEffect>
                     </StaggerItem>
                 ))}

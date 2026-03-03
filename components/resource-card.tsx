@@ -7,10 +7,13 @@ import { MoreVertical, ExternalLink, FileText, Youtube, Box, Image as ImageIcon 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
 import { deleteResource } from '@/app/dashboard/actions'
-import { useTransition } from 'react'
+import { useTransition, useState } from 'react'
 import { HoverEffect } from '@/components/ui/hover-effect'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
-
+import { motion, useMotionValue } from 'framer-motion'
+import { cn } from '@/lib/utils'
+import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
+import { MoveToCollectionDialog } from '@/components/move-to-collection-dialog'
+import { FolderInput } from 'lucide-react'
 export type ResourceType = 'url' | 'pdf' | 'youtube' | 'gltf' | 'lottie' | 'image' | 'spline'
 
 export interface ResourceProps {
@@ -33,12 +36,6 @@ const typeIcons: Record<string, React.ReactNode> = {
     image: <ImageIcon className="h-4 w-4" />,
 }
 
-import { useState } from 'react'
-import { motion, useMotionValue, useTransform } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
-import { MoveToCollectionDialog } from '@/components/move-to-collection-dialog'
-import { FolderInput } from 'lucide-react'
 
 export function ResourceCard({ resource }: { resource: ResourceProps }) {
     const [isPending, startTransition] = useTransition()
@@ -70,11 +67,8 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
                 className="h-full group/card relative"
             >
-                <SpotlightCard className="h-full bg-card/40 backdrop-blur-xl border-border/50 saturate-150 shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/40 hover:bg-card/60" spotlightColor="rgba(255, 255, 255, 0.15)">
-                    {/* Glow Tracing Light moved inside SpotlightCard logic but we keep custom if needed, 
-                        actually SpotlightCard handles the spotlight. 
-                        We can remove the custom motion div for glow and just use SpotlightCard.
-                    */}
+                <Card className="h-full bg-card/40 border-border/20 transition-all duration-300 hover:border-primary/40 hover:bg-card/60 flex flex-col">
+
 
                     <CardHeader className="p-4 pb-2 relative z-10">
                         <div className="flex justify-between items-start gap-2">
@@ -129,7 +123,7 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                             )}
                         </CardTitle>
                         <CardDescription className="text-[10px] uppercase tracking-widest opacity-60 font-medium">
-                            {new Date(resource.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            {!isNaN(new Date(resource.date).getTime()) ? new Date(resource.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-2 flex-1 relative z-10">
@@ -144,7 +138,7 @@ export function ResourceCard({ resource }: { resource: ResourceProps }) {
                             </Badge>
                         ))}
                     </CardFooter>
-                </SpotlightCard>
+                </Card>
             </motion.div>
 
             <ConfirmDeleteDialog

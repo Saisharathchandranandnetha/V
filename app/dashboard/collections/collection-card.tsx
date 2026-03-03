@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Folder, MoreVertical, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -72,17 +72,17 @@ export function CollectionCard({ collection }: CollectionCardProps) {
         <>
             <div className="relative group">
                 <Link href={`/dashboard/collections/${collection.id}`}>
-                    <SpotlightCard className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
                         <CardHeader>
                             <div className="flex items-start gap-2 pr-8 w-full min-w-0">
                                 <Folder className="h-5 w-5 text-blue-500 shrink-0 mt-1" />
                                 <CardTitle className="text-lg break-all whitespace-normal leading-tight min-w-0 flex-1">{collection.name}</CardTitle>
                             </div>
                             <CardDescription>
-                                {collection.resources[0]?.count || 0} items
+                                {collection.resources?.[0]?.count || 0} items
                             </CardDescription>
                         </CardHeader>
-                    </SpotlightCard>
+                    </Card>
                 </Link>
 
                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">

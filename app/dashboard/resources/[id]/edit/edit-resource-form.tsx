@@ -11,6 +11,7 @@ import { Link as LinkIcon, ChevronLeft, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { updateResource, createCategoryAndReturn } from '@/app/dashboard/actions'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { SubmitButton } from '@/components/submit-button'
 
 interface EditResourceFormProps {
     resource: any
@@ -164,7 +165,7 @@ export function EditResourceForm({ resource, initialCategories }: EditResourceFo
                             <Button variant="outline" asChild>
                                 <Link href="/dashboard/resources">Cancel</Link>
                             </Button>
-                            <Button type="submit">Update Resource</Button>
+                            <SubmitButton>Update Resource</SubmitButton>
                         </div>
                     </form>
                 </CardContent>
