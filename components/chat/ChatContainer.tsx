@@ -30,7 +30,37 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
     const [messages, setMessages] = useState<Message[]>(initialMessages)
     const [status, setStatus] = useState<RealtimeStatus>('connected')
     const [typingUsers, setTypingUsers] = useState<Map<string, { name: string, until: number }>>(new Map())
+    const [hasMore, setHasMore] = useState(initialMessages.length === 50)
+    const [isFetchingOlder, setIsFetchingOlder] = useState(false)
     const ablyRef = useRef<Ably.Realtime | null>(null)
+
+    const fetchOlderMessages = useCallback(async () => {
+        if (isFetchingOlder || !hasMore || messages.length === 0) return
+        setIsFetchingOlder(true)
+
+        try {
+            const oldestMessage = messages[0]
+            const cursor = oldestMessage.created_at
+            const qProj = projectId ? `&projectId=${projectId}` : ''
+            const res = await fetch(`/api/chat/messages?teamId=${teamId}${qProj}&cursor=${cursor}`)
+            if (res.ok) {
+                const data = await res.json()
+                if (data.messages && data.messages.length > 0) {
+                    setMessages(prev => {
+                        const newMsgs = data.messages.filter((m: Message) => !prev.some(p => p.id === m.id))
+                        return [...newMsgs, ...prev]
+                    })
+                    if (data.messages.length < 50) setHasMore(false)
+                } else {
+                    setHasMore(false)
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch older messages:", error)
+        } finally {
+            setIsFetchingOlder(false)
+        }
+    }, [messages, isFetchingOlder, hasMore, teamId, projectId])
 
     const totalMembers = members.length
 
@@ -181,6 +211,9 @@ export function ChatContainer({ initialMessages, teamId, projectId, currentUser,
                 projectId={projectId}
                 onDelete={handleDeleteMessage}
                 members={members}
+                onLoadOlder={fetchOlderMessages}
+                isFetchingOlder={isFetchingOlder}
+                hasMore={hasMore}
             />
             <div className="absolute bottom-20 left-0 right-0 z-10 pointer-events-none">
                 <TypingIndicator users={Array.from(typingUsers.entries()).map(([id, data]) => ({ id, name: data.name }))} />

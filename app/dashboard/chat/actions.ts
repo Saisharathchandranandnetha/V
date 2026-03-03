@@ -51,9 +51,18 @@ export async function sendMessage(formData: FormData) {
             const channelName = `chat:${teamId}:${projectId || 'team'}`
             const channel = ably.channels.get(channelName)
             await channel.publish('new-message', {
-                ...insertedMessage,
-                senderName: session.user.name,
-                senderImage: session.user.image,
+                id: insertedMessage.id,
+                team_id: insertedMessage.teamId,
+                project_id: insertedMessage.projectId,
+                sender_id: insertedMessage.senderId,
+                message: insertedMessage.message,
+                created_at: insertedMessage.createdAt,
+                metadata: insertedMessage.metadata,
+                sender: {
+                    name: session.user.name,
+                    avatar: session.user.image,
+                    email: session.user.email
+                }
             })
         } catch (e) { console.error('Ably publish error:', e) }
     }
@@ -175,21 +184,24 @@ export async function getUnreadCounts() {
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    const recentMessages = await db.select({
-        id: teamMessages.id,
+    const unreadMessages = await db.select({
         teamId: teamMessages.teamId,
         projectId: teamMessages.projectId,
     }).from(teamMessages)
-        .where(and(ne(teamMessages.senderId, session.user.id), gte(teamMessages.createdAt, thirtyDaysAgo)))
+        .leftJoin(messageReads, and(
+            eq(teamMessages.id, messageReads.messageId),
+            eq(messageReads.userId, session.user.id)
+        ))
+        .where(and(
+            ne(teamMessages.senderId, session.user.id),
+            gte(teamMessages.createdAt, thirtyDaysAgo),
+            isNull(messageReads.id)
+        ))
 
     const unreadCounts: Record<string, number> = {}
-    for (const msg of recentMessages) {
-        const [read] = await db.select().from(messageReads)
-            .where(and(eq(messageReads.messageId, msg.id), eq(messageReads.userId, session.user.id))).limit(1)
-        if (!read) {
-            if (msg.teamId) unreadCounts[msg.teamId] = (unreadCounts[msg.teamId] || 0) + 1
-            if (msg.projectId) unreadCounts[msg.projectId] = (unreadCounts[msg.projectId] || 0) + 1
-        }
+    for (const msg of unreadMessages) {
+        if (msg.teamId) unreadCounts[msg.teamId] = (unreadCounts[msg.teamId] || 0) + 1
+        if (msg.projectId) unreadCounts[msg.projectId] = (unreadCounts[msg.projectId] || 0) + 1
     }
 
     return unreadCounts
@@ -198,6 +210,7 @@ export async function getUnreadCounts() {
 export async function markProjectMessagesAsRead(teamId: string, projectId: string | null) {
     const session = await auth()
     if (!session?.user?.id) return
+    const userId = session.user.id
 
     const messages = await db.select({ id: teamMessages.id })
         .from(teamMessages)
@@ -209,10 +222,9 @@ export async function markProjectMessagesAsRead(teamId: string, projectId: strin
         .orderBy(desc(teamMessages.createdAt))
         .limit(50)
 
-    for (const msg of messages) {
-        try {
-            await db.insert(messageReads).values({ messageId: msg.id, userId: session.user.id })
-        } catch { } // Ignore duplicates
+    if (messages.length > 0) {
+        const insertData = messages.map(msg => ({ messageId: msg.id, userId }))
+        await db.insert(messageReads).values(insertData).onConflictDoNothing()
     }
 
     revalidatePath('/dashboard/chat')

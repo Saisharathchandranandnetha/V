@@ -13,6 +13,8 @@ import { EditGoalDialog } from './edit-goal-dialog'
 import { DeleteGoalButton } from './delete-goal-button'
 import { UpdateProgressDialog } from './update-progress-dialog'
 import { GoalSearch } from '@/app/dashboard/goals/goal-search'
+import { GoalChart } from './GoalChart'
+import { GoalMilestones } from './GoalMilestones'
 
 interface Goal {
     id: string
@@ -20,6 +22,7 @@ interface Goal {
     title: string
     description?: string
     type: string
+    color: string
     priority: string
     current_value: number
     target_value: number
@@ -28,6 +31,8 @@ interface Goal {
     user_id: string
     status?: boolean
     updated_at?: string
+    logs: any[]
+    milestones: any[]
 }
 
 interface GoalsManagerProps {
@@ -129,6 +134,8 @@ export function GoalsManager({ initialGoals, searchQuery }: GoalsManagerProps) {
                                                                         <span>{Math.round(progress)}% Complete</span>
                                                                         <span>{goal.deadline ? `Due ${format(new Date(goal.deadline), 'MMM d, yy')}` : 'No Deadline'}</span>
                                                                     </div>
+                                                                    <GoalChart logs={goal.logs} targetValue={goal.target_value} color={goal.color} />
+                                                                    <GoalMilestones goalId={goal.id} milestones={goal.milestones} />
                                                                 </div>
                                                                 <div className="pt-3 border-t border-white/5 flex gap-2 w-full mt-auto">
                                                                     <UpdateProgressDialog goal={goal} />
