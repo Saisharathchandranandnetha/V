@@ -1,5 +1,18 @@
-import { Plus_Jakarta_Sans, Instrument_Sans } from "next/font/google";
-import type { Viewport } from 'next';
+import { Plus_Jakarta_Sans, Instrument_Sans, Syne } from "next/font/google";
+import type { Viewport, Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'V',
+    template: '%s | V',
+  },
+  description: 'Master your habits, tasks, finances, and knowledge in one central hub.',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
+};
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -8,6 +21,7 @@ export const viewport: Viewport = {
   userScalable: false,
   themeColor: '#000000',
 };
+
 import "./globals.css";
 import { BackgroundWrapper } from "@/components/background-wrapper"
 import { GlobalNoise } from "@/components/ui/global-noise"
@@ -24,6 +38,7 @@ import { UAParser } from 'ua-parser-js'
 import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { ThemeProvider } from "@/components/theme-provider";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -37,15 +52,11 @@ const instrument = Instrument_Sans({
   display: 'swap',
 });
 
-import { Syne } from "next/font/google";
-
 const syne = Syne({
   variable: "--font-syne",
   subsets: ["latin"],
   display: 'swap',
 });
-
-import { ThemeProvider } from "@/components/theme-provider";
 
 export default async function RootLayout({
   children,
@@ -58,7 +69,7 @@ export default async function RootLayout({
   const device = parser.getDevice()
   const deviceType = (device.type === 'mobile' || device.type === 'tablet') ? device.type : 'desktop'
 
-  // Fetch User Settings for Background
+  // Fetch User Settings for Background (NextAuth + Drizzle)
   const session = await auth()
   let customBackground = null
 
@@ -80,7 +91,7 @@ export default async function RootLayout({
       <body
         className={`antialiased ${jakarta.variable} ${instrument.variable} ${syne.variable} font-sans selection:bg-primary/30 relative min-h-screen overflow-x-hidden`}
       >
-        <NextTopLoader showSpinner={false} />
+        <NextTopLoader showSpinner={false} color="oklch(0.65 0.25 260)" />
         <CustomCursor />
         <SessionProvider>
           <ThemeProvider
