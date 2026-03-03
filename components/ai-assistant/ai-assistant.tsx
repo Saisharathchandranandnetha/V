@@ -305,8 +305,8 @@ export function AIAssistant() {
                 onClick={() => setIsOpen(prev => !prev)}
                 className={cn(
                     'fixed z-50',
-                    'bottom-4 right-4 sm:bottom-8 sm:right-8', // Responsive positioning
-                    'w-14 h-14 sm:w-16 sm:h-16', // Responsive sizing
+                    'bottom-24 right-4 sm:bottom-8 sm:right-8', // Mobile: above floating dock; Desktop: standard
+                    'w-12 h-12 sm:w-16 sm:h-16', // Smaller on mobile to be less intrusive
                     'rounded-[20px] sm:rounded-[24px]',
                     'flex items-center justify-center',
                     'bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500',
