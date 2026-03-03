@@ -10,8 +10,8 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { DashboardContent } from '@/components/dashboard-content'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { FloatingDock } from '@/components/mobile/floating-dock'
+import { MobileHeader } from '@/components/mobile/mobile-header'
 import { AIAssistant } from '@/components/ai-assistant/ai-assistant'
-
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
     const session = await auth()
 
@@ -36,35 +36,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
 
     return (
-        <div className="flex min-h-screen bg-background">
-            {/* Desktop Sidebar - Fixed Full Height */}
-            <aside className="hidden md:flex w-[260px] shrink-0 fixed inset-y-0 z-40 bg-sidebar border-r border-white/10">
-                <Sidebar isAdmin={adminUser} isTeamOnly={isTeamOnly} className="w-full border-none" />
+        <div className="flex min-h-screen relative">
+            {/* Desktop Sidebar - Fixed Position */}
+            <aside className="hidden md:block w-64 fixed top-0 left-0 h-screen z-40 bg-transparent border-none">
+                <Sidebar isAdmin={adminUser} isTeamOnly={isTeamOnly} className="h-full" />
             </aside>
 
-            {/* Main Content Area - Offset by sidebar width */}
-            <div className="flex-1 flex flex-col min-h-screen relative z-10 md:pl-[260px]">
+            {/* Main Content Area - Padded to respect fixed sidebar */}
+            <div className="flex-1 flex flex-col min-h-screen relative z-10 min-w-0 md:pl-64">
                 <ThemeSync userTheme={(userSettings?.settings as any)?.theme as string | undefined} userId={user.id} />
 
-                {/* Mobile Header */}
-                <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50">
-                    <Link href="/dashboard" className="font-display font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm flex items-center gap-2">
-                        V
-                        <span className="flex items-center gap-1">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
-                            </span>
-                            <span className="text-[9px] font-bold tracking-widest uppercase text-primary/70">Beta</span>
-                        </span>
-                    </Link>
-                    <div className="backdrop-blur-md bg-background/30 rounded-full p-1 border border-white/5 shadow-sm">
-                        <ThemeToggle />
-                    </div>
-                </div>
+                {/* Mobile Header - Cinematic Redesign */}
+                <MobileHeader />
 
                 {/* New Floating Dock for Mobile */}
-                <FloatingDock user={user} isAdmin={adminUser} isTeamOnly={isTeamOnly} />
+                <FloatingDock user={user} isAdmin={adminUser} />
 
                 <DashboardContent deviceType={deviceType} isTeamOnly={isTeamOnly}>
                     {children}

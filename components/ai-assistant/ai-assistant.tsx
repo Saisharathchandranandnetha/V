@@ -66,14 +66,21 @@ function MessageBubble({ message, isStreaming, index }: { message: Message; isSt
         >
             {/* Avatar */}
             <div className={cn(
-                'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110',
+                'shrink-0 w-8 h-8 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 relative overflow-hidden',
                 isUser
                     ? 'bg-primary/10 border border-primary/20 backdrop-blur-md'
-                    : 'bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500 shadow-[0_0_15px_rgba(139,92,246,0.3)]'
+                    : 'bg-background/40 border border-white/20 dark:border-white/10 backdrop-blur-md shadow-[0_0_15px_oklch(var(--primary)/0.15)]'
             )}>
                 {isUser
                     ? <User className="w-4 h-4 text-primary" />
-                    : <span className="text-white font-black text-xs italic tracking-tighter drop-shadow-sm">V</span>
+                    : (
+                        <div className="relative flex items-center justify-center w-4 h-4">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-50" />
+                            <div className="absolute w-[120%] h-[1px] bg-gradient-to-r from-transparent via-foreground/60 to-transparent" />
+                            <div className="absolute h-[120%] w-[1px] bg-gradient-to-b from-transparent via-foreground/60 to-transparent" />
+                            <div className="w-2 h-2 rotate-45 border border-foreground/60 bg-background/80" />
+                        </div>
+                    )
                 }
             </div>
 
@@ -301,68 +308,90 @@ export function AIAssistant() {
     return (
         <>
             {/* ── Floating Trigger Button ─────────────────────────── */}
-            <motion.button
-                onClick={() => setIsOpen(prev => !prev)}
-                className={cn(
-                    'fixed z-50',
-                    'bottom-24 right-4 sm:bottom-8 sm:right-8', // Mobile: above floating dock; Desktop: standard
-                    'w-12 h-12 sm:w-16 sm:h-16', // Smaller on mobile to be less intrusive
-                    'rounded-[20px] sm:rounded-[24px]',
-                    'flex items-center justify-center',
-                    'bg-gradient-to-tr from-violet-600 via-indigo-600 to-cyan-500',
-                    'shadow-[0_8px_30px_rgb(139,92,246,0.35)]',
-                    'border border-white/20',
-                    'hover:shadow-[0_8px_40px_rgb(139,92,246,0.5)] transition-all duration-500',
-                    'mb-safe'
+            {/* ── Floating Trigger Button ─────────────────────────── */}
+            <div className="fixed z-50 bottom-24 right-4 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 mb-safe group">
+                {/* Aura rings */}
+                {!isOpen && (
+                    <>
+                        <motion.div
+                            className="absolute inset-[-50%] rounded-full bg-[conic-gradient(from_0deg,transparent_0_340deg,oklch(var(--primary)/0.3)_360deg)] opacity-0 group-hover:opacity-100 blur-sm pointer-events-none transition-opacity duration-700"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        />
+                        <motion.div
+                            className="absolute inset-[-10px] rounded-full bg-primary/20 blur-xl opacity-50 group-hover:opacity-80 transition-opacity duration-700 pointer-events-none"
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                    </>
                 )}
-                whileHover={{ scale: 1.08, rotate: isOpen ? -90 : 5 }}
-                whileTap={{ scale: 0.92 }}
-                title="V_1.0 Assistant"
-                aria-label="Open V_1.0 Assistant"
-            >
-                <div className="absolute inset-0 bg-white/10 opacity-0 hover:opacity-100 transition-opacity rounded-[24px]" />
-                <AnimatePresence mode="wait">
-                    {isOpen ? (
-                        <motion.div
-                            key="close"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <X className="w-6 h-6 text-white" />
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="open"
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ duration: 0.2 }}
-                            className="w-full h-full flex items-center justify-center relative pointer-events-none"
-                        >
-                            <span className="text-white font-black text-2xl sm:text-3xl italic tracking-tighter drop-shadow-md relative z-10">V</span>
-                            <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-white/30 blur-[1px] animate-[spin_6s_linear_infinite]" />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
-                {/* Atmospheric Glow Ring */}
-                {!isOpen && (
-                    <motion.span
-                        className="absolute inset-[-4px] rounded-[28px] border border-violet-500/30"
-                        animate={{ scale: [1, 1.15, 1], opacity: [0.8, 0.2, 0.8] }}
-                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    />
-                )}
-                {!isOpen && (
-                    <motion.span
-                        className="absolute inset-0 rounded-[24px] shadow-[0_0_25px_oklch(var(--primary)/0.4)]"
-                        animate={{ opacity: [0.5, 1, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    />
-                )}
-            </motion.button>
+                <motion.button
+                    onClick={() => setIsOpen(prev => !prev)}
+                    className={cn(
+                        'w-full h-full rounded-full',
+                        'flex items-center justify-center relative overflow-hidden',
+                        'bg-background/20 backdrop-blur-2xl',
+                        'border border-white/20 dark:border-white/10',
+                        'shadow-[0_8px_32px_rgba(0,0,0,0.2)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]',
+                        'transition-all duration-700 ease-out cursor-pointer',
+                    )}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    title="V_1.0 Assistant"
+                    aria-label="Open V_1.0 Assistant"
+                >
+                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+
+                    <AnimatePresence mode="wait">
+                        {isOpen ? (
+                            <motion.div
+                                key="close"
+                                initial={{ opacity: 0, scale: 0.3, rotate: -90 }}
+                                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                                exit={{ opacity: 0, scale: 0.3, rotate: 90 }}
+                                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                                className="relative z-10"
+                            >
+                                <X className="w-5 h-5 text-foreground/80 group-hover:text-foreground transition-colors" />
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key="open"
+                                initial={{ opacity: 0, scale: 0.5, filter: 'blur(10px)' }}
+                                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                                exit={{ opacity: 0, scale: 0.5, filter: 'blur(10px)' }}
+                                transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+                                className="w-full h-full flex items-center justify-center relative pointer-events-none"
+                            >
+                                {/* Premium Geometric Core */}
+                                <motion.div
+                                    className="relative flex items-center justify-center w-8 h-8"
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                                >
+                                    {/* Crosshair lines */}
+                                    <div className="absolute w-[120%] h-[1.5px] bg-gradient-to-r from-transparent via-foreground to-transparent opacity-70" />
+                                    <div className="absolute h-[120%] w-[1.5px] bg-gradient-to-b from-transparent via-foreground to-transparent opacity-70" />
+                                    {/* Inner Diamond */}
+                                    <div className="w-3.5 h-3.5 rotate-45 border border-foreground/80 bg-background/50 backdrop-blur-md shadow-[0_0_15px_oklch(var(--primary)/0.6)] flex items-center justify-center z-10">
+                                        <motion.div
+                                            className="w-1.5 h-1.5 rounded-full bg-foreground"
+                                            animate={{ opacity: [0.4, 1, 0.4] }}
+                                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                                        />
+                                    </div>
+                                    <motion.div
+                                        className="absolute inset-[-6px] rounded-full border border-primary/30 mix-blend-overlay"
+                                        animate={{ scale: [1, 1.25, 1], rotate: -360 }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                    />
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.button>
+            </div>
 
             {/* ── Slide-Up Panel ─────────────────────────────────────── */}
             <AnimatePresence>
@@ -393,9 +422,19 @@ export function AIAssistant() {
                         {/* ── Header ─────────────────────────────────────── */}
                         <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 shrink-0 bg-white/5 backdrop-blur-md">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-violet-600 to-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.4)] border border-white/20 relative overflow-hidden">
-                                    <span className="absolute inset-0 bg-white/10" />
-                                    <span className="text-white font-black text-xl italic tracking-tighter relative z-10">V</span>
+                                <div className="w-10 h-10 rounded-xl bg-background/40 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_oklch(var(--primary)/0.2)] border border-white/20 dark:border-white/10 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10 opacity-50" />
+                                    <motion.div
+                                        className="relative flex items-center justify-center w-5 h-5 z-10"
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
+                                    >
+                                        <div className="absolute w-[120%] h-[1px] bg-gradient-to-r from-transparent via-foreground/80 to-transparent" />
+                                        <div className="absolute h-[120%] w-[1px] bg-gradient-to-b from-transparent via-foreground/80 to-transparent" />
+                                        <div className="w-2.5 h-2.5 rotate-45 border border-foreground/80 bg-background/80 flex items-center justify-center shadow-[0_0_8px_oklch(var(--primary)/0.5)]">
+                                            <div className="w-0.5 h-0.5 rounded-full bg-foreground" />
+                                        </div>
+                                    </motion.div>
                                 </div>
                                 <div>
                                     <p className="text-base font-bold text-foreground tracking-tight sm:text-lg">V_1.0</p>
@@ -503,10 +542,10 @@ export function AIAssistant() {
                                         whileHover={{ scale: 1.1, rotate: input.trim() ? -5 : 0 }}
                                         whileTap={{ scale: 0.9 }}
                                         className={cn(
-                                            'shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500',
+                                            'shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center transition-all duration-500 relative overflow-hidden',
                                             input.trim() && !isLoading
-                                                ? 'bg-gradient-to-tr from-violet-600 to-indigo-600 text-white shadow-[0_4px_15px_rgba(139,92,246,0.3)] cursor-pointer'
-                                                : 'bg-white/5 text-muted-foreground/30 cursor-not-allowed'
+                                                ? 'bg-foreground text-background shadow-[0_4px_20px_rgba(255,255,255,0.1)] cursor-pointer border border-white/10'
+                                                : 'bg-white/5 text-muted-foreground/30 cursor-not-allowed border border-transparent'
                                         )}
                                     >
                                         {isLoading

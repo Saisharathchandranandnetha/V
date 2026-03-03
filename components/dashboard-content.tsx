@@ -12,6 +12,7 @@ interface DashboardContentProps {
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { GridBreakingOverlay } from './ui/grid-breaking-overlay'
 
 export function DashboardContent({ children, deviceType, isTeamOnly }: DashboardContentProps) {
     const pathname = usePathname()
@@ -40,9 +41,13 @@ export function DashboardContent({ children, deviceType, isTeamOnly }: Dashboard
 
     if (isChat) {
         return (
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-background">
-                <div className="hidden md:block mb-0 text-xs text-muted-foreground shrink-0 px-6 pt-4 select-none">
-                    Detected Component: V-Chat ({deviceType})
+            <div className="flex-1 flex flex-col h-[100dvh] min-h-0 overflow-hidden relative" suppressHydrationWarning>
+                <GridBreakingOverlay />
+                <div className="md:hidden px-4 py-2 text-xs text-muted-foreground shrink-0 select-none">
+                    Detected Device: {deviceType}
+                </div>
+                <div className="hidden md:block mb-0 text-xs text-muted-foreground shrink-0 px-4 pt-2 select-none">
+                    Detected Device: {deviceType}
                 </div>
                 <AnimatePresence mode="wait">
                     <motion.div
@@ -58,11 +63,14 @@ export function DashboardContent({ children, deviceType, isTeamOnly }: Dashboard
     }
 
     return (
-        <div className="flex-1 min-h-0 relative bg-background">
-            <main className="p-4 md:p-8 relative z-10 w-full max-w-[1200px] mx-auto space-y-6">
-                <div className="hidden md:flex items-center justify-between mb-8 text-xs text-muted-foreground select-none">
-                    <span>Performance Metrics Online</span>
-                    <span>System OK</span>
+        <div className="flex-1 min-h-0 relative">
+            <GridBreakingOverlay />
+            <main className="p-4 md:p-8 pb-32 md:pb-8 relative z-10 w-full max-w-[1440px] mx-auto">
+                <div className="mb-4 text-xs text-muted-foreground md:hidden select-none">
+                    Detected Device: {deviceType}
+                </div>
+                <div className="hidden md:block mb-4 text-xs text-muted-foreground select-none">
+                    Detected Device: {deviceType}
                 </div>
                 <AnimatePresence mode="wait">
                     <motion.div
