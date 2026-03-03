@@ -11,6 +11,8 @@ import { FinanceStats } from '@/components/dashboard/finance-stats'
 import { ResourceStats } from '@/components/dashboard/resource-stats'
 import { QuickLinks } from '@/components/dashboard/quick-links'
 import { Skeleton } from '@/components/ui/skeleton'
+import { NewsFeedCard } from '@/components/dashboard/news-feed-card'
+import { HackathonCard } from '@/components/dashboard/hackathon-card'
 
 // Inline Skeletons for simplicity if they weren't copied
 function StatsSkeleton() {
@@ -64,36 +66,50 @@ export default async function DashboardPage() {
             </div>
 
             {/* Main Stats Bento Grid */}
-            <StaggerContainer className="grid gap-4 md:grid-cols-2 lg:grid-cols-4" delay={0.1}>
-                {/* Daily Habits - Large Feature Card */}
-                <StaggerItem className="lg:col-span-2">
+            <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" delay={0.1}>
+                {/* Daily Habits */}
+                <StaggerItem className="sm:col-span-1 lg:col-span-2">
                     <Suspense fallback={<StatsSkeleton />}>
                         <HabitStats userId={userId} />
                     </Suspense>
                 </StaggerItem>
 
-                <StaggerItem className="lg:col-span-2">
+                {/* Tasks */}
+                <StaggerItem className="sm:col-span-1 lg:col-span-2">
                     <Suspense fallback={<StatsSkeleton />}>
                         <TaskStats userId={userId} />
                     </Suspense>
                 </StaggerItem>
 
-                <StaggerItem>
+                {/* Goals */}
+                <StaggerItem className="sm:col-span-1 lg:col-span-1">
                     <Suspense fallback={<StatsSkeleton />}>
                         <GoalStats userId={userId} />
                     </Suspense>
                 </StaggerItem>
 
-                <StaggerItem className="lg:col-span-2 md:col-span-2">
+                {/* Finance */}
+                <StaggerItem className="sm:col-span-1 lg:col-span-2">
                     <Suspense fallback={<StatsSkeleton />}>
                         <FinanceStats userId={userId} />
                     </Suspense>
                 </StaggerItem>
 
-                <StaggerItem className="lg:col-span-2">
+                {/* Resources */}
+                <StaggerItem className="sm:col-span-2 lg:col-span-3">
                     <Suspense fallback={<div className="grid grid-cols-2 gap-4 h-full"><StatsSkeleton /><StatsSkeleton /></div>}>
                         <ResourceStats userId={userId} />
                     </Suspense>
+                </StaggerItem>
+
+                {/* News Feed - always full width */}
+                <StaggerItem className="sm:col-span-2 lg:col-span-4 h-[240px] sm:h-[300px] md:h-[340px]">
+                    <NewsFeedCard />
+                </StaggerItem>
+
+                {/* Hackathon Updates - always full width */}
+                <StaggerItem className="sm:col-span-2 lg:col-span-4 h-[360px] sm:h-[360px] md:h-[320px]">
+                    <HackathonCard />
                 </StaggerItem>
             </StaggerContainer>
 
