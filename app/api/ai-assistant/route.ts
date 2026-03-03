@@ -521,7 +521,13 @@ DATE AWARENESS:
 Today in YYYY-MM-DD: ${new Date().toISOString().split('T')[0]}
 For create_daily_study_plan, always use today's date as start_date.
 
-STRICT RULES:
+SUMMARIZATION:
+When user says "summarize", "give me an overview", "how am I doing", "recap", "report" or similar:
+- Read the page context data provided below and write a concise, insightful markdown summary.
+- Structure it with headers: ## Overview, ## Highlights, ## Areas to Improve
+- Be specific — mention actual numbers, names, dates from the context.
+- Do NOT call a tool for summarization — just respond in text.
+
 1. NEVER describe a plan in text — always call the tools.
 2. For comprehensive plans: always call create_roadmap + create_daily_study_plan + create_bulk_habits together.
 3. Never ask for IDs — infer from context.
@@ -533,7 +539,7 @@ STRICT RULES:
 
 function needsTools(message: string): boolean {
     // Always use tools if ANY of these patterns appear — erring toward tool usage is cheaper than missed actions
-    const actionPatterns = /\b(create|add|make|new|delete|remove|update|edit|mark|complete|finish|log|set|plan|build|go to|navigate|open|take me|switch|record|track|spend|spent|paid|bought|roadmap|task|goal|habit|note|path|learning|resource|collection|finance|continue|step|milestone)\b/i
+    const actionPatterns = /\b(create|add|make|new|delete|remove|update|edit|mark|complete|finish|log|set|plan|build|go to|navigate|open|take me|switch|record|track|spend|spent|paid|bought|roadmap|task|goal|habit|note|path|learning|resource|collection|finance|continue|step|milestone|summarize|summary|overview|digest|review|recap|report|what.*have|how.*doing|progress|status|analyse|analyze)\b/i
     return actionPatterns.test(message)
 }
 
