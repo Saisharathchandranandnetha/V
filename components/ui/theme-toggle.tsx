@@ -27,12 +27,10 @@ export function ThemeToggle({ className }: { className?: string }) {
 
         setTheme(nextTheme)
 
-        // Persist to DB if possible (background sync)
-        try {
-            await updateSettings({ theme: nextTheme })
-        } catch (e) {
+        // Persist to DB in background
+        updateSettings({ theme: nextTheme }).catch(() => {
             // Silently fail if not in a dashboard context or DB update fails
-        }
+        })
     }
 
     return (

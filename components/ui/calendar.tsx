@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react"
 import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
@@ -51,9 +51,50 @@ function Calendar({
                 day_range_middle:
                     "aria-selected:bg-accent aria-selected:text-accent-foreground",
                 day_hidden: "invisible",
+                caption_dropdowns: "flex justify-center gap-1",
+                dropdown: "bg-background border border-input hover:bg-accent hover:text-accent-foreground rounded-md py-1 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ring-offset-background appearance-none pr-6 relative cursor-pointer",
+                dropdown_month: "mr-2",
+                dropdown_year: "",
+                dropdown_icon: "hidden",
                 ...classNames,
             }}
-
+            components={{
+                Chevron: ({ ...props }) => {
+                    if (props.orientation === "left") {
+                        return <ChevronLeft className="h-4 w-4" />
+                    }
+                    if (props.orientation === "right") {
+                        return <ChevronRight className="h-4 w-4" />
+                    }
+                    return <ChevronDown className="h-4 w-4" />
+                },
+                Dropdown: ({ value, onChange, children, className, classNames, ...props }: any) => {
+                    const options = React.Children.toArray(children) as React.ReactElement<React.OptionHTMLAttributes<HTMLOptionElement>>[]
+                    const handleChange = (value: string) => {
+                        const changeEvent = {
+                            target: { value },
+                        } as React.ChangeEvent<HTMLSelectElement>
+                        onChange?.(changeEvent)
+                    }
+                    return (
+                        <div className="relative flex items-center">
+                            <select
+                                className={cn(
+                                    "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+                                    "cursor-pointer appearance-none bg-background pr-8",
+                                    className
+                                )}
+                                value={value}
+                                onChange={(e) => handleChange(e.target.value)}
+                                {...props}
+                            >
+                                {children}
+                            </select>
+                            <ChevronDown className="absolute right-3 h-4 w-4 opacity-50" />
+                        </div>
+                    )
+                },
+            }}
             {...props}
         />
     )
