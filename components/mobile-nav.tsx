@@ -37,9 +37,9 @@ export function MobileNav({ isAdmin }: { isAdmin?: boolean }) {
                             <SheetTitle className="mb-2 px-4 text-lg font-bold tracking-tighter flex items-center gap-3">
                                 <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-bl from-violet-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden">
                                     <span className="absolute inset-0 bg-white/10" />
-                                    <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">L</span>
+                                    <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">V</span>
                                 </div>
-                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-primary font-black tracking-tight">LifeOS</span>
+                                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-500 to-primary font-black tracking-tight">V</span>
                             </SheetTitle>
                             <div className="space-y-1">
                                 {sidebarNavItems.map((item) => {

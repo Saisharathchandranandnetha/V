@@ -6,6 +6,7 @@ import { MessageItem, Message } from './MessageItem'
 import { differenceInMinutes, isSameDay, isToday, isYesterday, format } from 'date-fns'
 
 function formatDateLabel(date: Date) {
+    if (isNaN(date.getTime())) return 'Unknown Date'
     if (isToday(date)) return 'Today'
     if (isYesterday(date)) return 'Yesterday'
     return format(date, 'MMMM d, yyyy')
@@ -38,9 +39,15 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
     // Group messages
     const groupedMessages = messages.map((msg, index) => {
         const prevMsg = messages[index - 1]
+
+        const msgDate = new Date(msg.created_at)
+        const prevDate = prevMsg ? new Date(prevMsg.created_at) : new Date(0)
+
         const isConsecutive = prevMsg
             && prevMsg.sender_id === msg.sender_id
-            && differenceInMinutes(new Date(msg.created_at), new Date(prevMsg.created_at)) < 5
+            && !isNaN(msgDate.getTime())
+            && !isNaN(prevDate.getTime())
+            && differenceInMinutes(msgDate, prevDate) < 5
 
         return { ...msg, isConsecutive }
     })
@@ -67,7 +74,14 @@ export function MessageList({ messages, teamId, projectId, onDelete, members }: 
 
                     {groupedMessages.map((msg, index) => {
                         const prevMsg = groupedMessages[index - 1];
-                        const isNewDay = !prevMsg || !isSameDay(new Date(msg.created_at), new Date(prevMsg.created_at));
+
+                        const msgDate = new Date(msg.created_at);
+                        const prevDate = prevMsg ? new Date(prevMsg.created_at) : new Date(0);
+
+                        const isNewDay = !prevMsg ||
+                            (isNaN(msgDate.getTime()) || isNaN(prevDate.getTime())
+                                ? false
+                                : !isSameDay(msgDate, prevDate));
 
                         return (
                             <motion.div

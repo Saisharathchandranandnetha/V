@@ -29,17 +29,17 @@ export function LandingNavbar() {
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-bl from-violet-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden">
                         <span className="absolute inset-0 bg-white/10" />
-                        <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">L</span>
+                        <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">V</span>
                     </div>
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-primary font-black tracking-tight text-xl">LifeOS</span>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-primary font-black tracking-tight text-xl">V</span>
                 </Link>
 
                 {/* Nav Links */}
                 <div className="hidden md:flex items-center gap-8">
-                    {['Features', 'Pricing', 'Roadmap', 'Blog'].map((item) => (
+                    {['Features', 'How It Works', 'Pricing'].map((item) => (
                         <Link
                             key={item}
-                            href={`#${item.toLowerCase()}`}
+                            href={`#${item.toLowerCase().replace(/\s+/g, '-')}`}
                             className="text-xs font-bold tracking-[0.2em] uppercase text-muted-foreground/60 hover:text-foreground transition-colors"
                         >
                             {item}

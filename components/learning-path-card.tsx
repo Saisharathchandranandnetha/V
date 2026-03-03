@@ -97,7 +97,7 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
                             {path.title}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            {format(new Date(path.created_at), 'PPP')}
+                            {!isNaN(new Date(path.created_at).getTime()) ? format(new Date(path.created_at), 'PPP') : 'Unknown Date'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-2 flex-1 space-y-4">

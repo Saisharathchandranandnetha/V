@@ -36,17 +36,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
 
     return (
-        <div className="flex min-h-screen relative">
-            {/* Desktop Sidebar - Sticky for root scroll */}
-            <aside className="hidden md:block w-64 shrink-0 sticky top-0 h-screen z-40 bg-background/50 backdrop-blur-md">
-                <Sidebar isAdmin={adminUser} isTeamOnly={isTeamOnly} className="h-full border-r" />
+        <div className="flex min-h-screen bg-background">
+            {/* Desktop Sidebar - Fixed Full Height */}
+            <aside className="hidden md:flex w-[260px] shrink-0 fixed inset-y-0 z-40 bg-sidebar border-r border-white/10">
+                <Sidebar isAdmin={adminUser} isTeamOnly={isTeamOnly} className="w-full border-none" />
             </aside>
 
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col min-h-screen relative z-10 min-w-0">
+            {/* Main Content Area - Offset by sidebar width */}
+            <div className="flex-1 flex flex-col min-h-screen relative z-10 md:pl-[260px]">
                 <ThemeSync userTheme={(userSettings?.settings as any)?.theme as string | undefined} userId={user.id} />
 
-                {/* Mobile Header - Cinematic Redesign */}
+                {/* Mobile Header */}
                 <div className="md:hidden flex items-center justify-between p-4 sticky top-0 z-50">
                     <Link href="/dashboard" className="font-display font-bold text-xl tracking-tight text-foreground/90 backdrop-blur-md bg-background/30 rounded-full px-4 py-1.5 border border-white/5 shadow-sm">
                         V

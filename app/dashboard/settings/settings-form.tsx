@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { updateSettings, updateProfile, deleteAccount, updatePassword, updateAvatar } from './actions'
 import { signout } from '@/app/dashboard/signout/actions'
-// import { useToast } from '@/components/ui/use-toast'
+import { SubmitButton } from '@/components/submit-button'
 import { Loader2, Upload } from 'lucide-react'
 import { useTheme } from "next-themes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -177,11 +177,9 @@ export default function SettingsForm({ user }: { user: any }) {
                             <Textarea id="bio" name="bio" defaultValue={settings.profileBio} placeholder="I want to learn..." />
                         </div>
                         <div className="flex flex-col sm:flex-row justify-end gap-2">
-                            <Button type="submit" disabled={loading} className="w-full sm:w-auto">
-                                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin hidden" />
+                            <SubmitButton className="w-full sm:w-auto">
                                 Save Profile
-                            </Button>
+                            </SubmitButton>
                         </div>
                     </form>
                     <div className="mt-6 pt-6 border-t flex flex-col sm:flex-row gap-4">

@@ -74,7 +74,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
                             }
                             return true
                         }).map((item, i) => (
-                            <MenuItem key={item.href} item={item} pathname={pathname} />
+                            <MenuItem key={item.href} item={item} pathname={pathname} onClose={onClose} />
                         ))}
 
                         {isAdmin && (
@@ -86,7 +86,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
                                     pathname === '/dashboard/admin' ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                                 )}
                             >
-                                <Link href="/dashboard/admin">
+                                <Link href="/dashboard/admin" onClick={onClose}>
                                     <Shield className="mr-3 h-5 w-5" />
                                     Admin Dashboard
                                 </Link>
@@ -114,7 +114,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin, isTeamOnly }: Cine
     );
 }
 
-function MenuItem({ item, pathname }: { item: any; pathname: string }) {
+function MenuItem({ item, pathname, onClose }: { item: any; pathname: string; onClose: () => void }) {
     const isActive = pathname === item.href;
     const hasChildren = item.children && item.children.length > 0;
     const isChildActive = hasChildren && item.children.some((child: any) => pathname.startsWith(child.href));
@@ -149,7 +149,7 @@ function MenuItem({ item, pathname }: { item: any; pathname: string }) {
                                 pathname === child.href ? "text-primary bg-primary/10" : "text-muted-foreground/80 hover:text-foreground hover:bg-white/5"
                             )}
                         >
-                            <Link href={child.href}>
+                            <Link href={child.href} onClick={onClose}>
                                 <child.icon className="mr-3 h-4 w-4" />
                                 {child.title}
                             </Link>
@@ -169,7 +169,7 @@ function MenuItem({ item, pathname }: { item: any; pathname: string }) {
                 isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
             )}
         >
-            <Link href={item.href}>
+            <Link href={item.href} onClick={onClose}>
                 <item.icon className={cn("mr-3 h-5 w-5", isActive ? "text-primary" : "text-muted-foreground/70")} />
                 {item.title}
             </Link>

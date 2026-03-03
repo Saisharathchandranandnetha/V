@@ -79,6 +79,8 @@ export default async function RoadmapPage({ params, searchParams }: { params: Pr
 
     const steps = stepsData.map((step) => ({
         ...step,
+        // RoadmapEditor uses snake_case; Drizzle returns camelCase — map explicitly
+        parent_step_id: step.parentStepId ?? null,
         links: [] as any[]
     }))
 

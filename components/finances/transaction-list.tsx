@@ -10,7 +10,6 @@ import { ConfirmDeleteDialog } from '@/components/confirm-delete-dialog'
 import { StaggerContainer, StaggerItem } from '@/components/ui/entrance'
 import { cn, formatCurrency } from '@/lib/utils'
 import { HoverEffect } from '@/components/ui/hover-effect'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
 
 interface Transaction {
     id: string
@@ -36,7 +35,7 @@ interface Project {
 
 export function TransactionList({ transactions, categories, projects }: { transactions: Transaction[], categories: Category[], projects: Project[] }) {
     return (
-        <SpotlightCard className="col-span-3">
+        <Card className="col-span-3">
             <CardHeader>
                 <CardTitle>Recent Transactions</CardTitle>
             </CardHeader>
@@ -47,13 +46,13 @@ export function TransactionList({ transactions, categories, projects }: { transa
                             <StaggerItem key={t.id} className="w-full">
                                 <HoverEffect variant="scale" className="rounded-lg">
                                     <div
-                                        className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0 p-2"
+                                        className="flex items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 p-2"
                                     >
                                         <div className="flex items-center space-x-4">
                                             <div
                                                 className={cn(
-                                                    "flex h-9 w-9 items-center justify-center rounded-full border",
-                                                    t.type === 'Income' ? "bg-green-100 text-green-700 border-green-200" : "bg-red-100 text-red-700 border-red-200"
+                                                    "flex h-9 w-9 items-center justify-center rounded-full border border-white/10",
+                                                    t.type === 'Income' ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
                                                 )}
                                             >
                                                 {t.type === 'Income' ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownLeft className="h-4 w-4" />}
@@ -66,7 +65,7 @@ export function TransactionList({ transactions, categories, projects }: { transa
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <div className={cn("font-medium", t.type === 'Income' ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400")}>
+                                            <div className={cn("font-medium", t.type === 'Income' ? "text-emerald-500" : "text-rose-500")}>
                                                 {t.type === 'Income' ? '+' : '-'}{formatCurrency(Math.abs(t.amount))}
                                             </div>
                                             <EditTransactionDialog transaction={t} categories={categories} projects={projects} />
@@ -89,6 +88,6 @@ export function TransactionList({ transactions, categories, projects }: { transa
                     {transactions.length === 0 && <p className="text-muted-foreground text-sm">No transactions yet.</p>}
                 </div>
             </CardContent>
-        </SpotlightCard>
+        </Card>
     )
 }

@@ -20,7 +20,7 @@ import type { PageContext } from '@/lib/ai-page-contexts'
 import {
     tasks, habits, habitLogs, goals,
     transactions, notes, learningPaths,
-    teamMessages, users
+    teamMessages, users, roadmaps, roadmapSteps
 } from '@/lib/db/schema'
 import { eq, and, ne, gte, desc } from 'drizzle-orm'
 
@@ -32,11 +32,12 @@ const TOOLS = [
         type: 'function',
         function: {
             name: 'create_task',
-            description: 'Create a new task',
+            description: 'Create a new task. After creating, the user will be navigated to the tasks page.',
             parameters: {
                 type: 'object',
                 properties: {
                     title: { type: 'string' },
+                    description: { type: 'string', description: 'Detailed description of what the task involves' },
                     priority: { type: 'string', enum: ['Low', 'Medium', 'High', 'Urgent'] },
                     status: { type: 'string', enum: ['Todo', 'In Progress', 'Done'] },
                     due_date: { type: 'string', description: 'YYYY-MM-DD' },
@@ -92,11 +93,12 @@ const TOOLS = [
         type: 'function',
         function: {
             name: 'create_goal',
-            description: 'Create a new goal',
+            description: 'Create a new goal and navigate to the goals page.',
             parameters: {
                 type: 'object',
                 properties: {
                     title: { type: 'string' },
+                    description: { type: 'string', description: 'What achieving this goal means' },
                     target_value: { type: 'number' },
                     unit: { type: 'string' },
                     type: { type: 'string', enum: ['Short Term', 'Mid Term', 'Long Term'] },
@@ -124,11 +126,12 @@ const TOOLS = [
         type: 'function',
         function: {
             name: 'create_habit',
-            description: 'Create a new habit',
+            description: 'Create a new habit and navigate to the habits page.',
             parameters: {
                 type: 'object',
                 properties: {
                     name: { type: 'string' },
+                    description: { type: 'string', description: 'Why this habit matters' },
                     frequency: { type: 'string', enum: ['Daily', 'Weekly'] },
                 },
                 required: ['name'],
@@ -155,12 +158,12 @@ const TOOLS = [
         type: 'function',
         function: {
             name: 'create_note',
-            description: 'Create a new note',
+            description: 'Create a new note with content and navigate to the notes page.',
             parameters: {
                 type: 'object',
                 properties: {
                     title: { type: 'string' },
-                    content: { type: 'string' },
+                    content: { type: 'string', description: 'The full content/body of the note. Generate rich, useful content based on the user request.' },
                 },
                 required: ['title'],
             },
@@ -186,10 +189,13 @@ const TOOLS = [
         type: 'function',
         function: {
             name: 'create_learning_path',
-            description: 'Create a new learning path',
+            description: 'Create a new learning path and navigate to it.',
             parameters: {
                 type: 'object',
-                properties: { title: { type: 'string' } },
+                properties: {
+                    title: { type: 'string' },
+                    description: { type: 'string', description: 'What this learning path covers and its goals.' },
+                },
                 required: ['title'],
             },
         },
@@ -209,6 +215,139 @@ const TOOLS = [
             },
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'create_roadmap',
+            description: 'ALWAYS use this tool when user asks to create a roadmap or plan. YOU MUST populate the steps array with 5-8 milestones. Never explain a roadmap in text — always call this tool.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    title: { type: 'string' },
+                    description: { type: 'string' },
+                    steps: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                title: { type: 'string' },
+                                description: { type: 'string' }
+                            },
+                            required: ['title']
+                        }
+                    }
+                },
+                required: ['title', 'steps'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'add_steps_to_roadmap',
+            description: 'Add steps/milestones to an EXISTING roadmap. Use when user says "add to roadmap", "add steps", or "continue roadmap". Find the roadmap_id from context.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    roadmap_id: { type: 'string', description: 'The ID of the existing roadmap to add steps to' },
+                    steps: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                title: { type: 'string' },
+                                description: { type: 'string' }
+                            },
+                            required: ['title']
+                        },
+                        description: 'Array of 1 or more new steps to add'
+                    }
+                },
+                required: ['roadmap_id', 'steps'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'create_bulk_tasks',
+            description: 'Create MULTIPLE tasks at once. Use for weekly study plans, topic-based task batches, or any time the user needs several tasks created in one go. Each task gets a due_date spread over the period.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    tasks: {
+                        type: 'array',
+                        description: 'Array of tasks to create',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                title: { type: 'string' },
+                                description: { type: 'string', description: 'What to study/do for this task' },
+                                priority: { type: 'string', enum: ['Low', 'Medium', 'High', 'Urgent'] },
+                                due_date: { type: 'string', description: 'YYYY-MM-DD — spread dates weekly across the plan period' },
+                            },
+                            required: ['title', 'due_date'],
+                        },
+                    },
+                },
+                required: ['tasks'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'create_bulk_habits',
+            description: 'Create MULTIPLE habits at once. Use when generating a study/learning plan to set up daily habits aligned with each topic phase.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    habits: {
+                        type: 'array',
+                        description: 'Array of habits to create',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: { type: 'string' },
+                                frequency: { type: 'string', enum: ['Daily', 'Weekly'] },
+                            },
+                            required: ['name'],
+                        },
+                    },
+                },
+                required: ['habits'],
+            },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'create_daily_study_plan',
+            description: 'Generate a full daily study schedule. AI provides compact phases with topic lists. Server auto-creates one task per day for the entire duration. Use for any request involving daily tasks over weeks/months.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    plan_title: { type: 'string' },
+                    start_date: { type: 'string', description: 'YYYY-MM-DD' },
+                    duration_months: { type: 'number', description: '1, 2, 3 or 6' },
+                    phases: {
+                        type: 'array',
+                        description: 'Study phases. Server distributes topics as daily tasks.',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                name: { type: 'string' },
+                                weeks: { type: 'number' },
+                                daily_topics: { type: 'array', items: { type: 'string' }, description: '10-20 specific daily study topics to cycle through' }
+                            },
+                            required: ['name', 'weeks', 'daily_topics']
+                        }
+                    }
+                },
+                required: ['plan_title', 'start_date', 'duration_months', 'phases'],
+            },
+        },
+    },
 ]
 
 // ─── Single Agent System Prompt ───────────────────────────────────────────────
@@ -216,20 +355,42 @@ const TOOLS = [
 
 const SINGLE_AGENT_SYSTEM = `You are V — a smart, action-oriented life OS assistant.
 
-WHAT YOU CAN DO:
-- Answer questions about the user's tasks, habits, goals, finances, and notes
-- Create, edit, delete tasks / habits / goals / notes / transactions
-- Navigate the user to different pages
-- Plan complex goals by creating multiple tasks and habits in one response
 
-RULES:
-1. Act immediately. Don't ask for confirmation unless something is genuinely ambiguous.
-2. For complex requests (e.g. "plan my fitness journey"), call multiple tools in one response.
-3. Never ask the user for IDs — find them from the context provided.
-4. Keep replies concise. Use bullet points for lists. Max 5 bullets.
-5. After taking action, confirm briefly what you did (e.g. "✅ Created task: Buy groceries").
-6. If the user asks a question, answer it directly from the context. Don't make up data.
-7. Today's date: ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+FEATURES YOU CAN CREATE (ALWAYS use the corresponding tool — NEVER just describe in text):
+- Tasks: create_task (single) | create_bulk_tasks (multiple) | create_daily_study_plan (DAILY tasks from a topic curriculum)
+- Habits: create_habit (single) | create_bulk_habits (multiple)
+- Goals: create_goal
+- Notes: create_note
+- Roadmaps: create_roadmap with 6-8 milestones | add_steps_to_roadmap
+- Learning Paths: create_learning_path
+- Transactions: add_transaction
+- Navigate: navigate_to_page
+
+COMPREHENSIVE STUDY PLAN STRATEGY:
+When user asks for a roadmap/plan with daily tasks, call ALL 3 tools simultaneously:
+1. create_roadmap — 6-8 monthly milestone steps
+2. create_daily_study_plan — compact phases each with 10-20 daily_topics. Server auto-generates 1 task/day.
+   IMPORTANT: For each phase, provide specific daily_topics like:
+   ["Python basics & syntax", "NumPy arrays", "Pandas DataFrames", "Matplotlib plotting", "Scikit-learn intro", ...]
+   The server cycles through these topics filling each calendar day of the phase.
+3. create_bulk_habits — 4-6 daily reinforcement habits
+
+EXAMPLE for "2-month AI Engineer plan":
+→ create_roadmap: steps=["Month 1: ML Foundations", "Month 2: Deep Learning"]
+→ create_daily_study_plan: duration_months=2, phases=[
+    { name:"Month 1", weeks:4, daily_topics:["Python review","NumPy","Pandas","EDA","Scikit-learn classification","Regression","Evaluation metrics","Feature engineering","Pipelines","Model tuning","SVM","Decision trees","Ensembles","XGBoost","Cross-validation","Data preprocessing","Mini project","Review","LeetCode practice","SQL for data"] },
+    { name:"Month 2", weeks:4, daily_topics:["Neural network basics","TensorFlow intro","Keras layers","CNN architecture","RNN/LSTM","Transfer learning","Fine-tuning","NLP basics","Tokenization","Word embeddings","BERT intro","Transformers","Hugging Face","Project: text classifier","MLOps basics","Docker","Model serving","API deployment","Review & polish","Mock interviews"] }
+  ]
+→ create_bulk_habits: ["Code 1 hour daily","Read 1 AI paper/week","Do LeetCode daily","Review notes nightly","Build project weekly"]
+
+DATE AWARENESS:
+Today in YYYY-MM-DD: ${new Date().toISOString().split('T')[0]}
+For create_daily_study_plan, always use today's date as start_date.
+
+STRICT RULES:
+1. NEVER describe a plan in text — always call the tools.
+2. For comprehensive plans: always call create_roadmap + create_daily_study_plan + create_bulk_habits together.
+3. Never ask for IDs — infer from context.
 `
 
 // ─── Keyword Router (replaces Mother Agent LLM call) ─────────────────────────
@@ -237,7 +398,8 @@ RULES:
 // This saves 1 full LLM call on every request.
 
 function needsTools(message: string): boolean {
-    const actionPatterns = /\b(create|add|make|new|delete|remove|update|edit|mark|complete|finish|log|set|plan|build|go to|navigate|open|take me|switch|record|track|spend|spent|paid|bought)\b/i
+    // Always use tools if ANY of these patterns appear — erring toward tool usage is cheaper than missed actions
+    const actionPatterns = /\b(create|add|make|new|delete|remove|update|edit|mark|complete|finish|log|set|plan|build|go to|navigate|open|take me|switch|record|track|spend|spent|paid|bought|roadmap|task|goal|habit|note|path|learning|resource|collection|finance|continue|step|milestone)\b/i
     return actionPatterns.test(message)
 }
 
@@ -251,14 +413,19 @@ async function executeTool(
 
     switch (name) {
         case 'create_task': {
-            await db.insert(tasks).values({
+            const [newTask] = await db.insert(tasks).values({
                 userId,
                 title: args.title as string,
+                description: (args.description as string) || null,
                 priority: (args.priority as string) ?? 'Medium',
                 status: (args.status as string) ?? 'Todo',
                 dueDate: args.due_date ? new Date(args.due_date as string) : null,
-            })
-            return { result: `✅ Task created: **${args.title}**`, action: 'refresh' }
+            }).returning()
+            return {
+                result: `✅ Task created: **${args.title}**`,
+                action: 'navigate',
+                path: '/dashboard/tasks',
+            }
         }
 
         case 'edit_task': {
@@ -293,14 +460,18 @@ async function executeTool(
         }
 
         case 'create_goal': {
-            await db.insert(goals).values({
+            const [newGoal] = await db.insert(goals).values({
                 userId,
                 title: args.title as string,
                 targetValue: String(args.target_value),
                 unit: args.unit as string,
                 type: (args.type as string) ?? 'Short Term',
-            })
-            return { result: `✅ Goal created: **${args.title}**`, action: 'refresh' }
+            }).returning()
+            return {
+                result: `✅ Goal created: **${args.title}**`,
+                action: 'navigate',
+                path: '/dashboard/goals',
+            }
         }
 
         case 'update_goal_progress': {
@@ -316,7 +487,11 @@ async function executeTool(
                 name: args.name as string,
                 frequency: (args.frequency as string) ?? 'Daily',
             })
-            return { result: `✅ Habit created: **${args.name}**`, action: 'refresh' }
+            return {
+                result: `✅ Habit created: **${args.name}**`,
+                action: 'navigate',
+                path: '/dashboard/habits',
+            }
         }
 
         case 'log_habit_completion': {
@@ -342,12 +517,16 @@ async function executeTool(
         }
 
         case 'create_note': {
-            await db.insert(notes).values({
+            const [newNote] = await db.insert(notes).values({
                 userId,
                 title: args.title as string,
                 content: (args.content as string) ?? '',
-            })
-            return { result: `✅ Note created: **${args.title}**`, action: 'refresh' }
+            }).returning()
+            return {
+                result: `✅ Note created: **${args.title}**`,
+                action: 'navigate',
+                path: '/dashboard/notes',
+            }
         }
 
         case 'add_transaction': {
@@ -361,11 +540,16 @@ async function executeTool(
         }
 
         case 'create_learning_path': {
-            await db.insert(learningPaths).values({
+            const [newPath] = await db.insert(learningPaths).values({
                 userId,
                 title: args.title as string,
-            })
-            return { result: `✅ Learning path created.`, action: 'refresh' }
+                description: (args.description as string) || null,
+            }).returning()
+            return {
+                result: `✅ Learning path created: **${args.title}**`,
+                action: 'navigate',
+                path: `/dashboard/paths/${newPath.id}/edit`,
+            }
         }
 
         case 'navigate_to_page': {
@@ -374,6 +558,213 @@ async function executeTool(
                 action: 'navigate',
                 path: args.path as string,
                 name: (args.page_name as string) || (args.path as string),
+            }
+        }
+
+        case 'create_roadmap': {
+            const [newRoadmap] = await db.insert(roadmaps).values({
+                ownerId: userId,
+                title: args.title as string,
+                description: (args.description as string) || null,
+                status: 'draft',
+            }).returning()
+
+            // Debug: log what the LLM actually sent
+            console.log('[create_roadmap] args.steps type:', typeof args.steps)
+            console.log('[create_roadmap] args.steps value:', JSON.stringify(args.steps))
+
+            let parsedSteps: any[] = []
+            if (Array.isArray(args.steps)) {
+                parsedSteps = args.steps
+            } else if (typeof args.steps === 'string') {
+                try { parsedSteps = JSON.parse(args.steps) } catch (e) {
+                    console.error('[create_roadmap] Failed to parse steps string:', e)
+                }
+            }
+
+            console.log('[create_roadmap] parsedSteps.length:', parsedSteps.length)
+
+            if (parsedSteps.length > 0) {
+                const stepsToInsert = parsedSteps.map((step: any, idx: number) => ({
+                    roadmapId: newRoadmap.id,
+                    title: (step.title || 'Untitled Step') as string,
+                    description: (step.description as string) || null,
+                    order: idx,
+                }))
+                await db.insert(roadmapSteps).values(stepsToInsert)
+            } else {
+                // Fallback if LLM fails to generate steps
+                console.warn('[create_roadmap] No steps from LLM, inserting fallback steps')
+                await db.insert(roadmapSteps).values([
+                    { roadmapId: newRoadmap.id, title: 'Getting Started', description: 'Initial setup and research phase', order: 0 },
+                    { roadmapId: newRoadmap.id, title: 'Core Concepts', description: 'Learn the fundamental concepts and theory', order: 1 },
+                    { roadmapId: newRoadmap.id, title: 'Hands-on Practice', description: 'Apply what you learned in small projects', order: 2 },
+                    { roadmapId: newRoadmap.id, title: 'Build a Project', description: 'Create a real-world project using your skills', order: 3 },
+                    { roadmapId: newRoadmap.id, title: 'Review & Refine', description: 'Review and improve your knowledge and project', order: 4 }
+                ])
+            }
+
+            return {
+                result: `✅ Roadmap created: **${args.title}**. Navigating you there now.`,
+                action: 'navigate',
+                path: `/dashboard/roadmaps/${newRoadmap.id}`,
+            }
+        }
+
+        case 'add_steps_to_roadmap': {
+            const roadmapId = args.roadmap_id as string
+
+            // Verify ownership
+            const [roadmap] = await db.select({ id: roadmaps.id, ownerId: roadmaps.ownerId, title: roadmaps.title })
+                .from(roadmaps)
+                .where(and(eq(roadmaps.id, roadmapId), eq(roadmaps.ownerId, userId)))
+                .limit(1)
+
+            if (!roadmap) throw new Error('Roadmap not found or access denied')
+
+            // Get current max order to append after existing steps
+            const existingSteps = await db.select({ order: roadmapSteps.order })
+                .from(roadmapSteps)
+                .where(eq(roadmapSteps.roadmapId, roadmapId))
+
+            const maxOrder = existingSteps.length > 0
+                ? Math.max(...existingSteps.map(s => s.order)) + 1
+                : 0
+
+            let parsedSteps: any[] = []
+            if (Array.isArray(args.steps)) {
+                parsedSteps = args.steps
+            } else if (typeof args.steps === 'string') {
+                try { parsedSteps = JSON.parse(args.steps) } catch (e) { }
+            }
+
+            if (parsedSteps.length === 0) throw new Error('No steps provided to add')
+
+            const stepsToInsert = parsedSteps.map((step: any, idx: number) => ({
+                roadmapId,
+                title: (step.title || 'Untitled Step') as string,
+                description: (step.description as string) || null,
+                order: maxOrder + idx,
+            }))
+
+            await db.insert(roadmapSteps).values(stepsToInsert)
+
+            return {
+                result: `✅ Added ${stepsToInsert.length} step(s) to **${roadmap.title}**. Navigating there now.`,
+                action: 'navigate',
+                path: `/dashboard/roadmaps/${roadmapId}`,
+            }
+        }
+
+        case 'create_bulk_tasks': {
+            let rawTasks: any[] = []
+            if (Array.isArray(args.tasks)) {
+                rawTasks = args.tasks
+            } else if (typeof args.tasks === 'string') {
+                try { rawTasks = JSON.parse(args.tasks) } catch (e) { }
+            }
+
+            if (rawTasks.length === 0) throw new Error('No tasks provided')
+
+            const tasksToInsert = rawTasks.map((t: any) => ({
+                userId,
+                title: t.title as string,
+                description: (t.description as string) || null,
+                priority: (t.priority as string) || 'Medium',
+                status: 'Todo' as const,
+                dueDate: t.due_date ? new Date(t.due_date as string) : null,
+            }))
+
+            await db.insert(tasks).values(tasksToInsert)
+
+            return {
+                result: `✅ Created ${tasksToInsert.length} tasks across your plan timeline.`,
+                action: 'navigate',
+                path: '/dashboard/tasks',
+            }
+        }
+
+        case 'create_bulk_habits': {
+            let rawHabits: any[] = []
+            if (Array.isArray(args.habits)) {
+                rawHabits = args.habits
+            } else if (typeof args.habits === 'string') {
+                try { rawHabits = JSON.parse(args.habits) } catch (e) { }
+            }
+
+            if (rawHabits.length === 0) throw new Error('No habits provided')
+
+            const habitsToInsert = rawHabits.map((h: any) => ({
+                userId,
+                name: h.name as string,
+                frequency: ((h.frequency as string) || 'Daily') as 'Daily' | 'Weekly' | 'Monthly',
+                currentStreak: 0,
+                longestStreak: 0,
+            }))
+
+            await db.insert(habits).values(habitsToInsert)
+
+            return {
+                result: `✅ Created ${habitsToInsert.length} habits for your plan.`,
+                action: 'navigate',
+                path: '/dashboard/habits',
+            }
+        }
+
+        case 'create_daily_study_plan': {
+            const planTitle = args.plan_title as string
+            const startDateStr = args.start_date as string
+            const durationMonths = Number(args.duration_months) || 3
+
+            let phases: any[] = []
+            if (Array.isArray(args.phases)) phases = args.phases
+            else if (typeof args.phases === 'string') {
+                try { phases = JSON.parse(args.phases) } catch (e) { }
+            }
+
+            if (phases.length === 0) throw new Error('No phases provided for study plan')
+
+            const startDate = new Date(startDateStr)
+            if (isNaN(startDate.getTime())) throw new Error('Invalid start_date')
+
+            const dailyTasksToInsert: { userId: string; title: string; description: string | null; priority: string; status: 'Todo'; dueDate: Date }[] = []
+
+            let cursor = new Date(startDate)
+
+            for (const phase of phases) {
+                const phaseWeeks = Number(phase.weeks) || 4
+                const phaseDays = phaseWeeks * 7
+                const topics: string[] = Array.isArray(phase.daily_topics) ? phase.daily_topics : []
+
+                if (topics.length === 0) continue
+
+                for (let day = 0; day < phaseDays; day++) {
+                    const topic = topics[day % topics.length]
+                    const dueDate = new Date(cursor)
+
+                    dailyTasksToInsert.push({
+                        userId,
+                        title: `[${phase.name}] ${topic}`,
+                        description: `Daily study task for ${planTitle}`,
+                        priority: 'Medium',
+                        status: 'Todo' as const,
+                        dueDate,
+                    })
+
+                    cursor.setDate(cursor.getDate() + 1)
+                }
+            }
+
+            // Insert in batches of 50 to avoid DB limits
+            const BATCH = 50
+            for (let i = 0; i < dailyTasksToInsert.length; i += BATCH) {
+                await db.insert(tasks).values(dailyTasksToInsert.slice(i, i + BATCH))
+            }
+
+            return {
+                result: `✅ Created **${dailyTasksToInsert.length} daily tasks** for your ${durationMonths}-month ${planTitle}. One task per day, topic-based.`,
+                action: 'navigate',
+                path: '/dashboard/tasks',
             }
         }
 
@@ -436,9 +827,11 @@ export async function POST(request: NextRequest) {
         // 6. ── SINGLE LLM CALL ────────────────────────────────────────────────
         //    This replaces the entire Mother → Child → Summary pipeline.
         //    On Groq: ~400ms. On local: ~1-2s (was 5-15s before).
+        // Use higher token limit for comprehensive plans (roadmaps, study plans)
+        const isComprehensivePlan = /\b(roadmap|plan|milestones|steps|journey|months?|weeks?)\b/i.test(message)
         const requestBody: any = {
             model: usingLocal ? localModel : 'llama-3.3-70b-versatile',
-            max_tokens: 1024,
+            max_tokens: isComprehensivePlan ? 8192 : 1024,
             messages: [
                 {
                     role: 'system',

@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
+import { SubmitButton } from '@/components/submit-button'
 import { updateLearningPath } from '@/app/dashboard/actions'
 import { db } from '@/lib/db'
 import { learningPaths } from '@/lib/db/schema'
@@ -73,7 +74,7 @@ export default async function EditLearningPathPage(props: { params: Promise<{ id
                             <Button variant="outline" asChild>
                                 <Link href="/dashboard/paths">Cancel</Link>
                             </Button>
-                            <Button type="submit">Update Path</Button>
+                            <SubmitButton>Update Path</SubmitButton>
                         </div>
                     </form>
                 </CardContent>

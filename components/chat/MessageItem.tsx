@@ -79,7 +79,8 @@ export function MessageItem({ message, isConsecutive, teamId, projectId, onDelet
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
 
     // Format time
-    const time = format(new Date(message.created_at), 'p')
+    const msgDate = new Date(message.created_at)
+    const time = !isNaN(msgDate.getTime()) ? format(msgDate, 'p') : '--:--'
 
     const handleCreateTask = () => {
         setIsCreateTaskOpen(true)
