@@ -368,27 +368,28 @@ export function AIAssistant() {
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 40, scale: 0.9, filter: 'blur(20px)' }}
-                        animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, y: 40, scale: 0.9, filter: 'blur(20px)' }}
-                        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 30 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                         className={cn(
                             'fixed z-50',
-                            // Responsive Positioning & Sizing
-                            'bottom-0 right-0 w-full h-full rounded-none', // XS/S: Full screen
-                            'sm:bottom-24 sm:right-8 sm:w-[420px] sm:h-auto sm:max-h-[min(700px,calc(100vh-10rem))] sm:rounded-[32px]', // MD: Standard
-                            'lg:w-[480px] lg:max-h-[min(800px,calc(100vh-12rem))] lg:rounded-[40px]', // L: Large
-                            'xl:w-[540px] xl:right-12 xl:bottom-32 xl:rounded-[48px]', // XL: Ultra-luxury
-
+                            // Mobile: bottom sheet style (not full screen)
+                            'bottom-0 right-0 left-0 w-full rounded-t-[28px]',
+                            'max-h-[85dvh]',
+                            // SM+: floating panel
+                            'sm:left-auto sm:bottom-24 sm:right-8 sm:w-[420px] sm:max-h-[min(700px,calc(100vh-10rem))] sm:rounded-[32px]',
+                            'lg:w-[480px] lg:max-h-[min(800px,calc(100vh-12rem))]',
+                            'xl:w-[520px] xl:right-10 xl:bottom-28',
                             'overflow-hidden flex flex-col',
-                            'border border-white/10',
-                            'glass-dark saturate-150 shadow-[0_20px_60px_rgba(0,0,0,0.6)]',
+                            'border border-white/10 border-b-0 sm:border-b',
+                            'glass-dark saturate-150 shadow-[0_-8px_40px_rgba(0,0,0,0.5)] sm:shadow-[0_20px_60px_rgba(0,0,0,0.6)]',
                         )}
                     >
                         {/* Interactive Background Grain & Mesh */}
-                        <div className="absolute inset-0 pointer-events-none opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-                        <div className="absolute -top-[20%] -right-[20%] w-[60%] h-[60%] bg-violet-500/10 blur-[100px] pointer-events-none rounded-full" />
-                        <div className="absolute -bottom-[20%] -left-[20%] w-[60%] h-[60%] bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full" />
+                        {/* Subtle background glows - hidden on mobile for perf */}
+                        <div className="absolute -top-[20%] -right-[20%] w-[60%] h-[60%] bg-violet-500/10 blur-[100px] pointer-events-none rounded-full hidden sm:block" />
+                        <div className="absolute -bottom-[20%] -left-[20%] w-[60%] h-[60%] bg-cyan-500/10 blur-[100px] pointer-events-none rounded-full hidden sm:block" />
                         {/* ── Header ─────────────────────────────────────── */}
                         <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 shrink-0 bg-white/5 backdrop-blur-md">
                             <div className="flex items-center gap-3">

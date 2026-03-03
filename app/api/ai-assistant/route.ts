@@ -712,7 +712,7 @@ async function executeTool(
         }
 
         case 'create_daily_study_plan': {
-            const planTitle = args.plan_title as string
+            const planTitle = (args.plan_title as string) || 'Study Plan'
             const startDateStr = args.start_date as string
             const durationMonths = Number(args.duration_months) || 3
 
@@ -724,45 +724,72 @@ async function executeTool(
 
             if (phases.length === 0) throw new Error('No phases provided for study plan')
 
-            const startDate = new Date(startDateStr)
+            const startDate = new Date(startDateStr || new Date().toISOString().split('T')[0])
             if (isNaN(startDate.getTime())) throw new Error('Invalid start_date')
 
+            // ── 1. Generate daily tasks ───────────────────────────────────────
             const dailyTasksToInsert: { userId: string; title: string; description: string | null; priority: string; status: 'Todo'; dueDate: Date }[] = []
-
             let cursor = new Date(startDate)
 
             for (const phase of phases) {
                 const phaseWeeks = Number(phase.weeks) || 4
                 const phaseDays = phaseWeeks * 7
                 const topics: string[] = Array.isArray(phase.daily_topics) ? phase.daily_topics : []
-
                 if (topics.length === 0) continue
 
                 for (let day = 0; day < phaseDays; day++) {
                     const topic = topics[day % topics.length]
-                    const dueDate = new Date(cursor)
-
                     dailyTasksToInsert.push({
                         userId,
                         title: `[${phase.name}] ${topic}`,
                         description: `Daily study task for ${planTitle}`,
                         priority: 'Medium',
                         status: 'Todo' as const,
-                        dueDate,
+                        dueDate: new Date(cursor),
                     })
-
                     cursor.setDate(cursor.getDate() + 1)
                 }
             }
 
-            // Insert in batches of 50 to avoid DB limits
+            // Insert tasks in batches of 50
             const BATCH = 50
             for (let i = 0; i < dailyTasksToInsert.length; i += BATCH) {
                 await db.insert(tasks).values(dailyTasksToInsert.slice(i, i + BATCH))
             }
 
+            // ── 2. Auto-create roadmap with phase milestones ───────────────────
+            const [newRoadmap] = await db.insert(roadmaps).values({
+                ownerId: userId,
+                title: planTitle,
+                description: `${durationMonths}-month study roadmap auto-generated from plan`,
+                status: 'In Progress',
+            }).returning()
+
+            if (newRoadmap) {
+                const roadmapStepsToInsert = phases.map((phase: any, idx: number) => ({
+                    roadmapId: newRoadmap.id,
+                    title: phase.name as string,
+                    description: `${phase.weeks} weeks — ${(phase.daily_topics as string[]).slice(0, 3).join(', ')}...`,
+                    order: idx,
+                }))
+                await db.insert(roadmapSteps).values(roadmapStepsToInsert)
+            }
+
+            // ── 3. Auto-create smart daily habits ─────────────────────────────
+            const autoHabits = [
+                { userId, name: `Study ${planTitle} daily (1+ hour)`, frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
+                { userId, name: 'Review today\'s topic notes', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
+                { userId, name: 'Practice with hands-on exercises', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
+                { userId, name: 'Read 1 article / watch 1 video', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
+                { userId, name: 'Track progress in V', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
+            ]
+            await db.insert(habits).values(autoHabits)
+
             return {
-                result: `✅ Created **${dailyTasksToInsert.length} daily tasks** for your ${durationMonths}-month ${planTitle}. One task per day, topic-based.`,
+                result: `✅ **${planTitle}** plan created!\n` +
+                    `📅 **${dailyTasksToInsert.length} daily tasks** (${durationMonths} months, 1 topic/day)\n` +
+                    `🛣️ **Roadmap** created with ${phases.length} milestone phases\n` +
+                    `⚡ **${autoHabits.length} daily habits** added to keep you consistent`,
                 action: 'navigate',
                 path: '/dashboard/tasks',
             }
@@ -845,9 +872,15 @@ export async function POST(request: NextRequest) {
 
         // Only attach tools if the message looks like an action request
         // This saves ~200ms on pure Q&A messages
+        const isDailyPlanRequest = /\b(daily|day|topic|task.*month|month.*task|study plan|study.*daily|daily.*study)\b/i.test(message)
         if (requiresTools) {
             requestBody.tools = TOOLS
-            requestBody.tool_choice = 'auto'
+            // For daily study plan requests, force the model to use create_daily_study_plan
+            if (isDailyPlanRequest) {
+                requestBody.tool_choice = { type: 'function', function: { name: 'create_daily_study_plan' } }
+            } else {
+                requestBody.tool_choice = 'auto'
+            }
         }
 
         let response
@@ -883,27 +916,38 @@ export async function POST(request: NextRequest) {
         // 7. Execute tool calls (if any)
         const results: any[] = []
         if (msg.tool_calls?.length > 0) {
-            // Run all tool calls — model may call multiple tools at once (e.g. create task + habit)
+            console.log('[AI] Tool calls received:', msg.tool_calls.map((tc: any) => tc.function.name))
+            // Run all tool calls — model may call multiple tools at once
             for (const tc of msg.tool_calls) {
                 const tName = tc.function.name
                 const tArgs = JSON.parse(tc.function.arguments || '{}')
+                console.log(`[AI] Executing tool: ${tName}`, Object.keys(tArgs))
                 try {
                     const res = await executeTool(tName, tArgs, userId)
+                    console.log(`[AI] Tool result: ${tName} ->`, res.result?.substring(0, 80))
                     results.push(res)
                 } catch (err) {
+                    console.error(`[AI] Tool error: ${tName}`, err)
                     results.push({
                         result: `❌ Failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
                         action: 'error'
                     })
                 }
             }
+        } else if (!msg.content) {
+            console.warn('[AI] No tool calls and no content returned. Full msg:', JSON.stringify(msg).substring(0, 300))
         }
 
         // 8. Return response
-        //    Navigation → return immediately with path
-        const navAction = results.find(r => r.action === 'navigate')
+        //    Navigation priority: daily_study_plan > roadmap > other navigate actions
+        const navAction =
+            results.find(r => r.action === 'navigate' && r.path?.includes('/tasks')) ||
+            results.find(r => r.action === 'navigate' && r.path?.includes('/roadmap')) ||
+            results.find(r => r.action === 'navigate')
         if (navAction) {
-            return NextResponse.json({ type: 'tool_result', ...navAction })
+            // Merge all results into a single message for the user
+            const allMessages = results.map(r => r.result).filter(Boolean).join('\n')
+            return NextResponse.json({ type: 'tool_result', ...navAction, result: allMessages || navAction.result })
         }
 
         //    Actions → return combined result text + refresh signal
