@@ -77,7 +77,7 @@ export function Sidebar({ className, isAdmin, isTeamOnly }: SidebarProps) {
                                 </svg>
                             </div>
                             <div className="flex flex-col justify-center">
-                                <span className="text-[14px] font-black tracking-widest text-foreground uppercase leading-none drop-shadow-sm font-syne">Track Habit</span>
+                                <span className="text-[14px] font-black tracking-widest text-foreground uppercase leading-none drop-shadow-sm font-syne">LifeOS</span>
                                 <span className="flex items-center gap-1.5 mt-1">
                                     <span className="relative flex h-2 w-2 shadow-[0_0_8px_oklch(var(--primary))] rounded-full">
                                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />

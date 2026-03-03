@@ -26,7 +26,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
               <Layout size={18} />
             </div>
-            V
+            LifeOs
           </div>
           <nav className="flex gap-4">
             <Link href="/login">
@@ -63,7 +63,7 @@ export default function LandingPage() {
                 className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/50"
               >
                 Master Your Life <br />
-                with <span className="text-primary italic">V</span>
+                with <span className="text-primary italic">LifeOs</span>
               </motion.h1>
 
               <motion.p
@@ -105,7 +105,7 @@ export default function LandingPage() {
           <div className="container px-6 mx-auto">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 className="text-3xl md:text-5xl font-bold mb-6">Everything you need to <span className="text-primary">excel</span></h2>
-              <p className="text-muted-foreground text-lg">Stop juggling multiple apps. V brings your entire digital life into one cohesive, intelligent system.</p>
+              <p className="text-muted-foreground text-lg">Stop juggling multiple apps. LifeOs brings your entire digital life into one cohesive, intelligent system.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -152,7 +152,7 @@ export default function LandingPage() {
 
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to take control?</h2>
               <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-                Join thousands of users who have transformed their productivity with V.
+                Join thousands of users who have transformed their productivity with LifeOs.
                 Start your journey today.
               </p>
               <Link href="/login">
@@ -171,10 +171,10 @@ export default function LandingPage() {
             <div className="w-6 h-6 rounded-md bg-primary/20 flex items-center justify-center text-primary">
               <Layout size={14} />
             </div>
-            V
+            LifeOs
           </div>
           <div className="text-sm text-muted-foreground text-center md:text-right">
-            <p>© 2026 V. All rights reserved.</p>
+            <p>© 2026 LifeOs. All rights reserved.</p>
             <p className="mt-1">Built for high-performers.</p>
           </div>
         </div>

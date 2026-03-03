@@ -29,9 +29,9 @@ export function LandingNavbar() {
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="relative flex items-center justify-center h-8 w-8 rounded-xl bg-gradient-to-bl from-violet-600 to-indigo-600 shadow-[0_0_15px_rgba(139,92,246,0.3)] overflow-hidden">
                         <span className="absolute inset-0 bg-white/10" />
-                        <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">V</span>
+                        <span className="text-white font-black text-[17px] tracking-tighter relative z-10 italic">L</span>
                     </div>
-                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-primary font-black tracking-tight text-xl">V</span>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 to-primary font-black tracking-tight text-xl">LifeOs</span>
                 </Link>
 
                 {/* Nav Links */}
