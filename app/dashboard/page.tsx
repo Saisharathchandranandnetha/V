@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { SpotlightCard } from '@/components/ui/spotlight-card'
 import { Progress } from '@/components/ui/progress'
-import { PlusCircle, CalendarCheck, CheckSquare, Target, DollarSign, ArrowUpRight, ArrowDownLeft, Library, BookOpen, Route, BarChart3, Settings, StickyNote, FolderOpen, Layers, Users, MessageSquare, Map as MapIcon, Layout } from 'lucide-react'
+import { PlusCircle, CalendarCheck, CheckSquare, Target, DollarSign, ArrowUpRight, ArrowDownLeft, Library, BookOpen, Route, BarChart3, Settings, StickyNote, FolderOpen, Layers, Users, MessageSquare, Map as MapIcon, Layout, Trophy, Globe2, Flag, Clock, Newspaper, Rss, Zap, TrendingUp, Cpu } from 'lucide-react'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { habits, habitLogs, tasks, goals, transactions, resources, notes, collections, categories, learningPaths } from '@/lib/db/schema'
@@ -275,6 +275,118 @@ export default async function DashboardPage() {
                             </Card>
                         </Link>
                     </HoverEffect>
+                </div>
+            </div>
+
+            {/* Two-column section: left = future content, right = sidebar cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4 pb-12">
+
+                {/* LEFT: placeholder for upcoming features (2/3 width) */}
+                <div className="lg:col-span-2 space-y-4">
+                    <Card className="p-6 border-dashed border-white/5 flex flex-col items-center justify-center min-h-[200px] text-center">
+                        <BarChart3 className="h-8 w-8 text-muted-foreground/30 mb-3" />
+                        <p className="text-sm font-semibold text-muted-foreground/50 tracking-wide">More widgets coming soon</p>
+                        <p className="text-xs text-muted-foreground/30 mt-1">AI insights · Activity heatmap · Weekly review</p>
+                    </Card>
+                </div>
+
+                {/* RIGHT SIDEBAR: Hackathon + Tech News stacked (1/3 width) */}
+                <div className="lg:col-span-1 space-y-4">
+
+                    {/* Hackathon Registrations */}
+                    <Card className="p-4 border-dashed border-white/10 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent pointer-events-none" />
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="h-7 w-7 rounded-md bg-yellow-500/10 flex items-center justify-center">
+                                    <Trophy className="h-3.5 w-3.5 text-yellow-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-foreground/90">Hackathons</h3>
+                                    <p className="text-[10px] text-muted-foreground">Upcoming competitions</p>
+                                </div>
+                            </div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-[9px] font-bold tracking-widest uppercase">
+                                <Clock className="h-2.5 w-2.5" /> Soon
+                            </span>
+                        </div>
+
+                        {/* National */}
+                        <div className="mb-3">
+                            <div className="flex items-center gap-1.5 mb-2">
+                                <Flag className="h-3 w-3 text-orange-400" />
+                                <span className="text-[10px] font-bold tracking-widest uppercase text-orange-400">National</span>
+                            </div>
+                            <div className="space-y-2">
+                                {[
+                                    { name: 'Smart India Hackathon 2025', date: 'Dec 2025' },
+                                    { name: 'HackWithInfy (Infosys)', date: 'Q3 2025' },
+                                    { name: 'Flipkart Grid 7.0', date: 'TBA' },
+                                ].map((h, i) => (
+                                    <div key={i} className="flex items-center justify-between gap-2">
+                                        <p className="text-xs text-foreground/80 leading-tight truncate">{h.name}</p>
+                                        <span className="shrink-0 text-[9px] font-bold text-orange-400/70 bg-orange-500/10 px-1.5 py-0.5 rounded-full">{h.date}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* International */}
+                        <div className="pt-3 border-t border-white/5">
+                            <div className="flex items-center gap-1.5 mb-2">
+                                <Globe2 className="h-3 w-3 text-violet-400" />
+                                <span className="text-[10px] font-bold tracking-widest uppercase text-violet-400">International</span>
+                            </div>
+                            <div className="space-y-2">
+                                {[
+                                    { name: 'Google Solution Challenge', date: 'Jan 2026' },
+                                    { name: 'NASA Space Apps', date: 'Oct 2025' },
+                                    { name: 'MLH Global Hackathon', date: 'Rolling' },
+                                ].map((h, i) => (
+                                    <div key={i} className="flex items-center justify-between gap-2">
+                                        <p className="text-xs text-foreground/80 leading-tight truncate">{h.name}</p>
+                                        <span className="shrink-0 text-[9px] font-bold text-violet-400/70 bg-violet-500/10 px-1.5 py-0.5 rounded-full">{h.date}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Daily Tech News */}
+                    <Card className="p-4 border-dashed border-white/10 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-blue-500/5 pointer-events-none" />
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="h-7 w-7 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                                    <Newspaper className="h-3.5 w-3.5 text-cyan-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-foreground/90">Daily Tech News</h3>
+                                    <p className="text-[10px] text-muted-foreground">AI · Security · Dev · Web3</p>
+                                </div>
+                            </div>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[9px] font-bold tracking-widest uppercase shrink-0">
+                                <Rss className="h-2.5 w-2.5" /> Soon
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            {[
+                                { icon: Cpu, label: 'AI & ML', color: 'text-violet-400', bg: 'bg-violet-500/10' },
+                                { icon: Globe2, label: 'Web3', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                                { icon: Zap, label: 'Security', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+                                { icon: TrendingUp, label: 'Startups', color: 'text-green-400', bg: 'bg-green-500/10' },
+                            ].map(({ icon: Icon, label, color, bg }) => (
+                                <div key={label} className={`flex items-center gap-2 p-2.5 rounded-lg ${bg} border border-white/5`}>
+                                    <Icon className={`h-3.5 w-3.5 ${color} shrink-0`} />
+                                    <span className="text-[10px] font-bold text-muted-foreground">{label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <p className="mt-3 text-[10px] text-muted-foreground/50 text-center">
+                            Curated headlines delivered daily
+                        </p>
+                    </Card>
+
                 </div>
             </div>
         </div>
