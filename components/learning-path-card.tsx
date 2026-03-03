@@ -44,7 +44,7 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
     return (
         <>
             <HoverEffect variant="lift" className="h-full w-full">
-                <SpotlightCard className={cn("flex flex-col h-full hover:shadow-md transition-shadow", isPending && "opacity-50", path.is_completed && "border-green-500/50 bg-green-50/10 dark:bg-green-900/10")}>
+                <SpotlightCard className={cn("hover:bg-accent/50 transition-colors cursor-pointer h-full flex flex-col justify-between bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border-indigo-500/20 hover:shadow-md transition-shadow", isPending && "opacity-50", path.is_completed && "border-green-500/50 bg-green-50/10 dark:bg-green-900/10")}>
                     <CardHeader className="p-4 pb-2">
                         <div className="flex justify-between items-start gap-2">
                             <div className="flex flex-wrap gap-2 items-center text-sm font-medium text-muted-foreground w-full min-w-0">
@@ -65,7 +65,7 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
                                         {path.is_completed ? <><CheckCircle2 className="mr-2 h-4 w-4" /> Mark as Incomplete</> : <><CheckCircle className="mr-2 h-4 w-4" /> Mark as Completed</>}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
-                                        <Link href={`/dashboard/paths/${path.id}/edit`} className="w-full cursor-pointer">
+                                        <Link href={`/dashboard/paths/${path.id}/edit`} prefetch={false} className="w-full cursor-pointer">
                                             <Pencil className="mr-2 h-4 w-4" />
                                             Edit
                                         </Link>
@@ -97,7 +97,9 @@ export function LearningPathCard({ path }: { path: LearningPathProps }) {
                             {path.title}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                            {!isNaN(new Date(path.created_at).getTime()) ? format(new Date(path.created_at), 'PPP') : 'Unknown Date'}
+                            {path.created_at && !isNaN(new Date(path.created_at).getTime())
+                                ? format(new Date(path.created_at), 'PPP')
+                                : 'Unknown date'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="p-4 pt-2 flex-1 space-y-4">
