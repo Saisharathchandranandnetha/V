@@ -3,8 +3,8 @@ import type { Viewport, Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: {
-    default: 'V',
-    template: '%s | V',
+    default: 'LifeOs',
+    template: '%s | LifeOs',
   },
   description: 'Master your habits, tasks, finances, and knowledge in one central hub.',
   icons: {

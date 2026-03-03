@@ -485,7 +485,7 @@ const TOOLS = [
 // ─── Single Agent System Prompt ───────────────────────────────────────────────
 // Replaces Mother Agent + all Child Agents + Summary Agent in one prompt.
 
-const SINGLE_AGENT_SYSTEM = `You are V — a smart, action-oriented life OS assistant.
+const SINGLE_AGENT_SYSTEM = `You are LifeOs — a smart, action-oriented life OS assistant.
 
 
 FEATURES YOU CAN CREATE (ALWAYS use the corresponding tool — NEVER just describe in text):
@@ -927,7 +927,7 @@ async function executeTool(
                 { userId, name: 'Review today\'s topic notes', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
                 { userId, name: 'Practice with hands-on exercises', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
                 { userId, name: 'Read 1 article / watch 1 video', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
-                { userId, name: 'Track progress in V', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
+                { userId, name: 'Track progress in LifeOs', frequency: 'Daily' as const, currentStreak: 0, longestStreak: 0 },
             ]
             await db.insert(habits).values(autoHabits)
 

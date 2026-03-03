@@ -22,10 +22,13 @@ export default function LoginPage() {
             <Card className="w-full max-w-md relative z-10 border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
                 <CardHeader className="space-y-3 pb-8">
                     <div className="flex justify-center mb-2">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                            <span className="text-xl font-bold text-white">V</span>
+                        <div className="h-12 px-5 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                            <span className="text-xl font-bold text-white tracking-tight">LifeOs</span>
                         </div>
                     </div>
+                    <p className="text-center text-xs text-zinc-500 italic mt-3">
+                        "The secret of getting ahead is getting started."
+                    </p>
                     <CardTitle className="text-3xl font-bold tracking-tight text-center bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
                         Welcome Back
                     </CardTitle>
