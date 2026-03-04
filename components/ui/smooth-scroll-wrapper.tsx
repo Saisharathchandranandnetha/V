@@ -15,8 +15,7 @@ export function SmoothScrollWrapper({ children }: { children: React.ReactNode })
         if (isChat) return
 
         const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            lerp: 0.06, // Creates that buttery infinite scroll feeling instead of fixed duration
             orientation: 'vertical',
             gestureOrientation: 'vertical',
             smoothWheel: true,

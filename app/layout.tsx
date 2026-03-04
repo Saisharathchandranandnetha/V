@@ -89,6 +89,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
+        suppressHydrationWarning
         className={`antialiased ${jakarta.variable} ${instrument.variable} ${syne.variable} font-sans selection:bg-primary/30 relative min-h-screen overflow-x-hidden`}
       >
         <NextTopLoader showSpinner={false} color="oklch(0.65 0.25 260)" />
@@ -96,7 +97,7 @@ export default async function RootLayout({
         <SessionProvider>
           <ThemeProvider
             attribute="class"
-            defaultTheme="system"
+            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >

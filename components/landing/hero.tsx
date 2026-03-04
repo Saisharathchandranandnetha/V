@@ -9,8 +9,13 @@ import Image from 'next/image';
 export function LandingHero() {
     return (
         <section className="relative min-h-screen flex flex-col items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
-            {/* Background Atmosphere */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-primary/10 blur-[120px] rounded-full pointer-events-none opacity-40 animate-pulse" />
+            {/* Background Atmosphere - Optimized (no CSS blur) */}
+            <div
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full pointer-events-none opacity-40 animate-pulse"
+                style={{
+                    background: 'radial-gradient(circle, rgba(var(--primary-rgb), 0.15) 0%, rgba(var(--primary-rgb), 0) 70%)'
+                }}
+            />
 
             <div className="max-w-5xl mx-auto text-center z-10">
                 {/* Confidence Line */}
