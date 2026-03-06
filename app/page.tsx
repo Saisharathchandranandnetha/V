@@ -3,7 +3,6 @@
 
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { SpotlightCard } from '@/components/ui/spotlight-card'
 import {
   CheckCircle,
   Zap,
@@ -12,187 +11,190 @@ import {
   ArrowRight,
   Target,
   Wallet,
-  BookOpen
+  BookOpen,
+  ChevronDown,
 } from 'lucide-react'
-import * as motion from 'framer-motion/client'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { CanvasScrollSequence } from '@/components/landing/canvas-scroll-sequence'
 
 export default function LandingPage() {
+  // Hero text fades as user scrolls down the page
+  const { scrollYProgress } = useScroll()
+  const heroTextY = useTransform(scrollYProgress, [0, 0.3], [0, -100])
+  const heroTextOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
+
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Header */}
-      <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-background/50 backdrop-blur-xl">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+    <div className="flex flex-col min-h-screen bg-black overflow-x-hidden">
+
+      {/* ─── CANVAS: fixed behind everything, frames driven by FULL PAGE scroll ── */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <CanvasScrollSequence />
+      </div>
+
+      {/* ─── HEADER ────────────────────────────────── */}
+      <header className="fixed top-0 w-full z-50 border-b border-white/5 bg-black/20 backdrop-blur-2xl">
+        <div className="container mx-auto px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tighter">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
-              <Layout size={18} />
+            <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+              <Layout size={16} />
             </div>
-            LifeOs
+            <span className="text-white">LifeOs</span>
           </div>
-          <nav className="flex gap-4">
+          <nav className="hidden md:flex items-center gap-8 text-sm text-white/50">
+            <Link href="#features" className="hover:text-white transition-colors">Features</Link>
+          </nav>
+          <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost" className="text-muted-foreground hover:text-foreground">Sign In</Button>
+              <Button variant="ghost" className="text-white/60 hover:text-white text-sm">Sign In</Button>
             </Link>
             <Link href="/login">
-              <Button className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-105">
+              <Button className="bg-primary hover:bg-primary/90 text-white text-sm h-9 px-5 rounded-full shadow-lg shadow-primary/25">
                 Get Started
               </Button>
             </Link>
-          </nav>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col">
-        {/* Hero Section */}
-        <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-          <div className="container px-6 mx-auto relative z-10">
-            <div className="flex flex-col items-center text-center gap-8 max-w-4xl mx-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary backdrop-blur-sm"
-              >
-                <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse"></span>
-                v2.0 is now live
-              </motion.div>
+      <main className="relative z-10 flex-1 flex flex-col">
 
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-                className="text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-foreground to-foreground/50"
-              >
-                Master Your Life <br />
-                with <span className="text-primary italic">LifeOs</span>
-              </motion.h1>
+        {/* ─── HERO ───────────────────────── */}
+        <section className="relative h-screen flex items-center justify-center overflow-hidden">
+          {/* Gentle vignette so text is readable directly over the animation */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_65%_at_50%_50%,transparent_25%,rgba(0,0,0,0.55)_100%)] pointer-events-none" />
 
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="text-xl text-muted-foreground max-w-2xl leading-relaxed"
-              >
-                The all-in-one personal operating system. Track habits, manage tasks, control finances, and organize knowledge in one beautiful workspace.
-              </motion.p>
+          <motion.div
+            style={{ y: heroTextY, opacity: heroTextOpacity }}
+            className="relative z-10 text-center px-6 max-w-5xl mx-auto"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs font-semibold tracking-[0.15em] uppercase text-primary mb-8 backdrop-blur-sm"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              v2.0 Now Live
+            </motion.div>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="flex flex-col sm:flex-row gap-4 w-full justify-center pt-4"
-              >
-                <Link href="/login">
-                  <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/25 transition-all hover:scale-105 group">
-                    Start for Free
-                    <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link href="#features">
-                  <Button size="lg" variant="outline" className="h-14 px-8 text-lg rounded-full border-primary/20 bg-background/50 backdrop-blur-sm hover:bg-primary/5 transition-all">
-                    Explore Features
-                  </Button>
-                </Link>
-              </motion.div>
-            </div>
-          </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="text-[clamp(3.5rem,8vw,8rem)] font-black tracking-[-0.04em] leading-[0.9] mb-8 text-white"
+            >
+              Your Entire Life.
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-cyan-400">
+                One OS.
+              </span>
+            </motion.h1>
 
-          {/* Hero Background Elements */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10 pointer-events-none" />
-        </section>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.25 }}
+              className="text-lg md:text-xl text-white/50 max-w-xl mx-auto mb-12 leading-relaxed"
+            >
+              Habits. Tasks. Finance. Knowledge. All unified in one intelligence.
+            </motion.p>
 
-        {/* Features Grid */}
-        <section id="features" className="py-24 bg-background/30 backdrop-blur-sm border-t border-white/5">
-          <div className="container px-6 mx-auto">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold mb-6">Everything you need to <span className="text-primary">excel</span></h2>
-              <p className="text-muted-foreground text-lg">Stop juggling multiple apps. LifeOs brings your entire digital life into one cohesive, intelligent system.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <FeatureCard
-                icon={<Target className="text-primary" size={32} />}
-                title="Habit Tracking"
-                description="Build positive routines with streak tracking, analytics, and gamified progress bars."
-              />
-              <FeatureCard
-                icon={<CheckCircle className="text-blue-500" size={32} />}
-                title="Task Management"
-                description="Organize your day with a powerful task manager supporting projects, priorities, and deadlines."
-              />
-              <FeatureCard
-                icon={<Wallet className="text-green-500" size={32} />}
-                title="Finance Tracker"
-                description="Keep your finances in check. Track income, expenses, and visualize your savings goals."
-              />
-              <FeatureCard
-                icon={<BookOpen className="text-cyan-500" size={32} />}
-                title="Knowledge Base"
-                description="A second brain for your ideas. Create notes, organize resources, and never lose a thought."
-              />
-              <FeatureCard
-                icon={<TrendingUp className="text-orange-500" size={32} />}
-                title="Analytics & Insights"
-                description="Visualize your productivity with beautiful charts and data-driven insights."
-              />
-              <FeatureCard
-                icon={<Zap className="text-yellow-500" size={32} />}
-                title="Gamification"
-                description="Level up your life. Earn XP for completing tasks and staying consistent with habits."
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* Philosophy / CTA */}
-        <section className="py-24 relative overflow-hidden">
-          <div className="container px-6 mx-auto relative z-10">
-            <div className="bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 rounded-3xl p-8 md:p-16 text-center overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-3xl rounded-full pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 blur-3xl rounded-full pointer-events-none" />
-
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to take control?</h2>
-              <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-                Join thousands of users who have transformed their productivity with LifeOs.
-                Start your journey today.
-              </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            >
               <Link href="/login">
-                <Button size="lg" className="h-14 px-10 text-lg rounded-full bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20">
-                  Get Started Now
+                <Button size="lg" className="h-14 px-10 text-base font-bold rounded-full bg-white text-black hover:bg-white/90 shadow-[0_0_60px_rgba(255,255,255,0.15)] transition-all hover:scale-105 group">
+                  Start for Free
+                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
+              <Link href="#features">
+                <Button size="lg" variant="outline" className="h-14 px-10 text-base font-bold rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10 backdrop-blur-sm">
+                  See Features
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/30 text-xs tracking-widest uppercase">
+            <span>Scroll to explore</span>
+            <ChevronDown className="w-4 h-4 animate-bounce" />
+          </div>
+        </section>
+
+        {/* ─── FEATURES — NO dark overlay, fully transparent ─── */}
+        <section id="features" className="relative py-32">
+          <div className="container mx-auto px-8">
+            <div className="text-center max-w-3xl mx-auto mb-20">
+              <h2 className="text-5xl md:text-6xl font-black tracking-tight text-white mb-6">
+                Built for people who
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-400"> refuse to settle.</span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[
+                { icon: <Target className="text-violet-400" size={28} />, color: 'from-violet-500/15', title: 'Habit Tracking', desc: 'Build unbreakable routines with streaks, analytics, and gamified XP.' },
+                { icon: <CheckCircle className="text-blue-400" size={28} />, color: 'from-blue-500/15', title: 'Task Management', desc: 'Prioritise ruthlessly. Ship faster with a zero-friction task engine.' },
+                { icon: <Wallet className="text-emerald-400" size={28} />, color: 'from-emerald-500/15', title: 'Finance Tracker', desc: 'Full control of every penny. Track income, expenses, savings.' },
+                { icon: <BookOpen className="text-cyan-400" size={28} />, color: 'from-cyan-500/15', title: 'Knowledge Base', desc: 'Your second brain. Capture ideas, link notes, never lose insight.' },
+                { icon: <TrendingUp className="text-orange-400" size={28} />, color: 'from-orange-500/15', title: 'Analytics & Insights', desc: 'Data-driven clarity on every area of your life. Beautiful. Actionable.' },
+                { icon: <Zap className="text-yellow-400" size={28} />, color: 'from-yellow-500/15', title: 'AI Automation', desc: "An AI that executes, not just suggests. Your co-pilot at full throttle." },
+              ].map((card, i) => (
+                <motion.div
+                  key={card.title}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.5, delay: i * 0.07 }}
+                  whileHover={{ y: -4 }}
+                  className="relative rounded-2xl p-7 bg-white/[0.06] backdrop-blur-xl border border-white/10 hover:border-white/25 transition-all duration-300 overflow-hidden"
+                >
+                  <div className={`absolute inset-0 bg-gradient-to-br ${card.color} to-transparent pointer-events-none`} />
+                  <div className="relative w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mb-5">{card.icon}</div>
+                  <h3 className="relative text-lg font-bold text-white mb-2">{card.title}</h3>
+                  <p className="relative text-white/50 text-sm leading-relaxed">{card.desc}</p>
+                </motion.div>
+              ))}
             </div>
           </div>
         </section>
+
+        {/* ─── CTA — fully transparent ─── */}
+        <section className="relative py-32 mb-16">
+          <div className="container mx-auto px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="relative rounded-3xl border border-white/10 bg-white/[0.04] backdrop-blur-2xl text-center p-16 md:p-24 overflow-hidden"
+            >
+              <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/15 blur-[100px] rounded-full pointer-events-none" />
+              <h2 className="relative text-5xl md:text-7xl font-black tracking-tight text-white mb-6 leading-tight">
+                Stop managing.<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-400 to-cyan-400">Start thriving.</span>
+              </h2>
+              <Link href="/login">
+                <Button size="lg" className="h-16 px-16 text-base mt-8 font-bold rounded-full bg-white text-black hover:bg-white/90 shadow-[0_0_80px_rgba(255,255,255,0.2)] transition-all hover:scale-105">
+                  Get Started — It&apos;s Free
+                </Button>
+              </Link>
+            </motion.div>
+          </div>
+        </section>
+
       </main>
 
-      <footer className="border-t border-white/5 py-12 bg-background/50 backdrop-blur-md">
-        <div className="container px-6 mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2 font-bold text-lg">
-            <div className="w-6 h-6 rounded-md bg-primary/20 flex items-center justify-center text-primary">
-              <Layout size={14} />
-            </div>
-            LifeOs
-          </div>
-          <div className="text-sm text-muted-foreground text-center md:text-right">
-            <p>© 2026 LifeOs. All rights reserved.</p>
-            <p className="mt-1">Built for high-performers.</p>
-          </div>
+      <footer className="relative z-10 border-t border-white/5 py-10 bg-black/20 backdrop-blur-sm">
+        <div className="container mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-white/30">
+          <div className="flex items-center gap-2 font-bold text-white/60"><Layout size={14} /> LifeOs</div>
+          <p>© 2026 LifeOs. Built for high-performers.</p>
         </div>
       </footer>
     </div>
-  )
-}
-
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
-  return (
-    <SpotlightCard className="bg-card/30 border-white/5 hover:border-primary/20 transition-colors">
-      <div className="h-12 w-12 rounded-xl bg-background/50 border border-white/5 flex items-center justify-center mb-4">
-        {icon}
-      </div>
-      <h3 className="text-xl font-bold mb-2">{title}</h3>
-      <p className="text-muted-foreground leading-relaxed">
-        {description}
-      </p>
-    </SpotlightCard>
   )
 }

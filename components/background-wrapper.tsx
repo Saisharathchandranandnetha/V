@@ -112,6 +112,7 @@ export function BackgroundWrapper({ deviceType, customUrl, children }: Backgroun
                             src="/bg-abstract-light-v2.png"
                             alt="Background Light"
                             fill
+                            sizes="100vw"
                             className="object-cover transition-opacity duration-700 dark:hidden opacity-80"
                             priority={true}
                             quality={deviceType === 'mobile' ? 60 : 80}
@@ -122,14 +123,15 @@ export function BackgroundWrapper({ deviceType, customUrl, children }: Backgroun
                             src="/bg-abstract.png"
                             alt="Background Dark"
                             fill
+                            sizes="100vw"
                             className="object-cover transition-opacity duration-700 hidden dark:block opacity-80"
                             priority={true}
                             quality={deviceType === 'mobile' ? 60 : 80}
                             onLoad={(e) => setImgElement(e.currentTarget)}
                         />
 
-                        {/* Soft overlay to ensure readability */}
-                        <div className="absolute inset-0 bg-white/60 dark:bg-black/60 backdrop-blur-[20px] transition-colors duration-500" />
+                        {/* Soft overlay to ensure readability without expensive blurs */}
+                        <div className="absolute inset-0 bg-background/95 transition-colors duration-500" />
                     </div>
                 )}
             </div>
