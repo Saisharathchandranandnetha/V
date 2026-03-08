@@ -27,7 +27,7 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <p className="text-center text-xs text-zinc-500 italic mt-3">
-                        "The secret of getting ahead is getting started."
+                        &quot;The secret of getting ahead is getting started.&quot;
                     </p>
                     <CardTitle className="text-3xl font-bold tracking-tight text-center bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent">
                         Welcome Back
