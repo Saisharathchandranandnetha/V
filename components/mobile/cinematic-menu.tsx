@@ -27,6 +27,7 @@ export function CinematicMenu({ open, onClose, user, isAdmin }: CinematicMenuPro
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
 

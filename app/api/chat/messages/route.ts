@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
 
     if (!teamId) return NextResponse.json({ error: 'teamId is required' }, { status: 400 })
 
-    let dateCursor = cursorStr ? new Date(cursorStr) : new Date()
+    const dateCursor = cursorStr ? new Date(cursorStr) : new Date()
 
     const conditions = [
         eq(teamMessages.teamId, teamId),

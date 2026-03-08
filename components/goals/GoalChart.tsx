@@ -28,14 +28,14 @@ export function GoalChart({ logs, targetValue, color }: GoalChartProps) {
     const sortedLogs = [...logs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
 
     // Calculate cumulative progress
-    let cumulative = 0
-    const data = sortedLogs.map(log => {
-        cumulative += Number(log.addedValue)
-        return {
+    const data = sortedLogs.reduce((acc: { date: string; value: number }[], log) => {
+        const prevValue = acc.length > 0 ? acc[acc.length - 1].value : 0
+        acc.push({
             date: format(new Date(log.createdAt), 'MMM d'),
-            value: cumulative,
-        }
-    })
+            value: prevValue + Number(log.addedValue),
+        })
+        return acc
+    }, [])
 
     return (
         <div className="h-32 w-full mt-4">

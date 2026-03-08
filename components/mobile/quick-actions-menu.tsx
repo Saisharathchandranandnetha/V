@@ -33,6 +33,7 @@ export function QuickActionsMenu({ open, onClose }: QuickActionsMenuProps) {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line
         setMounted(true);
     }, []);
 

@@ -875,7 +875,7 @@ async function executeTool(
 
             // ── 1. Generate daily tasks ───────────────────────────────────────
             const dailyTasksToInsert: { userId: string; title: string; description: string | null; priority: string; status: 'Todo'; dueDate: Date }[] = []
-            let cursor = new Date(startDate)
+            const cursor = new Date(startDate)
 
             for (const phase of phases) {
                 const phaseWeeks = Number(phase.weeks) || 4

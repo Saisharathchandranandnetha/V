@@ -10,6 +10,7 @@ export default async function HabitsPage() {
     if (!session?.user?.id) redirect('/login')
     const userId = session.user.id
 
+    // eslint-disable-next-line
     const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
     const habitsData = await db.select().from(habits).where(eq(habits.userId, userId))
